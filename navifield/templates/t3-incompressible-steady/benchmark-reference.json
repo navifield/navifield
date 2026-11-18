@@ -1,0 +1,23 @@
+{
+  "description": "One public reduced-mesh pipe example",
+  "measured": true,
+  "geometry": "smooth circular pipe, 5 degree wedge, D=0.1 m, L=10 m",
+  "reference": "IAEA Eq. 310: Blasius Darcy friction factor 0.316 Re^-0.25; 4000 <= Re <= 100000",
+  "reference_url": "https://www-pub.iaea.org/MTCD/publications/PDF/CRCP_SOD_003web.pdf",
+  "nominal_re": 10000,
+  "nominal_reference_pressure_drop_pa": 3.16,
+  "actual_pressure_drop_pa": 3.08960445,
+  "relative_error_percent": -2.22771,
+  "readback": "pressure difference x=7 to x=9 m, multiplied by density; check development, cross-section pressure and convergence",
+  "mesh_cells": 48000,
+  "parallel_processes": 8,
+  "solver_iterations": 3000,
+  "solver_exit_code": 0,
+  "reference_pressure_drop_pa": 3.16,
+  "window_iterations": [2775, 3000],
+  "window_sample_count": 10,
+  "solver_wall_seconds": 183.497022,
+  "solver_core_hours": 0.40777116,
+  "wall_yplus_max": 1.606982016,
+  "mass_flux_imbalance_fraction": 1.83579e-10
+}

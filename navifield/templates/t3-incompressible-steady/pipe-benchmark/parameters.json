@@ -1,0 +1,6 @@
+{
+  "wall_k_condition": "type fixedValue; value uniform 0;",
+  "wall_nut_condition": "type nutLowReWallFunction; value uniform 0;",
+  "wall_omega_condition": "type omegaWallFunction; value uniform 1.5971914125;",
+  "extra_boundary_conditions": "axis { type empty; }"
+}

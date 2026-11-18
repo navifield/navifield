@@ -1,0 +1,7 @@
+pipePressure
+{
+ type probes; libs (sampling); fields (p U k);
+ interpolationScheme cellPoint;
+ probeLocations ((5 0.025 0) (7 0.025 0) (9 0.025 0) (7 0.01 0) (7 0.04 0) (9 0.01 0) (9 0.04 0));
+ writeControl timeStep; writeInterval 25;
+}

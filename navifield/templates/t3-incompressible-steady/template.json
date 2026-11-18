@@ -1,0 +1,36 @@
+{
+  "name": "T3 incompressible steady kOmegaSST",
+  "toolchain": "openfoam",
+  "parameters": {
+    "velocity_m_s": 0.1,
+    "nu_m2_s": 1e-06,
+    "k_m2_s2": 3.75e-05,
+    "omega_s_inv": 1.5971914125,
+    "end_step": 3000,
+    "write_interval": 500,
+    "block_mesh_dictionary": null,
+    "wall_k_condition": "type kqRWallFunction; value uniform 3.75e-5;",
+    "wall_omega_condition": "type omegaWallFunction; value uniform 1.5971914125;",
+    "wall_nut_condition": "type nutkWallFunction; value uniform 0;",
+    "extra_boundary_conditions": ""
+  },
+  "substitute_files": [
+    "system/blockMeshDict",
+    "system/controlDict",
+    "0/U",
+    "0/k",
+    "0/omega",
+    "0/nut",
+    "constant/transportProperties",
+    "0/p"
+  ],
+  "notes": "SST starting template; pipe benchmark measured for the stated public instance only. Provide compatible geometry and patches.",
+  "benchmark": {
+    "measured": true,
+    "description": "One public reduced-mesh pipe example",
+    "reference": "Smooth fully developed pipe; Darcy-Weisbach and Blasius 4000 <= Re <= 100000",
+    "measured_pressure_drop_pa": 3.08960445,
+    "reference_pressure_drop_pa": 3.16,
+    "relative_error_percent": -2.22771
+  }
+}
