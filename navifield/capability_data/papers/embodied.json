@@ -1,0 +1,694 @@
+[
+  {
+    "id": "fluent-cleaning-robot-adhesion-2025",
+    "doi": "10.3390/app15010080",
+    "title": "Theoretical and Simulation Study of Suction Force in Wall-Climbing Cleaning Robots with Negative Pressure Adsorption",
+    "authors": "Zheng Zhang, Shida Yang, Peixian Zhang, Chaobin Xu, Bazhou Li, Yang Li",
+    "year": 2025,
+    "software": "Fluent",
+    "software_version": "5.1.0",
+    "industry": "具身智能 / 爬壁清洁机器人",
+    "targets": [
+      "suction_force",
+      "chamber_pressure"
+    ],
+    "robot_task": "给立面清洁机器人选吸附单元，判断叶轮和裙边间隙对静态附着力的影响。",
+    "loop_scope": "吸附子系统的 CFD 与实物台架对照，论文未以该台架验证自主清洁或沿壁行走闭环。",
+    "source_url": "https://www.mdpi.com/2076-3417/15/1/80",
+    "source_locator": "图 2–4、图 12–15、表 3；叶片数分析正文标注 Fluent 版本。卷期为 2025，在线发表于 2024-12-26。",
+    "conditions": [
+      "主动旋流负压吸附，固定工作面与风扇转速，比较叶片数量、叶片厚度和间隙。"
+    ],
+    "model_chain": [
+      "从叶轮及泄漏间隙几何求吸附腔内流场、负压分布和法向吸力。",
+      "台架上记录稳定转速时两只力传感器的合力，扣除自重得到吸力，与 CFD 的转速曲线比较。"
+    ],
+    "required_inputs": [
+      "叶轮和腔体几何、叶片数量与厚度、转速、裙边与壁面的实际间隙。",
+      "环境压力、工作面、传感器零点与吸附单元自重。"
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "chamber_pressure",
+        "detail": "CFD 比较同转速下不同叶片数的腔内负压分布。",
+        "locator": "图 12a、图 13"
+      },
+      {
+        "kind": "derived",
+        "quantity": "suction_force",
+        "detail": "作者在四叶片、1 mm 厚叶片试验中报告最大吸力 133.3 N；吸力按台架载荷扣减自重。",
+        "locator": "图 4；表 3 前正文"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "suction_force",
+        "detail": "图 12b、c 分别给出吸力随转速的计算和实验曲线。",
+        "locator": "图 12b–c"
+      }
+    ],
+    "limitations": [
+      "台架法向吸力不能单独确定壁面行走负载，还需要摩擦、脱附力矩和动态工况。",
+      "133.3 N 为指定构型的最大试验读数。"
+    ],
+    "provenance": "作者吸力台架与流场仿真，按期刊卷年建索引。",
+    "robot_validation": "部件或机体物理试验"
+  },
+  {
+    "id": "fluent-soft-robot-fish-2025",
+    "doi": "10.1038/s44182-025-00052-1",
+    "title": "Bio-inspired rigid-flexible coupled skin-scales system for enhanced protection in soft robotic fish",
+    "authors": "Jieyu Wang, Yuxiang Li, Shiwei Tian, Yihan Zhao, Gaoke Ren, Fengfeng Xi, Yinjun Zhao",
+    "year": 2025,
+    "software": "Fluent",
+    "software_version": null,
+    "industry": "具身智能 / 水下软体机器人",
+    "targets": [
+      "swimming_speed",
+      "hydrodynamic_drag"
+    ],
+    "robot_task": "评估软体机器鱼更换外皮后游速与水阻的变化。",
+    "loop_scope": "给定摆尾驱动的水槽推进试验和稳态外流模拟；没有从感知到自主游动策略的验证。",
+    "source_url": "https://www.nature.com/articles/s44182-025-00052-1.pdf",
+    "source_locator": "图 5（水槽运动）、图 6 与补表 S7（外流阻力），Methods 中 Swimming performance 与 CFD simulation methodology。",
+    "conditions": [
+      "水槽水深 300 mm，机器人用缆供电，比较两种外皮及 2–5 Hz 摆尾驱动。",
+      "稳态 CFD 在 5–20 cm/s 均匀来流下比较两种外形。"
+    ],
+    "model_chain": [
+      "在 Fluent 中用 SST k–ω 求静止几何周围的流场，分别积分压力和黏性作用得到阻力。",
+      "实物上改变驱动频率，高速摄影测得鱼头通过两条基准线的时间，由距离与时间计算游速。"
+    ],
+    "required_inputs": [
+      "两种外皮几何、流域、来流速度、水物性和无滑移边界。",
+      "摆尾驱动频率、鱼体构型、相机帧率、基准线距离与系缆状态。"
+    ],
+    "observations": [
+      {
+        "kind": "derived",
+        "quantity": "swimming_speed",
+        "detail": "带鳞片外皮的原型在 3 Hz 时峰值游速为 12.8 cm/s，约为光滑外皮原型峰值的 87%。",
+        "locator": "图 5，游泳性能试验和结果"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "hydrodynamic_drag",
+        "detail": "作者报告两种外形的总阻力曲线接近；图 6 分列压差阻力与黏性阻力。",
+        "locator": "图 6、补表 S7"
+      }
+    ],
+    "limitations": [
+      "游速来自摆尾实物试验；稳态外流 CFD 没有计算运动鱼体的自推进速度。",
+      "未确认 Fluent 版本；小幅阻力差须结合网格不确定度。"
+    ],
+    "provenance": "作者自制两种机器鱼原型、水槽摄影及表面外流计算。",
+    "robot_validation": "部件或机体物理试验"
+  },
+  {
+    "id": "isaac-industreal-assembly-2023",
+    "doi": "10.15607/RSS.2023.XIX.039",
+    "title": "IndustReal: Transferring Contact-Rich Assembly Tasks from Simulation to Reality",
+    "authors": "Bingjie Tang, Michael A. Lin, Iretiayo Akinola, Ankur Handa, Gaurav S. Sukhatme, Fabio Ramos, Dieter Fox, Yashraj Narang",
+    "year": 2023,
+    "software": "Isaac Gym",
+    "software_version": null,
+    "industry": "具身智能 / 工业机器人装配",
+    "targets": [
+      "insertion_success_rate",
+      "engagement_rate",
+      "placement_error"
+    ],
+    "robot_task": "机械臂定位散放的零件，抓起并搬运，将销、齿轮或连接件完整插入。",
+    "loop_scope": "仿真训练后在真实 Franka 机械臂上执行感知、抓取、搬运和插入；真机对整次任务按件计数。",
+    "source_url": "https://roboticsproceedings.org/rss19/p039.pdf",
+    "source_locator": "§III–V 方法与部署；§VI、图 7、表 III 真机试验；§VIII 局限。",
+    "conditions": [
+      "NIST 工业装配基准衍生零件，随机摆放，真机比较单独插入与抓取—放置—插入序列。"
+    ],
+    "model_chain": [
+      "在 Isaac Gym 的 Factory 环境中模拟刚体接触，利用穿透检查、距离场奖励和分阶段采样训练操作策略。",
+      "部署时由视觉定位零件，结合机械臂状态生成末端动作；动作积分器将策略输出送入控制器，再用新的状态继续执行。"
+    ],
+    "required_inputs": [
+      "机械臂、夹爪和配合件几何、接触参数及装配公差。",
+      "物体位姿观测及误差、机器人状态和控制器配置；预先区分完全插入与部分啮合。"
+    ],
+    "observations": [
+      {
+        "kind": "derived",
+        "quantity": "insertion_success_rate",
+        "detail": "完整抓取—放置—插入任务在表 III 的 120 次真机试验中完全插入 107 次。",
+        "locator": "表 III，Pick-Place-Insert / Success"
+      },
+      {
+        "kind": "derived",
+        "quantity": "engagement_rate",
+        "detail": "同一组 120 次中有 113 次至少达到部分啮合，该口径包含完整插入。",
+        "locator": "表 III，Pick-Place-Insert / Engage"
+      },
+      {
+        "kind": "derived",
+        "quantity": "placement_error",
+        "detail": "单独放置试验报告到目标的平均距离 4.23 ± 1.96 mm。",
+        "locator": "§VI.B、图 S9b"
+      }
+    ],
+    "limitations": [
+      "完整插入与部分啮合的计数不可互换。真机失效包括抓持滑动和零件楔紧。",
+      "刚性配合件的结果不直接外推至软线缆、其他夹具或任意装配公差。具体 Isaac Gym 发行版本未核实。"
+    ],
+    "provenance": "作者仿真训练及真机试验；分母、成功与部分啮合均以表 III 为准。",
+    "robot_validation": "真机任务闭环"
+  },
+  {
+    "id": "comsol-pdms-horticulture-gripper-2019",
+    "doi": "10.3390/act8040076",
+    "title": "Pneumatic Hyperelastic Actuators for Grasping Curved Organic Objects",
+    "authors": "Alexandre Galley, George K. Knopf, Mohamed Kashkoush",
+    "year": 2019,
+    "software_version": null,
+    "industry": "具身智能 / 园艺采摘末端执行器",
+    "targets": [
+      "wall_displacement",
+      "contact_area",
+      "contact_pressure",
+      "contact_force",
+      "slip_payload_mass"
+    ],
+    "source_url": "https://www.mdpi.com/2076-0825/8/4/76",
+    "source_locator": "§2.3–2.4 图3–5；§3 图6–8；§4.1 图9；§4.2 表2/图10；§4.3 图11–12",
+    "conditions": [
+      "硅橡胶 PDMS 气囊可变形墙厚 1.5、2、2.5 mm",
+      "位移台架供气 34.47–68.94 kPa，间隔 6.89 kPa；接触压力模拟供气 34.47 kPa"
+    ],
+    "model_chain": [
+      "在 COMSOL Multiphysics 中用结构力学与非线性材料模块分析单个可充气 PDMS 执行器，凸壁固定，内压加载",
+      "使用近不可压缩 Mooney–Rivlin 模型与泊松比 0.49，比较壁厚、腔体高度及弧角",
+      "用单执行器台架检查位移趋势；夹具样机以涂印测面积、加砝码测滑脱质量，并演示取下蘑菇"
+    ],
+    "required_inputs": [
+      "气动执行器腔体几何、壁厚、弧角与固定方式",
+      "PDMS 超弹性参数、供气压力、变形测点",
+      "对照物尺寸形状、接触面积测量方法及砝码加载条件"
+    ],
+    "observations": [
+      {
+        "kind": "comparison",
+        "quantity": "wall_displacement",
+        "detail": "在 34.47–68.94 kPa 各压力点以 120 Hz 采样、分别对三次 10 s 试验平均；模拟再现位移随充气压力增大的趋势，曲线有偏差。",
+        "locator": "§4.1 图9"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "contact_pressure",
+        "detail": "在 34.47 kPa 供气下，三种壁厚的模型接触压力分别为 37、36.8、35.5 kPa。",
+        "locator": "§4.2 表2"
+      },
+      {
+        "kind": "measured",
+        "quantity": "contact_area",
+        "detail": "夹取直径 60 mm 泡沫球，通过转印实测接触面积分别为 424.4、498.5、542.3 mm²。",
+        "locator": "§4.2 表2"
+      },
+      {
+        "kind": "derived",
+        "quantity": "contact_force",
+        "detail": "用模型接触压力乘实测接触面积，作者报告分别为 15.7、18.4、19.3 N。",
+        "locator": "§4.2 式3/表2"
+      },
+      {
+        "kind": "measured",
+        "quantity": "slip_payload_mass",
+        "detail": "三种壁厚夹具的球体滑脱质量分别为 1.175、0.875、0.675 kg，圆柱分别为 2.3、1.975、1.375 kg。",
+        "locator": "§4.2 表2/图10"
+      }
+    ],
+    "limitations": [
+      "低于 34.47 kPa 时调压器和压力表读数准确度不足，高于 68.94 kPa 时部分试件提前破裂",
+      "接触力取简化估计；蘑菇损伤通过目视判定，实测对象为螺栓固定的样件，摩擦和外部环境泛化仍待验证",
+      "COMSOL 版本号未载明"
+    ],
+    "provenance": "出版商开放原始研究，位移台架、加砝码实验和采摘演示均由论文作者实施。",
+    "software": "COMSOL",
+    "robot_task": "以充气变形的柔性夹具抓取并从固定件取下易损蘑菇样品。",
+    "loop_scope": "COMSOL 模型覆盖单执行器的超弹性变形与接触压力，夹具滑脱和采摘由实物台架验证，论文未报告机器人闭环控制。",
+    "robot_validation": "部件或机体物理试验"
+  },
+  {
+    "id": "comsol-oblique-pneumatic-actuator-grasp-2023",
+    "doi": "10.3390/act12120446",
+    "title": "Design of Soft Pneumatic Actuator with Two Oblique Chambers for Coupled Bending and Twisting Movements",
+    "authors": "Ebrahim Shahabi, Behnam Kamare, Francesco Visentin, Alessio Mondini, Barbara Mazzolai",
+    "year": 2023,
+    "software_version": "6.0",
+    "industry": "具身智能 / 通用物品柔性抓取",
+    "targets": [
+      "tip_workspace",
+      "pullout_force"
+    ],
+    "source_url": "https://www.mdpi.com/2076-0825/12/12/446",
+    "source_locator": "§2 图1–2/表1；§3.3–3.5 图7–10；§4；Data Availability Statement",
+    "conditions": [
+      "扫描 15°、30°、45°、60°、75° 五种斜腔角度，制作 45° 样件",
+      "逐腔及双腔测试 0–80 kPa、间隔 10 kPa；拉脱试验行程 150 mm、速度 5 mm/s"
+    ],
+    "model_chain": [
+      "用 COMSOL Multiphysics 6.0 Solid Mechanics 建立单只双通道 Pneu-net 执行器有限元模型",
+      "Dragon Skin 20 使用不可压缩 Yeoh 超弹性，固定供气端，给左右腔内壁施加可独立设定的静态压力并计入重力",
+      "用执行器末端位置构造工作空间；夹持塑料瓶、玻璃瓶、杯、花盆和线轴时以独立台架记录拉脱力"
+    ],
+    "required_inputs": [
+      "左右斜腔角度、腔体与壁厚几何、固定位置及末端追踪点",
+      "Dragon Skin 20 的超弹性系数、密度、各腔压力工况",
+      "被抓物体形状尺寸、接触姿态、载荷传感器及拉脱速度"
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "tip_workspace",
+        "detail": "图8 灰区来自 45° 构型的有限元计算，彩色点对应不同加压状态下追踪的样件末端。",
+        "locator": "§3.4 图8"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "tip_workspace",
+        "detail": "模拟及样件在不高于 30 kPa 时响应很小，70–80 kPa 时有明显运动；作者用 80 kPa 为提取较大位移的参考点。",
+        "locator": "§3.4 图8"
+      },
+      {
+        "kind": "measured",
+        "quantity": "pullout_force",
+        "detail": "线轴拉脱峰值约 12 N；其他对象平均 2.23 N，§3.5 报告局部峰值 3.85 N。",
+        "locator": "§3.5 图9–10"
+      }
+    ],
+    "limitations": [
+      "仿真针对单个执行器受压运动，拉脱力来自实物夹持台架；没有量化夹持接触力场或完整机器人闭环",
+      "§4 将简单缠绕峰值概述为 3.5 N，记录采用 §3.5 对应图10的 3.85 N 并保留原文差异",
+      "原始数据需向通讯作者索取"
+    ],
+    "provenance": "出版商开放原始研究。刊于医疗软体执行器特刊，本文验证对象为日用品与工业线轴。",
+    "software": "COMSOL",
+    "robot_task": "用一个双斜腔气动软体执行器改变弯曲与扭转形态，包覆并保持不同几何的物体。",
+    "loop_scope": "有限元与样件对照覆盖末端工作空间，台架验证不同对象的拉脱力，论文未报告反馈抓取或机器人任务闭环。",
+    "robot_validation": "部件或机体物理试验"
+  },
+  {
+    "id": "fluent-inspection-vacuum-gripper-2021",
+    "doi": "10.7736/JKSPE.021.051",
+    "title": "Lightweight Design of a Vacuum Gripper for Inspection Equipment Using Topology Optimization",
+    "authors": "Euddeum Cha, Tae-Young Kim, Taeho Ha, Keun Park",
+    "year": 2021,
+    "software_version": null,
+    "industry": "具身智能 / 精密检测设备真空取放",
+    "targets": [
+      "pressure_drop",
+      "suction_force"
+    ],
+    "source_url": "https://www.jkspe.or.kr/journal/view.php?number=6635",
+    "source_locator": "§2.3 图4；§3.3 图9–10；§3.4 表2；§4.1 图11；§4.2 图12–13；§5",
+    "conditions": [
+      "基线金属、分离式和一体式优化三种设计，优化样件采用 DLP 光固化树脂制造",
+      "CFD 入口空气 10 m/s、密度 1.225 kg/m³；台架用 0.78 MPa 压缩空气驱动真空发生器"
+    ],
+    "model_chain": [
+      "用 Altair Inspire 进行拓扑优化，以 ANSYS Workbench 另行做结构分析",
+      "用 ANSYS Fluent 对夹具内部流道计算压力与速度分布，比较支路转角和流道压降",
+      "将吸附面接触负荷传感器后抽真空，针对三种设计各用三个试件重复五次"
+    ],
+    "required_inputs": [
+      "夹具内部流道与分支几何、入口工况、空气物性",
+      "真空发生器及气源压力、吸附面几何与试件生产方式",
+      "拉力传感器与测试夹具、各设计试件和重复次数"
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "pressure_drop",
+        "detail": "表2 的初始、分离式和一体式压降分别为 6.78、6.49、0.745 kPa；§3.3 给出略不同的 6.60 和 0.77 kPa。",
+        "locator": "§2.3 图4；§3.3 图9–10；§3.4 表2"
+      },
+      {
+        "kind": "measured",
+        "quantity": "suction_force",
+        "detail": "负荷传感器实测原型、分离式、一体式吸附力分别为 86.9、87.1、93.9 N。",
+        "locator": "§4.2 图12–13"
+      }
+    ],
+    "limitations": [
+      "Fluent 只计算夹具内部流路；吸附力单独由台架实测，原文未给出压降直接实验对照",
+      "§3.4 与 §5 文字以 MPa 标注 0.745，和表2 的 kPa 表头及 §3.3 的约 0.77 kPa 冲突，记录按表2单位",
+      "真实检测设备集成、磨损和耐久性留待后续验证；Fluent 版本号未载明"
+    ],
+    "provenance": "韩国精密工程学会出版商开放韩文原始研究，样件与负荷传感器试验由作者实施。",
+    "software": "Fluent",
+    "robot_task": "用带内部歧管的轻量真空夹具在检测设备上吸取并保持工件。",
+    "loop_scope": "模型覆盖夹具内部流路，实物证据覆盖台架静态吸附力，论文未报告设备联调或闭环操控。",
+    "robot_validation": "部件或机体物理试验"
+  },
+  {
+    "id": "raisim-anymal-perceptive-locomotion-2022",
+    "doi": "10.1126/scirobotics.abk2822",
+    "title": "Learning robust perceptive locomotion for quadrupedal robots in the wild",
+    "authors": "Takahiro Miki, Joonho Lee, Jemin Hwangbo, Lorenz Wellhausen, Vladlen Koltun, Marco Hutter",
+    "year": 2022,
+    "software": "RaiSim",
+    "software_version": null,
+    "industry": "具身智能 / 四足机器人地形感知与运动控制",
+    "robot_task": "ANYmal C 跟踪给定速度，在台阶、复杂自然地形和深度感知退化时保持步态与平衡。",
+    "loop_scope": "真机点云与本体状态持续进入学生策略，策略调节腿相位和关节目标，足地接触改变随后的本体观测及内部地形估计，路线由外部给定。",
+    "targets": [
+      "step_traversal_success_rate",
+      "linear_velocity",
+      "yaw_velocity",
+      "route_duration",
+      "fall_count",
+      "terrain_belief"
+    ],
+    "source_url": "https://arxiv.org/pdf/2201.08117",
+    "source_locator": "§2 图2及受控外感知对照与信念可视化小节；§3；§4 Training environment、Deployment；补充材料 S2/S5、图 S1、表 S3",
+    "conditions": [
+      "ANYmal C，双 Robosense Bpearl LiDAR 或四台 Intel RealSense D435；20 Hz 机体中心 2.5D 高程图，50 Hz 策略推理",
+      "真机固定速度木台阶、受控泡沫或透明障碍、遮挡传感器的楼梯、易滑踏面以及湿滑山路",
+      "RaiSim 并行训练随机崎岖地形和扰动，使用执行器模型与高度样本噪声"
+    ],
+    "model_chain": [
+      "将机载点云配准至 2.5D 高程图，在四足周边采样共 208 个高度值，并加入给定速度、机体姿态速度、关节历史和腿相位",
+      "在 RaiSim 用 PPO 训练可访问无噪地形及接触等特权状态的教师，再通过动作模仿与特权状态重建训练带门控 GRU 的学生",
+      "学生输出四腿相位偏移及 12 个关节目标残差；名义步进轨迹经逆运动学转换，与残差合成关节位置目标",
+      "真实足地相互作用改变机体和关节状态，经传感器进入下一次推理；门控网络能降低对误导性地形观测的依赖"
+    ],
+    "required_inputs": [
+      "机器人运动学与关节执行器动态",
+      "点云外参、位姿估计、足周高度采样和未知格处理",
+      "机体与关节观测历史、腿相位、速度指令",
+      "训练地形与感知噪声模型、教师特权状态与训练权重"
+    ],
+    "observations": [
+      {
+        "kind": "comparison",
+        "quantity": "step_traversal_success_rate",
+        "detail": "真机每种木台阶高度 10 次，以 5 s 内越过为成功；作者报告感知策略可稳定通过最高约 30.5 cm 台阶，纯本体基线从约 20 cm 起成功率下降。",
+        "locator": "§2 Evaluating the contribution of exteroception，台阶成功率面板"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "linear_velocity",
+        "detail": "真机平地前向及横向最大速度，感知策略 1.2 m/s，纯本体基线 0.6 m/s。",
+        "locator": "§2 Evaluating the contribution of exteroception，速度实验"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "yaw_velocity",
+        "detail": "真机转向速度，感知策略达到 3 rad/s，纯本体基线为 0.6 rad/s。",
+        "locator": "§2 Evaluating the contribution of exteroception，速度实验"
+      },
+      {
+        "kind": "measured",
+        "quantity": "route_duration",
+        "detail": "真机 Etzel 山路 2.2 km、爬升 120 m、最大坡度 38%；31 分钟到顶，78 分钟走完全程。",
+        "locator": "§2 A hike in the Alps，图2"
+      },
+      {
+        "kind": "measured",
+        "quantity": "fall_count",
+        "detail": "上述山路试验无跌倒，中途停机处理脱落足套和更换电池。",
+        "locator": "§2 A hike in the Alps，图2及 Movie 2"
+      },
+      {
+        "kind": "derived",
+        "quantity": "terrain_belief",
+        "detail": "真机触及泡沫后解码高度下修，触及透明板后上修并调整步态；滑台的摩擦系数曲线来自网络解码。遮挡外感传感器时机器人在触及踏步后调整动作并完成攀爬。",
+        "locator": "§2 Evaluating robustness with belief state visualization，Internal belief state inspection 图 A–E"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "step_traversal_success_rate",
+        "detail": "模拟网格台阶与楼梯试验以 0.7 m/s 指令运行 10 s，无失败越过 4 m 记成功；成功率热图来自模拟，与正文真机台阶试验采用不同判据。",
+        "locator": "补充材料 S2、图 S1"
+      }
+    ],
+    "limitations": [
+      "真机闭环在运动控制层，障碍路线实验使用外部给定的固定路线与 pure pursuit 跟踪",
+      "2.5D 高程图会混淆悬垂物与地面障碍，遮挡会隐去落差；位姿估计独立于策略训练",
+      "窄孔卡腿和高台攀登需要超出普通步行的动作，作者列为限制"
+    ],
+    "provenance": "Science Robotics 7(62), eabk2822，同行评审原始研究。DOI 按 PubMed 35044798 核对，全文按作者版与全文图题交叉定位，受控对照和现场山路为作者真机实验。",
+    "robot_validation": "真机任务闭环"
+  },
+  {
+    "id": "raisim-anymal-proprioceptive-locomotion-2020",
+    "doi": "10.1126/scirobotics.abc5986",
+    "title": "Learning quadrupedal locomotion over challenging terrain",
+    "authors": "Joonho Lee, Jemin Hwangbo, Lorenz Wellhausen, Vladlen Koltun, Marco Hutter",
+    "year": 2020,
+    "software": "RaiSim",
+    "software_version": null,
+    "industry": "具身智能 / 四足机器人本体反馈与越障",
+    "robot_task": "ANYmal B/C 根据给定运动方向，在非结构化、湿滑和会变形的地面上维持小跑并应对足端受阻。",
+    "loop_scope": "真机 IMU 和关节反馈更新本体状态历史，时序策略输出足端轨迹修正，逆运动学与关节 PD 执行，碰撞和滑移经机体与关节反馈改变下一步动作。",
+    "targets": [
+      "step_traversal_success_rate",
+      "foot_clearance",
+      "linear_velocity",
+      "heading_error",
+      "disturbance_deviation"
+    ],
+    "source_url": "https://arxiv.org/pdf/2010.11251",
+    "source_locator": "§2 图2A–F、图3A–G；§3；§4.1 图4、Motion synthesis、Validation of the method 图5；补充材料 S2、表 S4",
+    "conditions": [
+      "RaiSim 在程序化刚体地形中生成坡和台阶，随机化足地摩擦、扰动和观测噪声，并使用各机器人型号独立的串联弹性执行器模型",
+      "ANYmal B/C 零样本部署；室内 ANYmal C 含松动板和阶梯、无载与附加 10 kg，以及平地八方向实验",
+      "户外涵盖山径、泥地、积雪、落枝和植被；人体指定或上层导航给出方向指令"
+    ],
+    "model_chain": [
+      "RaiSim 模拟刚体与接触，使用自适应地形课程训练访问接触力、地形和摩擦等特权状态的教师",
+      "时序卷积网络学生模仿教师，以方向指令、IMU/腿运动学融合得到的机体状态和关节历史推理",
+      "机载策略以 400 Hz 输出腿频率偏移及足端位置残差，经足端轨迹生成器、解析逆运动学及关节 PD 执行",
+      "真实绊脚或滑移造成的关节与机体变化回流到策略，本体历史推动抬脚修正"
+    ],
+    "required_inputs": [
+      "各型号机器人惯量、运动学与串联弹性执行器辨识数据",
+      "方向指令、机体姿态与速度估计、关节位置速度历史和腿相位",
+      "刚体地形参数、摩擦和扰动分布、训练权重",
+      "真机台阶高度、负载和速度/航向误差时间记录"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "foot_clearance",
+        "detail": "16.8 cm 台阶真机绊脚试验中，左前腿最大抬脚高度由平地的 12.9 cm 增至 22.5 cm，右前腿由 13.6 cm 增至 18.5 cm。",
+        "locator": "§2 Indoor experiments，图3B"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "step_traversal_success_rate",
+        "detail": "真机每高度 10 次，10 s 内前后腿均跨过才算成功；附加 10 kg 后学习控制器仍可越过高度达 13.4 cm 的台阶，基线在所试两种指令速度下均未越过台阶。",
+        "locator": "§2 Indoor experiments，图3D–E"
+      },
+      {
+        "kind": "derived",
+        "quantity": "linear_velocity",
+        "detail": "平地八个指令方向的实测速度求均值，学习控制器有无 10 kg 载荷均约 0.4 m/s。",
+        "locator": "§2 Indoor experiments，图3F"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "heading_error",
+        "detail": "在平地真机方向跟踪实验中，学习控制器有无载荷的平均航向误差均在 10° 内，基线横向误差约可达 30°。",
+        "locator": "§2 Indoor experiments，图3G"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "disturbance_deviation",
+        "detail": "模拟施加 50 N 侧向扰动 5 s，报告 TCN-100 的方向偏差比 TCN-1 低 35.5%。",
+        "locator": "§4 Validation of the method，图5D"
+      }
+    ],
+    "limitations": [
+      "纯本体策略靠接触后反馈应对障碍，不能预判悬崖；论文仅观察到小跑步态",
+      "训练地面为刚体，泥雪等可变形地形仅在真机部署验证，未校准模拟的材料变形",
+      "真机给定方向，速度由策略与地形决定，基线采用指定速度，控制输入口径应随比较保留"
+    ],
+    "provenance": "Science Robotics 5(47), eabc5986，同行评审原始研究。DOI 按 PubMed 33087482 核对，定位据作者接受稿全文，选用自然地形及室内受控实测。",
+    "robot_validation": "真机任务闭环"
+  },
+  {
+    "id": "tactile-gym2-2022",
+    "doi": "10.1109/LRA.2022.3195195",
+    "title": "Tactile Gym 2.0: Sim-to-Real Deep Reinforcement Learning for Comparing Low-Cost High-Resolution Robot Touch",
+    "authors": "Yijiong Lin, John Lloyd, Alex D. J. R. Church, Nathan F. Lepora",
+    "year": 2022,
+    "software": "Tactile Gym",
+    "software_version": "2.0",
+    "industry": "具身智能 / 触觉闭环推送与轮廓跟踪",
+    "targets": [
+      "trajectory_error",
+      "tactile_image_similarity"
+    ],
+    "source_url": "https://arxiv.org/pdf/2207.10763",
+    "source_locator": "§III-C–F、图2–3、表II；§IV-C、图5–7、表IV–VII",
+    "conditions": [
+      "DOBOT MG400 四自由度机械臂；TacTip、DigiTac、DIGIT 三类触觉传感器",
+      "推送方块、圆柱、三角棱柱；质量185–363 g，轨迹200–280 mm；边缘和曲面跟踪使用3D打印对象"
+    ],
+    "model_chain": [
+      "Tactile Gym 2.0 使用 PyBullet 模拟刚体接触并生成虚拟传感器深度图，按传感器调整摩擦、刚度和阻尼。",
+      "每传感器及接触特征采集实物图像训练真实图像到模拟图像的 GAN；PPO 在模拟中训练",
+      "实物触觉图像转换后驱动闭环策略；ArUco 测推送轨迹，CAD 轮廓作为跟踪基准"
+    ],
+    "required_inputs": [
+      "机械臂、传感器和对象几何及接触参数",
+      "真实触觉图像和对应位姿，任务目标轨迹与轮廓",
+      "GAN 和 PPO 参数，追踪标记或 CAD 基准"
+    ],
+    "observations": [
+      {
+        "kind": "derived",
+        "quantity": "trajectory_error",
+        "detail": "真机推送 TacTip 三轨迹/三物体的平均欧氏轨迹误差为9.21–13.89 mm；DIGIT 对185 g三角棱柱三条轨迹均失败，增加150 g后误差16.58–17.06 mm。",
+        "locator": "§IV-C.1 表IV–V"
+      },
+      {
+        "kind": "derived",
+        "quantity": "trajectory_error",
+        "detail": "边缘跟踪 TacTip 0.63–1.42 mm，DigiTac 0.85–1.04 mm，DIGIT 0.88–1.82 mm；曲面跟踪 DIGIT 的拱形和花形未完成。",
+        "locator": "§IV-C.2–3 图6–7、表VI–VII"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "tactile_image_similarity",
+        "detail": "图像转换验证集平均 SSIM：TacTip 边缘0.9956、表面0.9927；DIGIT 分别0.9867和0.9818。",
+        "locator": "§IV-B 表III"
+      }
+    ],
+    "limitations": [
+      "论文明确命名 Tactile Gym 2.0；未核实 PyBullet 版本。策略迁移使用由真机采样标定的图像转换。",
+      "表VI与VII对应边缘和曲面，正文有交叉引用错误；按表题与数据引用",
+      "未报告表中每个条件重复试验次数，不能推算成功率"
+    ],
+    "provenance": "作者原始论文；真机测试为作者实验。",
+    "robot_task": "单臂触觉推送与轮廓跟踪",
+    "loop_scope": "真机用当前触觉图像更新机械臂动作，验证推送和轮廓跟踪的轨迹误差。",
+    "robot_validation": "真机任务闭环"
+  },
+  {
+    "id": "taccel-2025",
+    "doi": "10.52202/085713-3162",
+    "title": "Taccel: Scaling Up Vision-based Tactile Robotics via High-performance GPU Simulation",
+    "authors": "Yuyang Li, Wenxin Du, Chang Yu, Puhao Li, Zihang Zhao, Tengyu Liu, Chenfanfu Jiang, Yixin Zhu, Siyuan Huang",
+    "year": 2025,
+    "software": "Taccel",
+    "software_version": null,
+    "industry": "具身智能 / 触觉接触仿真与关节物体操作",
+    "targets": [
+      "switch_count",
+      "classification_accuracy"
+    ],
+    "source_url": "https://proceedings.neurips.cc/paper_files/paper/2025/file/87d91d52272c3166315ca20b18519b9e-Paper-Conference.pdf",
+    "source_locator": "§6.1–6.3 表3、图5–7；附录D.3、D.5；§7",
+    "conditions": [
+      "微波炉门旋转关节及抽屉平移关节，真实装置与仿真保持相同初始抓取位姿",
+      "分类验证为10种3D打印零件，RobotiQ-2F85和GelSight型传感器，每种实物8次抓取、16张深度图"
+    ],
+    "model_chain": [
+      "Taccel 使用 IPC 和仿射刚体动力学模拟软触觉传感器及接触",
+      "Tac-Man 按触觉标记流触发执行与恢复状态切换；按真实几何与运动学建立URDF",
+      "仿真、真实执行与论文所用 Isaac Sim 实现比较切换次数"
+    ],
+    "required_inputs": [
+      "对象关节几何、运动学与初始抓取位姿",
+      "触觉凝胶材料与接触参数、传感器图像模型",
+      "Tac-Man 阈值和控制参数、实物触觉及状态记录"
+    ],
+    "observations": [
+      {
+        "kind": "comparison",
+        "quantity": "switch_count",
+        "detail": "微波炉真机68次、Taccel 68.75±2.38次、Isaac Sim大于500次；抽屉分别0、0.0±0、18.25±1.49次。",
+        "locator": "§6.3 图7；附录D.5"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "classification_accuracy",
+        "detail": "十类零件分类：仿真测试86.50%，160张真实深度图、每样本四次随机剪切扰动测试70.94%，未进行领域适配。",
+        "locator": "§6.1 表3；附录D.3"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "grasp_count",
+        "detail": "四种机械手、10个对象约1.4万次合成抓取用于仿真数据生成。",
+        "locator": "§6.2 图6"
+      }
+    ],
+    "limitations": [
+      "Taccel 和 Isaac Sim 版本未报告",
+      "图7切换次数是特定任务及初始位姿的控制过程指标，不是普遍接触力误差或成功率；文中未清晰给出重复次数",
+      "四机械手抓取样本为仿真，不能作为四种实体手实物验收；作者指出凝胶本构及有限训练数据的局限"
+    ],
+    "provenance": "NeurIPS 2025 作者原始论文；真机 Tac-Man 作为同文对照。",
+    "robot_task": "触觉抓取及门、抽屉操作",
+    "loop_scope": "门和抽屉的操作依据触觉在执行与恢复之间切换；分类准确率来自另一项离线评估。",
+    "robot_validation": "真机任务闭环"
+  },
+  {
+    "id": "taxim-grasp-stability-2022",
+    "doi": "10.1109/IROS47612.2022.9981863",
+    "title": "Grasp Stability Prediction with Sim-to-Real Transfer from Tactile Sensing",
+    "authors": "Zilin Si, Zirui Zhu, Arpit Agarwal, Stuart Anderson, Wenzhen Yuan",
+    "year": 2022,
+    "software": "PyBullet",
+    "software_version": null,
+    "industry": "具身智能 / 触觉抓取稳定性与滑移预测",
+    "targets": [
+      "grasp_stability_accuracy",
+      "contact_deformation"
+    ],
+    "source_url": "https://arxiv.org/pdf/2208.02885",
+    "source_locator": "§III 图2–4；§IV-B 图7；§V-A–E 图8–9、表I",
+    "conditions": [
+      "UR5e、Weiss WSG-50 夹爪单侧 GelSight；12个YCB和GoogleScan对象",
+      "抓取力5–10 N，提升18 cm；实物共752次，成功363次、失败389次"
+    ],
+    "model_chain": [
+      "PyBullet 接触力与相对位姿映射到标定的法向压入体积和切向位移",
+      "PyRender生成接触图、Taxim生成触觉图；每个物体用约20次独立真机抓取校准摩擦",
+      "仿真图像训练每物体分类器，再用真机触觉图像评估成功或滑移"
+    ],
+    "required_inputs": [
+      "对象几何、重量、质心及接触摩擦",
+      "GelSight 法向与切向接触标定，触觉光学查找表",
+      "抓取位姿、夹持力、提起轨迹与实物标签"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "grasp_outcome",
+        "detail": "作者记录 12 种物体共 752 次实物抓取，其中稳定提起 363 次、失败 389 次。",
+        "locator": "§IV-B；§V-A"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "grasp_stability_accuracy",
+        "detail": "表I按12个物体平均，序列触觉输入 sim-to-real 准确率90.7%，单帧86.4%；TACTO 基线42.6%。",
+        "locator": "§V-D–E 表I"
+      },
+      {
+        "kind": "measured",
+        "quantity": "contact_deformation",
+        "detail": "不同直径球接触实验支持法向力与压入体积、剪切力与标记剪切位移近似线性。",
+        "locator": "§III-B 图3"
+      }
+    ],
+    "limitations": [
+      "软件版本未报告",
+      "分类器每个物体单独训练；摩擦使用每物体约20个真机案例校准，零次迁移指分类器不以实物触觉图训练",
+      "该论文是离线抓取结果预测，没有证明实时闭环重抓；表I为物体平均，不应当作752次的微平均",
+      "§IV-B 的 15 cm 与 0.1 rad 阈值未明确归于真机，不能写成这 752 次实物试验的判据。"
+    ],
+    "provenance": "作者原始会议论文预印本；实验标签和标定数据来自作者实体系统。",
+    "robot_task": "夹取后稳定性与滑移预测",
+    "loop_scope": "抓取和提升发生在真机，稳定性分类用记录下来的数据评估；未测试预测触发的实时重抓。",
+    "robot_validation": "真机采样与离线预测"
+  }
+]

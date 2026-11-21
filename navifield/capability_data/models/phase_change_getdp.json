@@ -1,0 +1,68 @@
+{
+  "domain": "phase_change",
+  "solver": "getdp",
+  "version": "3.5.0",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "framework_custom",
+      "scope": "GetDP 提供弱式、瞬态与非线性迭代。官方 3.5.0 磁热示例证明热方程和源项可组装，未证明成套的熔凝模型。",
+      "custom_work": "编写含显热、潜热和液相率的焓关系与一致的时间离散，并供给热物性及热边界。若存在熔体流动，另外提供流动方程和糊状区闭合或从外部求解器耦合。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0 §§5.7–5.8 Formulation 与 Resolution；§7.9.5 磁热耦合",
+          "claim": "手册给出自定义弱式、时间积分、非线性迭代和系统间传值。磁热例使用热传导与电磁热源，并未建立相变模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+          "locator": "固定 3.5.0 源包，doc/texinfo/getdp.texi §§5.7–5.8、7.9.5",
+          "claim": "源包内手册为固定版本依据，描述用户定义的热方程、源项及温度反馈示例。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "framework_custom",
+      "scope": "可在热弱式中加入用户自定义的沸腾边界热流或外部热源。已核查的 3.5.0 说明未建立内置两相流、成核或临界热流模型。",
+      "custom_work": "给定压力、饱和曲线和适用工况的沸腾热通量闭合。如果需要汽相体积分数、汽泡或两相流动预测，由外部两相求解器计算气化质量流率、潜热和流动；明确定义传值和守恒。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0 §§5.7–5.8 Formulation 与 Resolution；§7.9.5 磁热耦合",
+          "claim": "手册给出自定义弱式、时间积分、非线性迭代和系统间传值。磁热例使用热传导与电磁热源，并未建立相变模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+          "locator": "固定 3.5.0 源包，doc/texinfo/getdp.texi §§5.7–5.8、7.9.5",
+          "claim": "源包内手册为固定版本依据，描述用户定义的热方程、源项及温度反馈示例。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "framework_custom",
+      "scope": "可将给定的凝结热通量或外部耦合源加入热弱式。已核查的 3.5.0 资料未证实内置凝结液膜和气侧组分模型。",
+      "custom_work": "提供饱和温度或分压条件、凝结通量或已验证的传热相关式；需要预测液膜、排液或不凝气体影响时，由相应外部求解器提供质量通量及释放的潜热并核对热平衡。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0 §§5.7–5.8 Formulation 与 Resolution；§7.9.5 磁热耦合",
+          "claim": "手册给出自定义弱式、时间积分、非线性迭代和系统间传值。磁热例使用热传导与电磁热源，并未建立相变模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+          "locator": "固定 3.5.0 源包，doc/texinfo/getdp.texi §§5.7–5.8、7.9.5",
+          "claim": "源包内手册为固定版本依据，描述用户定义的热方程、源项及温度反馈示例。"
+        }
+      ]
+    }
+  ],
+  "models": []
+}

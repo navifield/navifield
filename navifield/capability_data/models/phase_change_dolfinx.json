@@ -1,0 +1,68 @@
+{
+  "domain": "phase_change",
+  "solver": "dolfinx",
+  "version": "0.10.0.post3",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "framework_custom",
+      "scope": "可用 DOLFINx 求解自定义瞬态能量弱式。上游 Cahn–Hilliard 示例处理浓度相分离，其结果不能作为热熔化、凝固前沿或潜热的验证。",
+      "custom_work": "提供显热及潜热焓关系 H(T) 与液相率、固液热导率和初始/边界热条件；若考虑液相流动，还须实现速度场和糊状区阻力。核查能量闭合和 Stefan 前沿基准。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类，约第 1042–1072 行",
+          "claim": "接受用户给出的 UFL 残差与可选 Jacobian，由 PETSc SNES 求解。API 不定义相变材料关系或界面质量源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_cahn-hilliard.html",
+          "locator": "Problem statement；Equation differentiation；Time stepping",
+          "claim": "官方示例联立浓度和化学势求相分离。所示扩散界面方程未包含热焓、潜热或液汽质量交换。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "framework_custom",
+      "scope": "固定版本提供通用非线性弱式求解和不可压流动示例。核查材料未确立可直接配置的液汽沸腾或通用壁面沸腾闭合。",
+      "custom_work": "实现两相质量、动量、能量及界面运动；提供压力相关饱和物性、潜热和相间质量传递关系。若工况为壁面核态沸腾，另需与工况一致的成核、脱离或壁面热流分配闭合及独立验证。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类，约第 1042–1072 行",
+          "claim": "接受用户给出的 UFL 残差与可选 Jacobian，由 PETSc SNES 求解。API 不定义相变材料关系或界面质量源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+          "locator": "Problem formulation；incompressible Navier–Stokes demonstration",
+          "claim": "官方示例实现不可压流动弱式及离散，对沸腾或冷凝不提供液汽传质、壁面闭合或验证。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "framework_custom",
+      "scope": "可将自定义液汽传质与热方程写成弱式。官方泛型求解与流动示例未证明冷凝液膜或含不凝气体的现成模型。",
+      "custom_work": "实现饱和温度或分压关系、凝结质量通量和潜热释放；按工况加入液膜排流或多组分扩散，验证质量与能量守恒。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类，约第 1042–1072 行",
+          "claim": "接受用户给出的 UFL 残差与可选 Jacobian，由 PETSc SNES 求解。API 不定义相变材料关系或界面质量源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+          "locator": "Problem formulation；incompressible Navier–Stokes demonstration",
+          "claim": "官方示例实现不可压流动弱式及离散，对沸腾或冷凝不提供液汽传质、壁面闭合或验证。"
+        }
+      ]
+    }
+  ],
+  "models": []
+}

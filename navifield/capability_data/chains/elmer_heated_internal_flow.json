@@ -1,0 +1,178 @@
+{
+  "solver": "elmer",
+  "version": "9.0",
+  "chains": [
+    {
+      "id": "steady_heated_internal_flow",
+      "status": "custom",
+      "scope": "elmer 9.0 单相稳态受热内流候选；稳态不能代替充分发展判据，未验收任意几何的完整自动建模。",
+      "steps": [
+        {
+          "id": "flow",
+          "operation": "用截面平均量建稳态内流",
+          "equation": "A 为实际流通面积，Pw 为全湿周，Dh=4A/Pw；矩形 Dh=2ab/(a+b)，圆管 Dh=D。Ub=Q/A，Re_Dh=ρUbDh/μ（同物性基准）；已给质量流量时 Re_Dh=ṁDh/(μA)。",
+          "receives": [
+            "截面、流量/入口剖面、物性、出口条件"
+          ],
+          "produces": [
+            "U/p、流量、Dh 与断面雷诺数"
+          ],
+          "depends_on": [],
+          "evidence": [
+            "flow"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "energy",
+          "operation": "施加热边界并求流体能量",
+          "equation": "分别设 Tw 给定或 q'' 给定，非加热壁按其实际条件。Q_wall=∫_Aheated q'' dA；恒流定截面 q'' 均匀时 Aheated=Ph L，Ph 为受热周长。恒壁温下热流是解出的场。",
+          "receives": [
+            "U/流量、流体物性和入口温度、热壁及其边界、热入口长度"
+          ],
+          "produces": [
+            "流体温度和焓、壁温、对流热量"
+          ],
+          "depends_on": [
+            "flow"
+          ],
+          "evidence": [
+            "energy",
+            "wall"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "bulk_readback",
+          "operation": "按质量或热容流取混合杯温度",
+          "equation": "单向、定比热 Tb=Σ(ṁ_f T_f)/Σṁ_f，每面的质量通量已含面积；变比热用净焓流除净质量流得到混合焓，再按同压或所定状态反解 T。回流须声明净流、单向或绝对权重，不能混为同一测量。",
+          "receives": [
+            "选定截面 T/焓、带方向的面质量流和截面法向"
+          ],
+          "produces": [
+            "同口径 Tb、站位及净焓流"
+          ],
+          "depends_on": [
+            "energy"
+          ],
+          "evidence": [
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "wall_readback",
+          "operation": "匹配局部壁温与流体温度及 Nu",
+          "equation": "同轴向位置 ∆T=Tw−Tb，局部 h=q''/∆T、Nu_Dh=hDh/k。平均 h 的定义需同时给受热面积与采用的驱动温差；局部或轴向平均不能互换。",
+          "receives": [
+            "受热壁 q''/Tw、同站混合杯 Tb、物性参考及几何"
+          ],
+          "produces": [
+            "壁流温差、换热系数或 Nu"
+          ],
+          "depends_on": [
+            "bulk_readback"
+          ],
+          "evidence": [
+            "wall",
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "pressure_readback",
+          "operation": "聚合两测站静压或全压",
+          "equation": "静压孔取局部静压；截面用先约定的面积或流量权重。记录上游减下游、标高、p 或 p_rgh 还原以及量纲。单一恒截面时可用达西 f L/Dh ρUb²/2 作直段核对，局部 ΣK 另按真实构件与参考速度；不重复计入已解析局部损失。",
+          "receives": [
+            "确切测站、压力类型及权重、标高、构件和各段参考速度"
+          ],
+          "produces": [
+            "指定测压段 Δp、局部损失口径"
+          ],
+          "depends_on": [
+            "energy"
+          ],
+          "evidence": [
+            "flow",
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "external_probe_readback",
+          "operation": "解固体热路径并在外贴探头位置取样",
+          "equation": "流体温升由实际传入流体的热量决定。电功率须分到流体、基底与环境各热路径；外贴探头读数须解固体导热/界面条件，或使用独立标定的热阻。需要时配置流固 CHT。",
+          "receives": [
+            "电热源覆盖和热转换、基底几何与物性、外部散热、接触/粘接及探头位置"
+          ],
+          "produces": [
+            "外贴探头温度候选；热边界不足时保留待定"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "energy",
+            "wall"
+          ],
+          "depends_on": [
+            "energy"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "经验或解析对照的适用性",
+          "relation": "先匹配断面/宽高比、各壁边界、Re/Pr、相对粗糙度、流动/热发展长度和 Nu 归一口径。圆管常物性层流双充分发展全周等温或均匀热通量的 Nu 极限约为 3.66 或 4.36；矩形值需按宽高比和受热边重求。湍流公式须核对其 Re/Pr/粗糙度及入口范围。",
+          "applicability": "仅作可比模型的交叉检查，未闭合输入时不代替 CFD 或宣称实际温差。",
+          "implementation": "custom",
+          "evidence": [
+            "correlations"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "flow",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/FlowSolve.F90",
+          "locator": "FlowSolve: steady incompressible Navier–Stokes",
+          "claim": "已有 Elmer 9.0 FlowSolve 可解稳态单相流动；选速度、压力及流态边界。",
+          "kind": "version_source"
+        },
+        {
+          "id": "energy",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolve: convection velocities and temperature equation",
+          "claim": "流场作速度平流输入，需选择流热顺序和有无物性反馈。",
+          "kind": "version_source"
+        },
+        {
+          "id": "wall",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1329-L1335",
+          "locator": "Heat Flux Neumann term; DefaultDirichletBCs for Temperature",
+          "claim": "Heat Flux 与 Temperature 分别为热通量和温度边界；符号需经域能量做原生验算。",
+          "kind": "version_source"
+        },
+        {
+          "id": "readback",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/FlowSolve.F90",
+          "locator": "FlowSolve velocity/pressure with HeatSolve temperature output",
+          "claim": "求解场可传给分区积分。内部面质量加权 Tb/焓或总压的端到端接口尚待自研验收。",
+          "kind": "version_source"
+        },
+        {
+          "id": "correlations",
+          "url": "https://books.google.com/books/about/Laminar_Flow_Forced_Convection_in_Ducts.html?id=FtNFAQAAIAAJ",
+          "locator": "Shah & London, Laminar Flow Forced Convection in Ducts (1978), sections by geometry, development and boundary",
+          "claim": "原始解析数据汇集按截面、热与流动入口、等温或均匀热流分别处理；圆管关联式不能仅换 Dh 就套用到部分受热矩形管。",
+          "kind": "physics_reference"
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "搭建 FlowSolve/HeatSolve 传场或单向不反作用时的顺序；自研内部面有向质量/焓流积分及分区 Δp 回读，未验证自动耦合。"
+      ],
+      "checks": [
+        "质量守恒；热壁积分与出口减入口焓流守恒；测站和靠壁/入口网格敏感性，分开检查沿程摩擦与局部损失；用与实际热边界和发展条件匹配的解析或实验核对。"
+      ]
+    }
+  ]
+}

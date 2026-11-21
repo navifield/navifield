@@ -1,0 +1,1614 @@
+[
+  {
+    "id": "romerin_wall_adhesion_2021",
+    "doi": "10.3390/s21041117",
+    "title": "CFD Modelling and Optimization Procedure of an Adhesive System for a Modular Climbing Robot",
+    "authors": "Miguel Hernando, Virgilio Gómez, Alberto Brunete, Ernesto Gambao",
+    "year": 2021,
+    "software": "Fluent",
+    "software_version": "18",
+    "industry": "具身智能 / 爬壁机器人",
+    "source_url": "https://www.mdpi.com/1424-8220/21/4/1117",
+    "source_locator": "§4–6, Equation 13, Tables 1, 5, 8, 9, 12",
+    "provenance": "Primary publication and archived native research receipts. Internal receipts are not distributed with this release; hashes identify those records.",
+    "targets": [
+      "vacuum_pressure",
+      "suction_pressure",
+      "static_pressure_rise",
+      "leakage_flow_rate",
+      "shaft_torque",
+      "shaft_power",
+      "electrical_power",
+      "holding_force"
+    ],
+    "conditions": [
+      "ROMERIN suction cup with local impeller",
+      "12940 rpm forward check, 0.13 mm seal gap from Table 8"
+    ],
+    "model_chain": [
+      "Coupled cup/impeller/casing CFD",
+      "Leakage calibration and bench vacuum and motor power comparison"
+    ],
+    "required_inputs": [
+      "Complete fluid passage and named measurement patches",
+      "Gap and seal geometry",
+      "Motor efficiency/loss data"
+    ],
+    "limitations": [
+      "Confirm Table 5/9 impeller version and obtain the full impeller, housing, diffuser, cup, measuring tap and seal geometry.",
+      "Verify pressure and torque on independent RPMs using matched definitions and resolution. Fine sector pressure misses the approximately 15% bench reference line.",
+      "Obtain a motor efficiency/loss map and independent net electrical power. Shaft watts and bench electrical watts have different definitions.",
+      "Obtain independent seal leak measurements and wall contact/load validation for holding force and safe RPM."
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "vacuum_pressure",
+        "detail": "611 Pa vacuum magnitude and 4.26 W net electrical power at 12940 rpm.",
+        "locator": "Tables 5 and 9"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "static_pressure_rise",
+        "detail": "Fluent vacuum 534 Pa and computed torque 0.0023 N·m at 12940 rpm.",
+        "locator": "Table 9"
+      }
+    ],
+    "reproduction": {
+      "status": "native_submodel_paper_not_reproduced",
+      "program_baseline": "8ec8d559",
+      "routes": [
+        {
+          "chain": "independent_vacuum_feet",
+          "solver": "openfoam_opencfd",
+          "version": "v2606"
+        }
+      ],
+      "scope": "Native reduced cases following the proposed route, with repeat runs on Windows. Full rig quantities and automatic execution remain unverified.",
+      "cases": [
+        {
+          "case": "r05-coarse",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "simpleFoam"
+            }
+          ],
+          "conditions": {
+            "rpm": 12940,
+            "seal_gap_mm": 0.13,
+            "mesh_cells": 4928,
+            "blade_count": 10,
+            "model": "steady sector MRF, k-omega SST"
+          },
+          "results": [
+            {
+              "target": "static_pressure_rise",
+              "value": 698.719389356338,
+              "unit": "Pa",
+              "measurement_definition": "Outlet patch area-mean static pressure minus inlet patch area-mean static pressure; compared diagnostically to suction-vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 611,
+                  "locator": "Table 5/9 test bench at 12940 rpm",
+                  "signed_error_percent": 14.356692202346633
+                },
+                {
+                  "kind": "simulated",
+                  "value": 534,
+                  "locator": "Table 9 original Fluent vacuum at 12940 rpm",
+                  "signed_error_percent": 30.846327594819844
+                }
+              ]
+            },
+            {
+              "target": "shaft_torque",
+              "value": 0.0007676744704702,
+              "unit": "N·m",
+              "measurement_definition": "Absolute axial moment of pressure plus viscous traction around the shaft, scaled from one passage to the modeled blade count.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 0.0023,
+                  "locator": "Table 9 original Fluent torque",
+                  "signed_error_percent": -66.62284910999131
+                }
+              ]
+            },
+            {
+              "target": "shaft_power",
+              "value": 1.0402554323167446,
+              "unit": "W",
+              "measurement_definition": "Mechanical power at the shaft, angular speed times fluid torque.",
+              "references": []
+            },
+            {
+              "target": "electrical_power",
+              "value": null,
+              "unit": "W",
+              "measurement_definition": "Paper bench net electrical input subtracts the no-load current; motor loss and efficiency are missing.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 4.26,
+                  "locator": "Tables 5 and 9 net bench motor power",
+                  "signed_error_percent": null
+                },
+                {
+                  "kind": "derived",
+                  "value": 3.13,
+                  "locator": "Table 9 Fluent-based electrical prediction",
+                  "signed_error_percent": null
+                }
+              ]
+            }
+          ],
+          "scope": "Reduced impeller passage and assumed seal/operating-point treatment; casing, stator, cup swirl and experimental pressure taps are missing.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "c411dda4a2c04257d21129da1493867f9da410b6b2fe4041c4ff22ea58fd8da2"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "79050c6788e37de49ad1120a321027fe26ead72094590e5a5bad708bc53619ce"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "737d56c8247eba2c725b63e6430edabdd1bd964fd645d7ac32ae87b76f397743"
+            }
+          ]
+        },
+        {
+          "case": "r05-fine",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "simpleFoam"
+            }
+          ],
+          "conditions": {
+            "rpm": 12940,
+            "seal_gap_mm": 0.13,
+            "mesh_cells": 16896,
+            "blade_count": 10,
+            "model": "steady sector MRF, k-omega SST"
+          },
+          "results": [
+            {
+              "target": "static_pressure_rise",
+              "value": 746.8107171200536,
+              "unit": "Pa",
+              "measurement_definition": "Outlet patch area-mean static pressure minus inlet patch area-mean static pressure; compared diagnostically to suction-vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 611,
+                  "locator": "Table 5/9 test bench at 12940 rpm",
+                  "signed_error_percent": 22.22761327660452
+                },
+                {
+                  "kind": "simulated",
+                  "value": 534,
+                  "locator": "Table 9 original Fluent vacuum at 12940 rpm",
+                  "signed_error_percent": 39.85219421723849
+                }
+              ]
+            },
+            {
+              "target": "shaft_torque",
+              "value": 0.0008615277276776,
+              "unit": "N·m",
+              "measurement_definition": "Absolute axial moment of pressure plus viscous traction around the shaft, scaled from one passage to the modeled blade count.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 0.0023,
+                  "locator": "Table 9 original Fluent torque",
+                  "signed_error_percent": -62.54227270966957
+                }
+              ]
+            },
+            {
+              "target": "shaft_power",
+              "value": 1.1674335063652659,
+              "unit": "W",
+              "measurement_definition": "Mechanical power at the shaft, angular speed times fluid torque.",
+              "references": []
+            },
+            {
+              "target": "electrical_power",
+              "value": null,
+              "unit": "W",
+              "measurement_definition": "Paper bench net electrical input subtracts the no-load current; motor loss and efficiency are missing.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 4.26,
+                  "locator": "Tables 5 and 9 net bench motor power",
+                  "signed_error_percent": null
+                },
+                {
+                  "kind": "derived",
+                  "value": 3.13,
+                  "locator": "Table 9 Fluent-based electrical prediction",
+                  "signed_error_percent": null
+                }
+              ]
+            }
+          ],
+          "scope": "Reduced impeller passage and assumed seal/operating-point treatment; casing, stator, cup swirl and experimental pressure taps are missing.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "431efd432d96989b2bda24ab7781e84829db0bdc0b7d1d25814bf217ed78744c"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "6534d87af9ef606564c30c89094abba1223672b2142f1b7295fc5b7c6cdfbab7"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "e60daacf14c9bcaf7243a069933175c8f4239a00297a6b10bf6809be4055218e"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "abe993ee20b1e2d3e0205ba076f5a1273def4e121c15263e2e9f53af6dffe504"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "813c418bf73d0128dd99329920b84a491c0f74b6d140871c83c12f21c99575f7"
+            }
+          ]
+        },
+        {
+          "case": "table12-feedback",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "simpleFoam"
+            }
+          ],
+          "conditions": {
+            "rpm": 12940,
+            "seal_gap_mm": 0.13,
+            "mesh_cells": 16896,
+            "blade_count": 6,
+            "model": "steady sector MRF, k-omega SST"
+          },
+          "results": [
+            {
+              "target": "static_pressure_rise",
+              "value": 730.1398855754865,
+              "unit": "Pa",
+              "measurement_definition": "Outlet patch area-mean static pressure minus inlet patch area-mean static pressure; compared diagnostically to suction-vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 611,
+                  "locator": "Table 5/9 test bench at 12940 rpm",
+                  "signed_error_percent": 19.499162941978156
+                },
+                {
+                  "kind": "simulated",
+                  "value": 534,
+                  "locator": "Table 9 original Fluent vacuum at 12940 rpm",
+                  "signed_error_percent": 36.730315650840154
+                }
+              ]
+            },
+            {
+              "target": "shaft_torque",
+              "value": 0.0008189698822452,
+              "unit": "N·m",
+              "measurement_definition": "Absolute axial moment of pressure plus viscous traction around the shaft, scaled from one passage to the modeled blade count.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 0.0023,
+                  "locator": "Table 9 original Fluent torque",
+                  "signed_error_percent": -64.39261381542609
+                }
+              ]
+            },
+            {
+              "target": "shaft_power",
+              "value": 1.1097644922170755,
+              "unit": "W",
+              "measurement_definition": "Mechanical power at the shaft, angular speed times fluid torque.",
+              "references": []
+            },
+            {
+              "target": "electrical_power",
+              "value": null,
+              "unit": "W",
+              "measurement_definition": "Paper bench net electrical input subtracts the no-load current; motor loss and efficiency are missing.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 4.26,
+                  "locator": "Tables 5 and 9 net bench motor power",
+                  "signed_error_percent": null
+                },
+                {
+                  "kind": "derived",
+                  "value": 3.13,
+                  "locator": "Table 9 Fluent-based electrical prediction",
+                  "signed_error_percent": null
+                }
+              ]
+            }
+          ],
+          "scope": "Reduced impeller passage and assumed seal/operating-point treatment; casing, stator, cup swirl and experimental pressure taps are missing.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "84db6e97cc38ef4aee6edf9f86f8e1c9ec11a0f1568e4281c7dfe34b71aec400"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "26fa39b34b0db9a0803c47e08436b0fc70763d63aede8f6b64bb8f5ac11f1728"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "a01d36d0d9870df6f7e1583d0384021b85b0bbd78a4c9bbf0a3fc5075c9ce6c8"
+            }
+          ]
+        },
+        {
+          "case": "attempt04",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "rhoSimpleFoam"
+            }
+          ],
+          "conditions": {
+            "rpm": 12940,
+            "seal_gap_mm": 0.13,
+            "mesh_cells": 16896,
+            "blade_count": 10,
+            "model": "steady sector MRF, k-omega SST",
+            "total_flow_L_s": 0.785,
+            "outlet_absolute_pressure_Pa": 101325,
+            "inlet_temperature_K": 293.15
+          },
+          "results": [
+            {
+              "target": "static_pressure_rise",
+              "value": 743.6378610999964,
+              "unit": "Pa",
+              "measurement_definition": "Outlet patch area-mean static pressure minus inlet patch area-mean static pressure; compared diagnostically to suction-vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 611,
+                  "locator": "Table 5/9 test bench at 12940 rpm",
+                  "signed_error_percent": 21.70832423895195
+                },
+                {
+                  "kind": "simulated",
+                  "value": 534,
+                  "locator": "Table 9 original Fluent vacuum at 12940 rpm",
+                  "signed_error_percent": 39.258026423220294
+                }
+              ]
+            },
+            {
+              "target": "shaft_torque",
+              "value": 0.0008619441244758,
+              "unit": "N·m",
+              "measurement_definition": "Absolute axial moment of pressure plus viscous traction around the shaft, scaled from one passage to the modeled blade count.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 0.0023,
+                  "locator": "Table 9 original Fluent torque",
+                  "signed_error_percent": -62.52416850105218
+                }
+              ]
+            },
+            {
+              "target": "shaft_power",
+              "value": 1.167997754686643,
+              "unit": "W",
+              "measurement_definition": "Mechanical power at the shaft, angular speed times fluid torque.",
+              "references": []
+            },
+            {
+              "target": "electrical_power",
+              "value": null,
+              "unit": "W",
+              "measurement_definition": "Paper bench net electrical input subtracts the no-load current; motor loss and efficiency are missing.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 4.26,
+                  "locator": "Tables 5 and 9 net bench motor power",
+                  "signed_error_percent": null
+                },
+                {
+                  "kind": "derived",
+                  "value": 3.13,
+                  "locator": "Table 9 Fluent-based electrical prediction",
+                  "signed_error_percent": null
+                }
+              ]
+            }
+          ],
+          "scope": "Reduced impeller passage and assumed seal/operating-point treatment; casing, stator, cup swirl and experimental pressure taps are missing.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "2b44f0f0f226a55c855897401a4b18ce7efbbf5f6e6d8abc5e0f5d5dcc0dc2b3"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "abac136a69a785768c1544161fedb691d86347a4d139aa6a8b066450f6432ca8"
+            }
+          ]
+        },
+        {
+          "case": "gap130um_211Pa_refined",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "simpleFoam"
+            }
+          ],
+          "conditions": {
+            "imposed_pressure_difference_Pa": 211,
+            "seal_gap_mm": 0.13,
+            "annular_geometry": {
+              "inner_radius_m": 0.07978845608028654,
+              "outer_radius_m": 0.08478845608028654,
+              "sector_angle_deg": 4.0,
+              "air_density_kg_m3": 1.204,
+              "air_dynamic_viscosity_pa_s": 1.81e-05,
+              "inner_radius_basis": "Eq. 3 pressure/force pairs imply 0.0200 m^2 cup area; use equivalent radius as inner slot edge.",
+              "outer_radius_basis": "Assume 5 mm radial seal width; unavailable as an independently confirmed paper dimension."
+            }
+          },
+          "results": [
+            {
+              "target": "leakage_flow_rate",
+              "value": 0.21979990367703003,
+              "unit": "L/s",
+              "measurement_definition": "Magnitude of integrated face volume flux scaled from a 4-degree annular sector.",
+              "references": [
+                {
+                  "kind": "derived",
+                  "value": 0.22063164234062904,
+                  "locator": "Equation 13 analytical estimate",
+                  "signed_error_percent": -0.3769806790971941
+                }
+              ]
+            }
+          ],
+          "scope": "Prescribed pressure, assumed 5 mm annulus width; independent measured leakage unavailable.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "969fef2ab790b152a5db46c4b1fffc6aac5668a059b48063a6bb4e17fdd852e3"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "b1aeef0040fdd33d5065a4d129dddf79dfecb586c6a6ed84a5dfff7804184bae"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "d2a5eec296c3714298c480c28e514c657f845f138643256a41002c85c63e9a6b"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "721be9f0936df29359c0d578606ee169417cfb4ddeb989ce3359ffdceab7df8d"
+            }
+          ]
+        },
+        {
+          "case": "gap130um_1697Pa_fine",
+          "solvers": [
+            {
+              "name": "OpenFOAM (OpenCFD)",
+              "version": "v2606",
+              "application": "simpleFoam"
+            }
+          ],
+          "conditions": {
+            "imposed_pressure_difference_Pa": 1697,
+            "seal_gap_mm": 0.13,
+            "annular_geometry": {
+              "inner_radius_m": 0.07978845608028654,
+              "outer_radius_m": 0.08478845608028654,
+              "sector_angle_deg": 4.0,
+              "air_density_kg_m3": 1.204,
+              "air_dynamic_viscosity_pa_s": 1.81e-05,
+              "inner_radius_basis": "Eq. 3 pressure/force pairs imply 0.0200 m^2 cup area; use equivalent radius as inner slot edge.",
+              "outer_radius_basis": "Assume 5 mm radial seal width; unavailable as an independently confirmed paper dimension."
+            }
+          },
+          "results": [
+            {
+              "target": "leakage_flow_rate",
+              "value": 1.7141174720721002,
+              "unit": "L/s",
+              "measurement_definition": "Magnitude of integrated face volume flux scaled from a 4-degree annular sector.",
+              "references": [
+                {
+                  "kind": "derived",
+                  "value": 1.7744639670713152,
+                  "locator": "Equation 13 analytical estimate",
+                  "signed_error_percent": -3.400829552984075
+                }
+              ]
+            }
+          ],
+          "scope": "Prescribed pressure, assumed 5 mm annulus width; independent measured leakage unavailable.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "969fef2ab790b152a5db46c4b1fffc6aac5668a059b48063a6bb4e17fdd852e3"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "cb07ce1cf244d76220e51afab0392e68b632423deef7dac575239aef9e9b9105"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "8def99d3ca33b7693a66d3ead5fa849a3b0265ae547cac236415b3e3e2937b63"
+            }
+          ]
+        },
+        {
+          "case": "affinity-7281",
+          "solvers": [],
+          "conditions": {
+            "rpm": 7281,
+            "calibration_rpm": 29090,
+            "calibration_vacuum_mbar": 32.1
+          },
+          "results": [
+            {
+              "target": "vacuum_pressure",
+              "value": 2.01094249659164,
+              "unit": "mbar",
+              "measurement_definition": "Speed-squared estimate of same rig vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 2.11,
+                  "locator": "Table 5 test bench holdout",
+                  "signed_error_percent": -4.694668407979153
+                },
+                {
+                  "kind": "simulated",
+                  "value": 2.22,
+                  "locator": "Table 9 original Fluent vacuum",
+                  "signed_error_percent": null
+                }
+              ]
+            },
+            {
+              "target": "electrical_power",
+              "value": 0.4166136391420939,
+              "unit": "W",
+              "measurement_definition": "Exploratory cubic affinity estimate of bench net electrical power.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 2.0,
+                  "locator": "Table 5 test bench",
+                  "signed_error_percent": -79.16931804289531
+                }
+              ]
+            }
+          ],
+          "scope": "Measurement-calibrated alternative on the same rig; pressure estimate depends on a same-device calibration point. No native solver for this estimate.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "969fef2ab790b152a5db46c4b1fffc6aac5668a059b48063a6bb4e17fdd852e3"
+            }
+          ]
+        },
+        {
+          "case": "affinity-12940",
+          "solvers": [],
+          "conditions": {
+            "rpm": 12940,
+            "calibration_rpm": 29090,
+            "calibration_vacuum_mbar": 32.1
+          },
+          "results": [
+            {
+              "target": "vacuum_pressure",
+              "value": 6.351643912557383,
+              "unit": "mbar",
+              "measurement_definition": "Speed-squared estimate of same rig vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 6.11,
+                  "locator": "Table 5 test bench holdout",
+                  "signed_error_percent": 3.9548921858818753
+                },
+                {
+                  "kind": "simulated",
+                  "value": 5.34,
+                  "locator": "Table 9 original Fluent vacuum",
+                  "signed_error_percent": null
+                }
+              ]
+            },
+            {
+              "target": "electrical_power",
+              "value": 2.3386391712807137,
+              "unit": "W",
+              "measurement_definition": "Exploratory cubic affinity estimate of bench net electrical power.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 4.26,
+                  "locator": "Table 5 test bench",
+                  "signed_error_percent": -45.10236687134474
+                }
+              ]
+            }
+          ],
+          "scope": "Measurement-calibrated alternative on the same rig; pressure estimate depends on a same-device calibration point. No native solver for this estimate.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "969fef2ab790b152a5db46c4b1fffc6aac5668a059b48063a6bb4e17fdd852e3"
+            }
+          ]
+        },
+        {
+          "case": "affinity-21017",
+          "solvers": [],
+          "conditions": {
+            "rpm": 21017,
+            "calibration_rpm": 29090,
+            "calibration_vacuum_mbar": 32.1
+          },
+          "results": [
+            {
+              "target": "vacuum_pressure",
+              "value": 16.755563514021812,
+              "unit": "mbar",
+              "measurement_definition": "Speed-squared estimate of same rig vacuum magnitude.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 16.97,
+                  "locator": "Table 5 test bench holdout",
+                  "signed_error_percent": -1.2636210134247872
+                },
+                {
+                  "kind": "simulated",
+                  "value": 19.56,
+                  "locator": "Table 9 original Fluent vacuum",
+                  "signed_error_percent": null
+                }
+              ]
+            },
+            {
+              "target": "electrical_power",
+              "value": 10.020111710892287,
+              "unit": "W",
+              "measurement_definition": "Exploratory cubic affinity estimate of bench net electrical power.",
+              "references": [
+                {
+                  "kind": "measured",
+                  "value": 12.01,
+                  "locator": "Table 5 test bench",
+                  "signed_error_percent": -16.568595246525497
+                }
+              ]
+            }
+          ],
+          "scope": "Measurement-calibrated alternative on the same rig; pressure estimate depends on a same-device calibration point. No native solver for this estimate.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "969fef2ab790b152a5db46c4b1fffc6aac5668a059b48063a6bb4e17fdd852e3"
+            }
+          ]
+        }
+      ],
+      "brief_results": [
+        {
+          "case": "attempt04",
+          "solver": "OpenFOAM v2606 rhoSimpleFoam",
+          "conditions": "12940 rpm, one passage of a 10-blade impeller, 0.13 mm effective seal gap, 0.785 L/s imposed",
+          "measurements": [
+            {
+              "target": "static_pressure_rise",
+              "value": 743.64,
+              "unit": "Pa",
+              "measurement_definition": "Single-passage outlet minus inlet mean static pressure. Comparison to whole-cup vacuum uses different measurement locations and is diagnostic only.",
+              "references": {
+                "bench": 611,
+                "Fluent": 534
+              },
+              "signed_errors_percent": {
+                "bench": 21.71,
+                "Fluent": 39.26
+              }
+            },
+            {
+              "target": "shaft_torque",
+              "value": 0.00086194,
+              "unit": "N·m",
+              "references": {
+                "Fluent": 0.0023
+              },
+              "signed_errors_percent": {
+                "Fluent": -62.52
+              }
+            },
+            {
+              "target": "electrical_power",
+              "value": null,
+              "unit": "W",
+              "references": {
+                "bench_net_electrical": 4.26
+              },
+              "shaft_power_W": 1.168,
+              "measurement_definition": "Shaft power is mechanical torque × speed. Net bench electrical power is 4.26 W; electrical power was not predicted."
+            }
+          ]
+        },
+        {
+          "case": "r05-fine",
+          "solver": "OpenFOAM v2606 simpleFoam",
+          "conditions": "12940 rpm, 10-blade sector, leak-closure point",
+          "measurements": [
+            {
+              "target": "static_pressure_rise",
+              "value": 746.81,
+              "unit": "Pa",
+              "references": {
+                "bench": 611,
+                "Fluent": 534
+              },
+              "signed_errors_percent": {
+                "bench": 22.23,
+                "Fluent": 39.85
+              }
+            }
+          ]
+        },
+        {
+          "case": "annular-seal",
+          "solver": "OpenFOAM v2606 simpleFoam",
+          "conditions": "0.13 mm gap, imposed 211/1697 Pa",
+          "measurements": [
+            {
+              "target": "leakage_flow_rate",
+              "value": [
+                0.2198,
+                1.714117
+              ],
+              "unit": "L/s",
+              "references": {
+                "equation_13": [
+                  0.220632,
+                  1.774464
+                ]
+              },
+              "signed_errors_percent": {
+                "equation_13": [
+                  -0.377,
+                  -3.401
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "case": "rig-calibrated-affinity",
+          "conditions": "29090 rpm calibration; holdouts at 7281/12940/21017 rpm",
+          "measurements": [
+            {
+              "target": "vacuum_pressure",
+              "value": [
+                2.011,
+                6.352,
+                16.756
+              ],
+              "unit": "mbar",
+              "references": {
+                "bench": [
+                  2.11,
+                  6.11,
+                  16.97
+                ]
+              },
+              "signed_errors_percent": {
+                "bench": [
+                  -4.69,
+                  3.95,
+                  -1.26
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "Confirm Table 5/9 impeller version and obtain the full impeller, housing, diffuser, cup, measuring tap and seal geometry.",
+        "Verify pressure and torque on independent RPMs using matched definitions and resolution. Fine sector pressure misses the approximately 15% bench reference line.",
+        "Obtain a motor efficiency/loss map and independent net electrical power. Shaft watts and bench electrical watts have different definitions.",
+        "Obtain independent seal leak measurements and wall contact/load validation for holding force and safe RPM."
+      ],
+      "comparison_receipt": {
+        "path": "[internal evidence path withheld]",
+        "sha256": "fd8e3dbde9bff45056303d7f347a9e9a16873f667ce53a2b296d8552af187068"
+      }
+    }
+  },
+  {
+    "id": "rgo_puf_tactile_finger_2024",
+    "doi": "10.3390/mi15050628",
+    "title": "A Soft Robot Tactile Finger Using Oxidation-Reduction Graphene–Polyurethane Conductive Sponge",
+    "authors": "Hangze Li, Chaolin Ma, Jinmiao Chen, Haojie Wang, Xiao Chen, Zhijing Li, Youzhi Zhang",
+    "year": 2024,
+    "software": "COMSOL",
+    "software_version": "6.0",
+    "industry": "具身智能 / 柔性触觉",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11123064/",
+    "source_locator": "§2.1 Figure 1, §3 Figures 4–6",
+    "provenance": "Primary publication and archived native research receipts. Internal receipts are not distributed with this release; hashes identify those records.",
+    "targets": [
+      "capacitance",
+      "capacitance_ratio",
+      "capacitance_change",
+      "pressure_sensitivity",
+      "force_inversion"
+    ],
+    "conditions": [
+      "Figure 1 idealized prespecified 10 mm and 5 mm upper electrode heights",
+      "Independent bench performance tests on physical fingertip"
+    ],
+    "model_chain": [
+      "Prescribed compressed/uncompressed geometry to electrostatic capacitance",
+      "Separate benchmark pressure and grip tests"
+    ],
+    "required_inputs": [
+      "Electrode geometry and true contact area",
+      "Dielectric constants and frequency",
+      "Compression and contact test data for load inversion"
+    ],
+    "limitations": [
+      "Obtain both 3D top-electrode configurations or sufficient reconstruction parameters, measured contact area and matched dielectric properties.",
+      "Obtain compression/contact data and hold out paired displacement, force and capacitance for load prediction.",
+      "Bench pressure sensitivity, hysteresis, response time and force inversion require measured calibration and validation; the bench sample dimensions differ from Figure 1."
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "capacitance",
+        "detail": "53.3 pF at 10 mm and 167.5 pF at 5 mm.",
+        "locator": "§2.1 Figure 1"
+      },
+      {
+        "kind": "measured",
+        "quantity": "pressure_sensitivity",
+        "detail": "Separate physical-sample test peak reported sensitivity approximately 1.089 kPa⁻¹.",
+        "locator": "§3 Figure 4 and Conclusion"
+      }
+    ],
+    "reproduction": {
+      "status": "native_submodel_paper_not_reproduced",
+      "program_baseline": "8ec8d559",
+      "routes": [
+        {
+          "chain": "tactile_pad_forward",
+          "solver": "getdp",
+          "version": "3.5.0"
+        },
+        {
+          "chain": "tactile_pad_inverse",
+          "solver": "getdp",
+          "version": "3.5.0",
+          "gap": "No independent load predictions were verified. Obtain a measured capacitance–load calibration and hold out paired load, displacement and capacitance."
+        }
+      ],
+      "scope": "Native prescribed-height electrostatics and bounded displacement-to-mesh transfer. Contact, pressure inference and full reproduction remain unverified.",
+      "cases": [
+        {
+          "case": "contact_h10_r1",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 10,
+            "mesh_cells": 132980,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 11.87,
+            "surface_assumption": "3×3 square protrusions, 15 mm wide with 0.2 mm air gap at 10 mm, 20 mm wide at contact at 5 mm"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 94.66344046221042,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 53.3,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": 77.60495396287132
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "ed51387891a36cdee333eea30a884e38e8502244ec964b480e101ca69db67e31"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "contact_h5_r1",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 5,
+            "mesh_cells": 110475,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 11.87,
+            "surface_assumption": "3×3 square protrusions, 15 mm wide with 0.2 mm air gap at 10 mm, 20 mm wide at contact at 5 mm"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 481.8428706544449,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 167.5,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": 187.6673854653402
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "ed51387891a36cdee333eea30a884e38e8502244ec964b480e101ca69db67e31"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "contact_h10_r1.4",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 10,
+            "mesh_cells": 303813,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 11.87,
+            "surface_assumption": "3×3 square protrusions, 15 mm wide with 0.2 mm air gap at 10 mm, 20 mm wide at contact at 5 mm"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 92.34649964975534,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 53.3,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": 73.25797307646407
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "ed51387891a36cdee333eea30a884e38e8502244ec964b480e101ca69db67e31"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "6d6e2bb564f7a1a2a061904207f5eca024238fd7d6447d829a34f0ba789d62ff"
+            }
+          ]
+        },
+        {
+          "case": "contact_h5_r1.4",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 5,
+            "mesh_cells": 244895,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 11.87,
+            "surface_assumption": "3×3 square protrusions, 15 mm wide with 0.2 mm air gap at 10 mm, 20 mm wide at contact at 5 mm"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 470.5278527174022,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 167.5,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": 180.91215087606102
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "ed51387891a36cdee333eea30a884e38e8502244ec964b480e101ca69db67e31"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "6d6e2bb564f7a1a2a061904207f5eca024238fd7d6447d829a34f0ba789d62ff"
+            }
+          ]
+        },
+        {
+          "case": "paper_h10_r1",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 10,
+            "mesh_cells": 133082,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 1,
+            "surface_assumption": "Simplified sponge projections with small residual air gap"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 33.71752295973108,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 53.3,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": -36.7401070173901
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5de7f48ba6fab174b1e5f41a40376114dc9809db77d34b445d2e7e6dad65d998"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "paper_h5_r1",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 5,
+            "mesh_cells": 119150,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 1,
+            "surface_assumption": "Simplified sponge projections with small residual air gap"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 40.475634883886876,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 167.5,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": -75.83544186036603
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5de7f48ba6fab174b1e5f41a40376114dc9809db77d34b445d2e7e6dad65d998"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "paper_h10_r1.4",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 10,
+            "mesh_cells": 304185,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 1,
+            "surface_assumption": "Simplified sponge projections with small residual air gap"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 33.10302217250831,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 53.3,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": -37.893016561898094
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5de7f48ba6fab174b1e5f41a40376114dc9809db77d34b445d2e7e6dad65d998"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "paper_h5_r1.4",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "height_mm": 5,
+            "mesh_cells": 265875,
+            "footprint_mm": [
+              100,
+              100
+            ],
+            "film_thickness_mm": 1,
+            "bottom_electrode_thickness_mm": 1,
+            "insulating_air_box_side_m": 1,
+            "bias_V": 1,
+            "relative_film_permittivity": 1,
+            "surface_assumption": "Simplified sponge projections with small residual air gap"
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 39.52499616149742,
+              "unit": "pF",
+              "measurement_definition": "Two terminal capacitance for upper and lower electrodes via electrostatic energy C=2U/V² at 1 V.",
+              "references": [
+                {
+                  "kind": "simulated",
+                  "value": 167.5,
+                  "locator": "§2.1 Figure 1 COMSOL prescribed height",
+                  "signed_error_percent": -76.4029873662702
+                }
+              ]
+            }
+          ],
+          "scope": "Surrogate pore/contact geometry and dielectric parameters. COMSOL figure reference is a prescribed geometry; external force and bench sensitivity are unverified.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5de7f48ba6fab174b1e5f41a40376114dc9809db77d34b445d2e7e6dad65d998"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "contact-fine-ratio",
+          "solvers": [
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "heights_mm": [
+              10,
+              5
+            ],
+            "cases": [
+              "contact_h10_r1.4",
+              "contact_h5_r1.4"
+            ]
+          },
+          "results": [
+            {
+              "target": "capacitance_ratio",
+              "value": 5.095242965374799,
+              "unit": "1",
+              "measurement_definition": "5 mm terminal capacitance divided by 10 mm terminal capacitance.",
+              "references": [
+                {
+                  "kind": "derived",
+                  "value": 3.1425891181988743,
+                  "locator": "§2.1 Figure 1 COMSOL capacitance ratio",
+                  "signed_error_percent": 62.135194062374175
+                }
+              ]
+            }
+          ],
+          "scope": "Derived ratio for two prescribed-geometry states.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "ed51387891a36cdee333eea30a884e38e8502244ec964b480e101ca69db67e31"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "24de630b791dd423b6870e8a89964d73a37266dbb028aab43f9488d9fa77d1dc"
+            }
+          ]
+        },
+        {
+          "case": "load_1",
+          "solvers": [
+            {
+              "name": "CalculiX",
+              "version": "2.22"
+            },
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "imposed_center_displacement_mm": -1,
+            "initial_gap_mm": 3,
+            "youngs_modulus_MPa": 0.1,
+            "poisson_ratio": 0.3,
+            "dielectric_relative_permittivity": 1
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 35.91048,
+              "unit": "pF",
+              "measurement_definition": "GetDP terminal capacitance from integrated energy after remeshing a prescribed displacement field.",
+              "references": []
+            }
+          ],
+          "scope": "Displacement transfer proof with surrogate elastic block and sloped gap; no comparable load-defined paper case.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "dc19b76f10adf1afcd5ac4a7954e3b941976e896a073ea33d951b9b58fce12d4"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "2213c606ac8b805e20cba2dbb6af22443c29c9a7a0be139e4534b6431e194c66"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5d7e2de17a327aac962830d9d67410ef7df7012353069c2b813b9e475e35172a"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "c872891f81172ee3d65bcd7a9a4a8e2a0561dd224413e285281a5f3a837a42f3"
+            }
+          ]
+        },
+        {
+          "case": "load_2",
+          "solvers": [
+            {
+              "name": "CalculiX",
+              "version": "2.22"
+            },
+            {
+              "name": "Gmsh",
+              "version": "4.15.2"
+            },
+            {
+              "name": "GetDP",
+              "version": "3.5.0"
+            }
+          ],
+          "conditions": {
+            "imposed_center_displacement_mm": -2,
+            "initial_gap_mm": 3,
+            "youngs_modulus_MPa": 0.1,
+            "poisson_ratio": 0.3,
+            "dielectric_relative_permittivity": 1
+          },
+          "results": [
+            {
+              "target": "capacitance",
+              "value": 48.7228,
+              "unit": "pF",
+              "measurement_definition": "GetDP terminal capacitance from integrated energy after remeshing a prescribed displacement field.",
+              "references": []
+            }
+          ],
+          "scope": "Displacement transfer proof with surrogate elastic block and sloped gap; no comparable load-defined paper case.",
+          "receipts": [
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "dc19b76f10adf1afcd5ac4a7954e3b941976e896a073ea33d951b9b58fce12d4"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "fda197e6aa0583d37b1f15972905a28c94b9039b4ed262e6a276b9ded360528c"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "5d7e2de17a327aac962830d9d67410ef7df7012353069c2b813b9e475e35172a"
+            },
+            {
+              "path": "[internal evidence path withheld]",
+              "sha256": "53d48829d04311fcfed675d57bc90e0e461eaaf42cba8f61e91692fd493fa769"
+            }
+          ]
+        }
+      ],
+      "brief_results": [
+        {
+          "case": "contact-fine",
+          "solver": "Gmsh 4.15.2 / GetDP 3.5.0",
+          "conditions": "100×100 mm, 1 V; prescribed upper-electrode geometries at 10 mm with an air gap and 5 mm with film contact",
+          "measurements": [
+            {
+              "target": "capacitance",
+              "value": [
+                92.35,
+                470.53
+              ],
+              "unit": "pF",
+              "references": {
+                "COMSOL": [
+                  53.3,
+                  167.5
+                ]
+              },
+              "signed_errors_percent": {
+                "COMSOL": [
+                  73.26,
+                  180.91
+                ]
+              }
+            },
+            {
+              "target": "capacitance_ratio",
+              "value": 5.095,
+              "unit": "1",
+              "references": {
+                "COMSOL": 3.143
+              },
+              "signed_errors_percent": {
+                "COMSOL": 62.14
+              }
+            }
+          ]
+        },
+        {
+          "case": "small-gap-fine",
+          "solver": "Gmsh 4.15.2 / GetDP 3.5.0",
+          "conditions": "10/5 mm; dielectric relative permittivity 1 and residual gap",
+          "measurements": [
+            {
+              "target": "capacitance",
+              "value": [
+                33.1,
+                39.52
+              ],
+              "unit": "pF",
+              "references": {
+                "COMSOL": [
+                  53.3,
+                  167.5
+                ]
+              },
+              "signed_errors_percent": {
+                "COMSOL": [
+                  -37.89,
+                  -76.4
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "case": "prescribed-displacement-transfer",
+          "solver": "CalculiX 2.22 / Gmsh 4.15.2 / GetDP 3.5.0",
+          "conditions": "-1/-2 mm central motion, surrogate elastic block",
+          "measurements": [
+            {
+              "target": "capacitance",
+              "value": [
+                35.91,
+                48.72
+              ],
+              "unit": "pF"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "Obtain both 3D top-electrode configurations or sufficient reconstruction parameters, measured contact area and matched dielectric properties.",
+        "Obtain compression/contact data and hold out paired displacement, force and capacitance for load prediction.",
+        "Bench pressure sensitivity, hysteresis, response time and force inversion require measured calibration and validation; the bench sample dimensions differ from Figure 1."
+      ],
+      "comparison_receipt": {
+        "path": "[internal evidence path withheld]",
+        "sha256": "fd8e3dbde9bff45056303d7f347a9e9a16873f667ce53a2b296d8552af187068"
+      }
+    }
+  }
+]

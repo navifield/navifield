@@ -1,0 +1,4621 @@
+[
+  {
+    "id": "outlet_net_vapor",
+    "title": "蒸发器控制体的净产汽质量流量",
+    "domain": "phase_change",
+    "mechanisms": [
+      "boiling"
+    ],
+    "goals": [
+      "net_vapor_mass_flow",
+      "outlet_vapor_mass_flow"
+    ],
+    "conditions": {
+      "geometry": [
+        "heated_channel"
+      ],
+      "regime": [
+        "subcooled_nucleate"
+      ],
+      "wall_control": [
+        "prescribed_temperature"
+      ],
+      "operation": [
+        "steady",
+        "transient",
+        "startup_and_steady"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "flow_bc",
+        "meaning": "液体入口质量流量与温度、入口含汽率以及压力/出口条件。"
+      },
+      {
+        "key": "thermal_bc",
+        "meaning": "受热壁规定温度与作用范围，温度 K。"
+      },
+      {
+        "key": "phase_properties",
+        "meaning": "两相密度、黏度、比热、热导率及适用温压。"
+      },
+      {
+        "key": "saturation_relation",
+        "meaning": "局部压力下的饱和温度或热物性关系。"
+      },
+      {
+        "key": "latent_heat",
+        "meaning": "汽化潜热或同一焓基准的饱和汽液焓差，J/kg。"
+      },
+      {
+        "key": "boiling_closures",
+        "meaning": "壁面成核、气泡脱离与热流分配闭合及系数。"
+      },
+      {
+        "key": "interfacial_heat_transfer",
+        "meaning": "体相相际面积及换热/过冷凝结闭合。"
+      },
+      {
+        "key": "diagnostic_patches",
+        "meaning": "所有进出口面、面积和法向，确认 kg/s 为蒸汽相质量通量。"
+      },
+      {
+        "key": "geometry",
+        "meaning": "加热段形状、控制体边界与体积，受热面积及通道尺度。"
+      }
+    ],
+    "inputs_when": [
+      {
+        "condition": "operation",
+        "values": [
+          "transient",
+          "startup_and_steady"
+        ],
+        "inputs": [
+          {
+            "key": "initial_inventory",
+            "meaning": "启动时的汽液分布与热力状态；时间步和回读时刻须能分辨汽相库存变化。"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unresolved_film",
+    "title": "纯蒸汽、未解析重力液膜的整板凝液流量",
+    "domain": "phase_change",
+    "mechanisms": [
+      "condensation"
+    ],
+    "goals": [
+      "condensate_mass_flow",
+      "condensation_heat_duty"
+    ],
+    "conditions": {
+      "geometry": [
+        "vertical_plate"
+      ],
+      "gas_composition": [
+        "pure_vapor"
+      ],
+      "film_resolution": [
+        "unresolved"
+      ],
+      "film_regime": [
+        "laminar_gravity"
+      ],
+      "vapor_shear": [
+        "negligible"
+      ],
+      "wall_control": [
+        "isothermal"
+      ],
+      "vapor_state": [
+        "saturated"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "surface": [
+        "smooth"
+      ],
+      "film_feed": [
+        "no_upstream_liquid"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "plate_geometry",
+        "meaning": "竖直冷板的有效高度 L 与冷却面积 A，m、m²。"
+      },
+      {
+        "key": "wall_temperature",
+        "meaning": "均匀壁温 Tw，K，低于饱和温度。"
+      },
+      {
+        "key": "saturation_relation",
+        "meaning": "本工质的饱和温度与压力关系。"
+      },
+      {
+        "key": "operating_pressure",
+        "meaning": "代表性蒸汽绝对压力 Pa，沿程压降可忽略。"
+      },
+      {
+        "key": "phase_properties",
+        "meaning": "膜温下液相黏度、导热率、密度，以及相应汽相密度。"
+      },
+      {
+        "key": "latent_heat",
+        "meaning": "饱和汽液比焓差 J/kg；该路线假设显热修正可忽略。"
+      },
+      {
+        "key": "gravity",
+        "meaning": "重力方向与加速度 m/s²。"
+      }
+    ]
+  },
+  {
+    "id": "condensation_with_ncg",
+    "title": "含空气的水蒸气冷凝及气侧/液膜耦合",
+    "domain": "phase_change",
+    "mechanisms": [
+      "condensation"
+    ],
+    "goals": [
+      "condensate_mass_flow",
+      "condensation_heat_duty"
+    ],
+    "conditions": {
+      "geometry": [
+        "vertical_plate"
+      ],
+      "gas_composition": [
+        "steam_air"
+      ],
+      "film_resolution": [
+        "unresolved"
+      ],
+      "gas_layer": [
+        "resolved"
+      ],
+      "film_regime": [
+        "laminar_gravity"
+      ],
+      "operation": [
+        "steady"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "plate_geometry",
+        "meaning": "受冷面的几何、面积、方向和气体流道。"
+      },
+      {
+        "key": "thermal_bc",
+        "meaning": "冷壁温度或壁体与冷源的热边界。"
+      },
+      {
+        "key": "flow_bc",
+        "meaning": "气流入口速度/质量流量、温度和出口边界。"
+      },
+      {
+        "key": "operating_pressure",
+        "meaning": "气相绝对总压 Pa，用于分压与界面平衡。"
+      },
+      {
+        "key": "gas_composition",
+        "meaning": "入口水蒸气与空气的质量或摩尔分数，注明基准。"
+      },
+      {
+        "key": "phase_properties",
+        "meaning": "汽液与空气热物性和摩尔质量。"
+      },
+      {
+        "key": "vapor_diffusivity",
+        "meaning": "水蒸气–空气扩散系数 m²/s，按需要给有效扩散闭合。"
+      },
+      {
+        "key": "saturation_relation",
+        "meaning": "界面温度下的水饱和蒸汽压 Pa。"
+      },
+      {
+        "key": "latent_heat",
+        "meaning": "相变焓差 J/kg。"
+      },
+      {
+        "key": "liquid_thermal_resistance",
+        "meaning": "膜厚/液体导热率或经核实的液膜闭合，给出液侧热阻 m²·K/W 或关联式。"
+      }
+    ]
+  },
+  {
+    "id": "independent_vacuum_feet",
+    "title": "独立抽气多足贴壁悬停与电输入范围",
+    "domain": "wall_adhesion",
+    "goals": [
+      "suction_leakage",
+      "suction_force",
+      "wall_contact_stability",
+      "battery_electrical_power",
+      "adhesion_operating_envelope"
+    ],
+    "mechanisms": [
+      "vacuum_adhesion",
+      "leakage_flow",
+      "wall_contact",
+      "electrical_power"
+    ],
+    "conditions": {
+      "operation": [
+        "steady"
+      ],
+      "support_mode": [
+        "wall_contact"
+      ],
+      "vacuum_architecture": [
+        "independent_feet"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "foot_geometry",
+        "meaning": "逐脚吸盘、裙边、叶轮/抽气口几何 [m]、实际密封区域和开度。"
+      },
+      {
+        "key": "wall_leakage_law",
+        "meaning": "各壁材与预压下有效间隙/裂缝范围 [m] 或实测漏率曲线 [kg/s]；解析实际间隙时直接用几何。"
+      },
+      {
+        "key": "pump_operating_map",
+        "meaning": "逐脚转速 [rpm] 下实测流量–压升曲线及工作方向，或可解析叶轮几何、转速和出口背压 [Pa]。"
+      },
+      {
+        "key": "ambient_state",
+        "meaning": "外界静压 [Pa 绝压]、温度 [K]、气体物性和排气背压 [Pa 绝压]。"
+      },
+      {
+        "key": "adhesion_readout",
+        "meaning": "逐脚正向壁外法线、受力选择面/有效投影面积、参考点 [m] 和压差基准 [Pa]。"
+      },
+      {
+        "key": "wall_contact_data",
+        "meaning": "着壁脚位置、接触斑范围、压缩预载及实测摩擦系数/剥离限值。"
+      },
+      {
+        "key": "pose_loads",
+        "meaning": "机体与负载质量 [kg]、重心及足位 [m]、姿态、重力和外载荷/力矩 [N, N·m]。"
+      },
+      {
+        "key": "power_mapping",
+        "meaning": "与工况匹配的电压/电流 [V, A] 或电机驱动效率图和损耗、关停/占空比及辅助负载 [W]。"
+      },
+      {
+        "key": "rpm_search_basis",
+        "meaning": "每脚独立给转速上下界、步长和调速规则 [rpm]；是否共同转速或允许逐脚不同；增速前初始命令与实测稳态基准、升/降速方向、零速/停泵状态、转速计和电气测量归零。"
+      },
+      {
+        "key": "adhesion_acceptance_limits",
+        "meaning": "各壁材、姿态/负载和必测异常工况下，最低抗滑余量 [N] 或安全系数、最低防翘/防翻余量 [N·m] 或安全系数、允许离壁间隙/脱附判据及电池最大平均/峰值功率 [W]、时间窗口和功率储备；确认逐工况输出或同一控制设定须覆盖全部工况的交集。"
+      }
+    ],
+    "intake": {
+      "all_of": [
+        [
+          "吸盘",
+          "吸脚",
+          "吸附头",
+          "吸附脚",
+          "吸足",
+          "负压",
+          "抽气",
+          "吸壁",
+          "抽吸",
+          "叶轮",
+          "真空",
+          "suction",
+          "vacuum",
+          "annular seal",
+          "impeller",
+          "vacuum adhesion"
+        ],
+        [
+          "爬壁",
+          "垂直壁",
+          "竖壁",
+          "立壁",
+          "墙",
+          "贴壁",
+          "垂直面",
+          "立面",
+          "竖直面",
+          "壁面",
+          "吸脚",
+          "wall",
+          "climbing",
+          "壁上"
+        ],
+        [
+          "防滑",
+          "滑移",
+          "滑落",
+          "下滑",
+          "滑脱",
+          "翘",
+          "翻",
+          "悬停",
+          "悬挂",
+          "吸附力",
+          "承重",
+          "载重",
+          "载荷",
+          "贴住",
+          "吸住",
+          "转速",
+          "功耗",
+          "耗电",
+          "保持",
+          "holding",
+          "holding margin",
+          "overturning",
+          "power",
+          "wall contact stability",
+          "adhesion force",
+          "slip",
+          "suction force",
+          "稳定"
+        ]
+      ],
+      "exclude": [
+        "free flight",
+        "自由飞行工况",
+        "shared vacuum pump",
+        "shared manifold",
+        "shared pump",
+        "共用一台泵",
+        "共用真空泵",
+        "共享真空源",
+        "共同真空源",
+        "单泵多杯"
+      ],
+      "goal_aliases": {
+        "vertical_wall_static_holding_margin": "wall_contact_stability",
+        "power_acceptable_operating_envelope": "adhesion_operating_envelope",
+        "normal_suction_force": "suction_force"
+      },
+      "capability_ids": [
+        "openfoam_opencfd.steady_compressible",
+        "openfoam_opencfd.wall_force_and_moment",
+        "openfoam_opencfd.suction_pressure_projection"
+      ],
+      "scope_terms": [
+        "每只脚",
+        "每只吸脚",
+        "每条腿",
+        "每个足",
+        "每个吸盘",
+        "每个吸脚",
+        "各脚",
+        "逐脚",
+        "分别抽气",
+        "独立",
+        "per foot",
+        "individual",
+        "independent",
+        "annular seal leakage"
+      ],
+      "scope_question": {
+        "key": "vacuum_architecture",
+        "meaning": "吸附单元各自带泵/叶轮，还是共用泵和歧管？共用管路需要联合求解各支路工作点。"
+      },
+      "quantity_aliases": {
+        "chamber_pressure": "suction_chamber_pressure"
+      },
+      "incompatible_conditions": [
+        "transient",
+        "free_flight",
+        "shared_manifold",
+        "common_vacuum_source"
+      ],
+      "research_needs": {
+        "seal_lift_leakage_closure": "若裙边翘起改变漏气路径，查适用墙面和密封材料的载荷–开度–漏率闭合及独立验证范围。"
+      }
+    }
+  },
+  {
+    "id": "tactile_pad_forward",
+    "title": "触觉指垫：载荷到电容正向预测",
+    "domain": "tactile_sensor",
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "goals": [
+      "pad_deformation",
+      "tactile_capacitance",
+      "capacitance_change",
+      "electrode_charge"
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ],
+      "electrical_model": [
+        "electrostatic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "sensor_geometry",
+        "meaning": "指垫固体、介质、空气和每个电极的三维几何及米制坐标，电极和区域唯一标识。"
+      },
+      {
+        "key": "mechanical_properties",
+        "meaning": "提供现有力学试验的应力–应变或力–位移数据、适用区间、试件尺寸及加载条件，用来选择并拟合本构；泡沫等大变形材料还需接触信息。"
+      },
+      {
+        "key": "mechanical_bc",
+        "meaning": "支承、加载面、法向、接触体和载荷 N 或位移 m，含历史与初始状态。"
+      },
+      {
+        "key": "dielectric_properties",
+        "meaning": "提供现有独立介电试验得到的 εr 或介电率 F/m、频率、应变与温度范围及样本来源；由目标电容反算的 εr 只作校准。"
+      },
+      {
+        "key": "electrical_bc",
+        "meaning": "列各电极的激励、参考、短接或浮置、测量端口、空气外边界与参考电势；浮置端给定总电荷或电路约束，核查仪表频率和寄生。"
+      }
+    ],
+    "intake": {
+      "exclude_pattern": "(?s)\\A(?!.*(?:电容(?:变化|随)|压缩位移|压头位移|受压变形|加压后|按压后|加载后|capacitance change)).*(?:未(?:受力|受压|加载|按压)|无(?:外载|载荷)|没(?:有)?(?:加载|受压|压上去)|零(?:压|载荷?)|卸载(?:时|后|态)|固定(?:的)?(?:厚度|几何|形状)|已知(?:变形后|当前|压后)(?:的)?(?:几何|厚度|形状)|初始电容|unloaded|fixed geometry)",
+      "all_of": [
+        [
+          "指垫",
+          "指腹",
+          "触觉",
+          "海绵",
+          "泡棉",
+          "泡沫电极",
+          "柔性电极",
+          "柔性电容",
+          "电容式压力传感",
+          "电容压力传感",
+          "柔性夹爪",
+          "软夹爪",
+          "压敏",
+          "触压",
+          "触摸",
+          "双指",
+          "夹持",
+          "夹紧",
+          "夹爪",
+          "软垫",
+          "tactile",
+          "finger pad",
+          "fingertip",
+          "gripper",
+          "pad compression",
+          "pad deformation",
+          "sponge",
+          "foam electrode",
+          "pressure sensor"
+        ],
+        [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF"
+        ],
+        [
+          "求电容",
+          "预测电容",
+          "计算电容",
+          "电容如何",
+          "电容变化",
+          "电容响应",
+          "正向",
+          "电荷量",
+          "电容多大",
+          "电容是多少",
+          "电容值",
+          "电容量",
+          "给定位移",
+          "电容随",
+          "变形后",
+          "正向静电",
+          "tactile capacitance",
+          "electrode charge",
+          "capacitance change",
+          "predict capacitance",
+          "forward capacitance",
+          "设计",
+          "硬度",
+          "受压变形",
+          "力学",
+          "几何",
+          "聚氨酯",
+          "软硬",
+          "换材料",
+          "改材料",
+          "压缩位移",
+          "sponge deformation",
+          "elastic deformation",
+          "design",
+          "hardness"
+        ]
+      ],
+      "goal_aliases": {},
+      "capability_ids": [
+        "calculix.hyperelastic_static",
+        "calculix.mortar_static_contact",
+        "getdp.electrostatics_dielectric",
+        "getdp.electrode_charge_readback",
+        "getdp.tactile_capacitance_from_charge"
+      ],
+      "research_needs": {
+        "porous_electrode_equivalence": "核查多孔电极在目标频率与压缩范围内可近似等势的条件及介电参数依据。"
+      },
+      "signal_roles": {
+        "competing": [
+          "应变电桥",
+          "应变桥",
+          "电阻应变",
+          "应变片",
+          "应变计",
+          "应变式",
+          "惠斯通",
+          "四臂电桥",
+          "全桥",
+          "半桥",
+          "strain gauge",
+          "strain bridge",
+          "wheatstone",
+          "压阻",
+          "piezoresistive"
+        ],
+        "signal": [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF"
+        ],
+        "incidental": [
+          "寄生",
+          "杂散",
+          "对地",
+          "线缆",
+          "电缆",
+          "旁观",
+          "顺便",
+          "附带",
+          "干扰",
+          "只用来屏蔽",
+          "parasitic",
+          "stray",
+          "cable"
+        ],
+        "readout": [
+          "反演",
+          "反推",
+          "反算",
+          "估计",
+          "推算",
+          "力值",
+          "测力",
+          "标定",
+          "换算",
+          "换成",
+          "信号",
+          "主读数",
+          "主通道",
+          "主要读数",
+          "测量量",
+          "载荷",
+          "夹持力",
+          "抓力",
+          "转成",
+          "读出",
+          "图谱",
+          "读数",
+          "estimate",
+          "infer",
+          "force",
+          "calibrate",
+          "calibration",
+          "readout"
+        ],
+        "reference": [
+          "仅供",
+          "只作",
+          "只做",
+          "只用",
+          "参考",
+          "对照",
+          "基准",
+          "真值",
+          "独立校准",
+          "独立校验",
+          "核对",
+          "不参与",
+          "reference",
+          "ground truth"
+        ]
+      },
+      "goal_terms": {
+        "capacitance_change": [
+          "电容变化",
+          "相对电容",
+          "相对变化",
+          "capacitance change",
+          "relative capacitance"
+        ]
+      }
+    },
+    "goal_inputs": {
+      "capacitance_change": [
+        {
+          "key": "baseline_capacitance",
+          "meaning": "同一样件、压头、预载零点、频率和电极边界下的基准电容 C0 或其基准仿真；ΔC 为 F，ΔC/C0 无量纲且要求 C0 非零。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "tactile_pad_inverse",
+    "title": "触觉指垫：经标定电容到接触载荷反演",
+    "domain": "tactile_sensor",
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "goals": [
+      "calibrated_contact_load"
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "calibration_data",
+        "meaning": "独立标定的电容与载荷数据、测量误差、滞回、有效范围和标定模型；载荷分布及接触位置若未知必须说明不可辨识性。"
+      },
+      {
+        "key": "measured_capacitance",
+        "meaning": "提供实测电容 F 或读数序列；测量端口和采样配置在试验协议中另列。"
+      }
+    ],
+    "intake": {
+      "all_of": [
+        [
+          "指垫",
+          "指腹",
+          "机器人手指",
+          "机械手指",
+          "触觉",
+          "海绵",
+          "泡棉",
+          "泡沫电极",
+          "柔性电极",
+          "柔性夹爪",
+          "软夹爪",
+          "压敏",
+          "触压",
+          "触摸",
+          "双指",
+          "夹持",
+          "夹紧",
+          "夹爪",
+          "软垫",
+          "tactile",
+          "finger pad",
+          "fingertip",
+          "gripper",
+          "pad compression",
+          "pad deformation",
+          "sponge",
+          "foam electrode",
+          "pressure sensor",
+          "指尖"
+        ],
+        [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF"
+        ],
+        [
+          "接触载荷",
+          "夹持力",
+          "抓力",
+          "握力",
+          "夹紧力",
+          "接触力",
+          "多少力",
+          "用力",
+          "多大力",
+          "压了多重",
+          "压力大小",
+          "按压的力",
+          "力度",
+          "力估计",
+          "估算载荷",
+          "估计载荷",
+          "测力",
+          "contact load",
+          "grip force",
+          "load estimate",
+          "force sensing",
+          "how hard",
+          "applied force from",
+          "牛顿",
+          "换算成力",
+          "换算为力",
+          "受力大小",
+          "力值",
+          "几克",
+          "砝码",
+          "力标定",
+          "force calibration",
+          "newtons",
+          "calibrated load",
+          "force in n"
+        ]
+      ],
+      "exclude": [
+        "只算电容",
+        "只计算电容",
+        "仅计算电容",
+        "不反演",
+        "不做反演",
+        "without force inference"
+      ],
+      "goal_aliases": {
+        "contact_load": "calibrated_contact_load",
+        "contact_load_estimate": "calibrated_contact_load"
+      },
+      "capability_ids": [],
+      "solver_role": "empirical_postprocessing",
+      "research_needs": {
+        "inverse_identifiability": "查同类测量对加载路径、接触位置与寄生电容的敏感性，有哪些可辨识或拒绝反演的依据。"
+      },
+      "signal_roles": {
+        "competing": [
+          "应变电桥",
+          "应变桥",
+          "电阻应变",
+          "应变片",
+          "应变计",
+          "应变式",
+          "惠斯通",
+          "四臂电桥",
+          "全桥",
+          "半桥",
+          "strain gauge",
+          "strain bridge",
+          "wheatstone",
+          "压阻",
+          "piezoresistive"
+        ],
+        "signal": [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF"
+        ],
+        "incidental": [
+          "寄生",
+          "杂散",
+          "对地",
+          "线缆",
+          "电缆",
+          "旁观",
+          "顺便",
+          "附带",
+          "干扰",
+          "只用来屏蔽",
+          "parasitic",
+          "stray",
+          "cable"
+        ],
+        "readout": [
+          "反演",
+          "反推",
+          "反算",
+          "估计",
+          "推算",
+          "力值",
+          "测力",
+          "标定",
+          "换算",
+          "换成",
+          "信号",
+          "主读数",
+          "主通道",
+          "主要读数",
+          "测量量",
+          "载荷",
+          "夹持力",
+          "抓力",
+          "转成",
+          "读出",
+          "图谱",
+          "读数",
+          "estimate",
+          "infer",
+          "force",
+          "calibrate",
+          "calibration",
+          "readout"
+        ],
+        "reference": [
+          "仅供",
+          "只作",
+          "只做",
+          "只用",
+          "参考",
+          "对照",
+          "基准",
+          "真值",
+          "独立校准",
+          "独立校验",
+          "核对",
+          "不参与",
+          "reference",
+          "ground truth"
+        ]
+      }
+    }
+  },
+  {
+    "id": "joule_heated_thermal_actuator",
+    "domain": "electrothermomechanical_actuation",
+    "title": "自焦耳加热差动热膨胀驱动器（稳态候选）",
+    "goals": [
+      "wall_temperature",
+      "displacement"
+    ],
+    "mechanisms": [
+      "joule_heating",
+      "differential_thermal_expansion"
+    ],
+    "conditions": {
+      "regime": [
+        "steady"
+      ],
+      "excitation": [
+        "voltage",
+        "device_power"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "fabricated_geometry",
+        "meaning": "提供实物 CAD 或测量尺寸，包括冷热臂、连接段、薄膜厚度、释放孔、端垫及锚区。注明采用实物还是掩模尺寸及其对应关系。"
+      },
+      {
+        "key": "electrical_terminals",
+        "meaning": "标定模型中对应驱动端和参考端的焊盘/导电回路，确认接触电阻与功率计量的边界。"
+      },
+      {
+        "key": "thin_film_resistivity_law",
+        "meaning": "提供薄膜电阻率 ρ(T)（Ω·m）、参考温度和适用范围，或提供温度反馈可忽略的依据。"
+      },
+      {
+        "key": "thermal_boundaries",
+        "meaning": "提供薄膜导热率及未明确的热边界：锚区或基底的热阻/接触定义、自由表面的环境温度与换热系数，以及有必要时的辐射条件。"
+      }
+    ],
+    "inputs_when": [
+      {
+        "condition": "excitation",
+        "values": [
+          "voltage"
+        ],
+        "inputs": [
+          {
+            "key": "terminal_voltage",
+            "meaning": "提供器件两端的直流端电压差 ΔV（V）。"
+          }
+        ]
+      },
+      {
+        "condition": "excitation",
+        "values": [
+          "device_power"
+        ],
+        "inputs": [
+          {
+            "key": "device_power",
+            "meaning": "提供器件域的目标耗散功率 P（W）和功率计量边界。"
+          }
+        ]
+      }
+    ],
+    "goal_inputs": {
+      "wall_temperature": [
+        {
+          "key": "surface_temperature_measurement",
+          "meaning": "指定最高温度的表面与搜索区域、稳态采样、绝对温度或温升、光学采样范围及参考工况。"
+        }
+      ],
+      "displacement": [
+        {
+          "key": "elastic_expansion_properties",
+          "meaning": "提供薄膜弹性模量、泊松比、热膨胀系数、初始节点温度 T₀ 和热膨胀参考温度 T_ref，以及影响位移的初始残余应力依据。"
+        },
+        {
+          "key": "mechanical_anchors",
+          "meaning": "提供两只锚在几何中的固定面及受限自由度，补充已知固定方式之外的支撑柔度、预载或自由端外载。"
+        },
+        {
+          "key": "tip_displacement_measurement",
+          "meaning": "指定端部实体或光学标记、面内横向轴与符号、零点或基准工况，以及对应的稳态输入。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "冷热臂",
+          "热臂",
+          "热膨胀驱动",
+          "热膨胀执行器",
+          "hot arm",
+          "hot and cold arm",
+          "thermal expansion actuator",
+          "冷热两臂",
+          "冷热双臂",
+          "一窄一宽的铝臂",
+          "一宽一窄的铝臂",
+          "不等宽铝臂",
+          "unequal width arms",
+          "asymmetric arms"
+        ],
+        [
+          "通直流",
+          "直流",
+          "通电",
+          "焦耳热",
+          "自加热",
+          "驱动电压",
+          "joule heating",
+          "self heating",
+          "dc",
+          "voltage drive",
+          "device_power",
+          "恒压",
+          "输入总功率",
+          "器件功率",
+          "耗散功率",
+          "给定功率",
+          "恒定电压",
+          "input power",
+          "constant voltage",
+          "power drive",
+          "输入电功率",
+          "电功率",
+          "电极已知"
+        ],
+        [
+          "位移",
+          "偏移",
+          "弯曲",
+          "行程",
+          "displacement",
+          "deflection",
+          "stroke",
+          "thermal expansion actuator",
+          "横移",
+          "微致动器",
+          "微执行器",
+          "热臂执行器",
+          "热臂致动器",
+          "microactuator",
+          "hot arm actuator",
+          "能走多少",
+          "侧面移动",
+          "侧向移动"
+        ]
+      ],
+      "exclude": [
+        "外部加热",
+        "外热驱动",
+        "外加热源",
+        "外部热源",
+        "加热片加热",
+        "旁边的加热器",
+        "externally heated",
+        "external heater",
+        "压电驱动",
+        "压电致动",
+        "压电片",
+        "piezoelectric",
+        "电磁驱动",
+        "电磁铁驱动",
+        "电磁力",
+        "electromagnetic actuation",
+        "magnetically actuated",
+        "静电驱动",
+        "electrostatic actuation",
+        "脉冲",
+        "瞬态",
+        "transient",
+        "pulse heating",
+        "不通电",
+        "未通电",
+        "无电激励",
+        "片外激光",
+        "激光加热",
+        "已知温度场驱动",
+        "prescribed temperature field",
+        "laser heated",
+        "unpowered"
+      ],
+      "incompatible_conditions": [
+        "transient",
+        "external_heating",
+        "piezoelectric_actuation",
+        "electromagnetic_actuation"
+      ],
+      "goal_terms": {
+        "wall_temperature": [
+          "表面最高温度",
+          "最高温度",
+          "表面温度",
+          "maximum surface temperature",
+          "peak surface temperature",
+          "maximum_surface_temperature",
+          "wall_temperature",
+          "最热点",
+          "最热的位置",
+          "hottest point",
+          "最高壁温"
+        ],
+        "displacement": [
+          "位移",
+          "偏移",
+          "行程",
+          "displacement",
+          "deflection",
+          "stroke",
+          "lateral_tip_displacement",
+          "横移",
+          "弯曲",
+          "能走多少",
+          "侧面移动",
+          "侧向移动"
+        ]
+      },
+      "goal_aliases": {
+        "maximum_surface_temperature": "wall_temperature",
+        "lateral_tip_displacement": "displacement"
+      },
+      "capability_ids": [
+        "getdp.dc_conduction",
+        "getdp.joule_heat_to_temperature",
+        "getdp.temperature_to_resistivity",
+        "calculix.temperature_to_structure_same_mesh"
+      ],
+      "solver_role": "electrical_and_thermal",
+      "research_needs": {
+        "published_actuator_reproduction_data": "仅为复建论文原件查作者或机构公开的实测/掩模完整几何及对应关系、薄膜 ρ(T) 或 TCR 原始数据，以及图 3b 的原始稳态温度及实验不确定度。对应 DOI 10.1186/s40486-025-00241-5；不外查用户器件的私有边界或映射。"
+      },
+      "condition_questions": {
+        "regime": {
+          "key": "operating_regime",
+          "meaning": "确认读取稳态值，或提供脉冲波形、初始条件和采样时刻以另评估瞬态链。"
+        },
+        "excitation": {
+          "key": "drive_mode_and_value",
+          "meaning": "确认给定器件端电压差 ΔV（V）还是给定目标器件域耗散功率 P（W），提供数值和对应工况。"
+        }
+      },
+      "goal_terminal_steps": {
+        "wall_temperature": "electrothermal_equilibrium",
+        "displacement": "thermal_expansion"
+      },
+      "excitation_evidence": {
+        "voltage": {
+          "input": "terminal_voltage",
+          "mode_terms": [
+            "恒压",
+            "恒定电压",
+            "电压驱动",
+            "给定电压",
+            "constant voltage",
+            "voltage drive"
+          ],
+          "value_pattern": "(?:两端电极|端电压(?:差)?|驱动电压|端子电压(?:差)?|terminal voltage)\\s*(?:已知|分别为|分别是|为|是|=|约|of)?\\s*[+\\-]?\\d+(?:\\.\\d+)?(?:\\s*(?:和|与|、|/|对|to)\\s*[+\\-]?\\d+(?:\\.\\d+)?)?\\s*(?:伏特|伏|volts?\\b|v\\b)"
+        },
+        "device_power": {
+          "input": "device_power",
+          "mode_terms": [
+            "输入总功率",
+            "给定功率",
+            "定功率",
+            "power drive"
+          ],
+          "value_pattern": "(?:输入(?:总|电)?功率|器件功率|功率给定为|input power)\\s*(?:已知|为|是|=|约|of)?\\s*\\d+(?:\\.\\d+)?\\s*(?:毫瓦|微瓦|瓦|mw\\b|uw\\b|μw\\b|w\\b)"
+        }
+      },
+      "research_scope_terms": [
+        "复现论文",
+        "论文复现",
+        "复建论文",
+        "复算论文",
+        "重建论文",
+        "复现原件",
+        "reproduce the paper",
+        "replicate the published actuator"
+      ],
+      "research_reference": {
+        "doi": "10.1186/s40486-025-00241-5",
+        "intent_terms": [
+          "复现",
+          "复建",
+          "复算",
+          "重建",
+          "reproduce",
+          "replicate"
+        ]
+      },
+      "step_capabilities": {
+        "dc_joule_source": [
+          "getdp.dc_conduction"
+        ],
+        "electrothermal_equilibrium": [
+          "getdp.joule_heat_to_temperature",
+          "getdp.temperature_to_resistivity"
+        ],
+        "thermal_expansion": [
+          "calculix.temperature_to_structure_same_mesh"
+        ]
+      },
+      "terminal_scope": {
+        "electrothermal_equilibrium": "自焦耳加热冷热臂的稳态电热候选。GetDP 3.5.0 求解导体电场及散热后的表面最高温度；器件原生求解及实验对照待完成。"
+      }
+    }
+  },
+  {
+    "id": "axial_electrothermal_strip",
+    "domain": "electrothermomechanical_control",
+    "title": "均匀薄膜直条电热与自由轴向伸长",
+    "goals": [
+      "device_power",
+      "maximum_strip_temperature",
+      "free_end_axial_displacement"
+    ],
+    "mechanisms": [
+      "joule_heating",
+      "axial_thermal_expansion"
+    ],
+    "conditions": {
+      "model": [
+        "steady_dc_uniform_adiabatic_1d_fixed_free"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "length_m",
+        "meaning": "轴向长度 [m]"
+      },
+      {
+        "key": "width_m",
+        "meaning": "均匀矩形截面宽度 [m]"
+      },
+      {
+        "key": "thickness_m",
+        "meaning": "均匀矩形截面厚度 [m]"
+      },
+      {
+        "key": "resistivity_ohm_m",
+        "meaning": "恒定电阻率 [Ω·m]"
+      },
+      {
+        "key": "conductivity_w_m_k",
+        "meaning": "恒定导热率 [W/(m·K)]"
+      },
+      {
+        "key": "expansion_per_k",
+        "meaning": "恒定线膨胀系数 [1/K]"
+      },
+      {
+        "key": "young_pa",
+        "meaning": "轴向弹性模量 [Pa]"
+      },
+      {
+        "key": "poisson",
+        "meaning": "各向同性泊松比 [1]"
+      },
+      {
+        "key": "reference_k",
+        "meaning": "均匀初始及热膨胀参考温度 [K]"
+      },
+      {
+        "key": "left_voltage_v",
+        "meaning": "x=0 电极电势 [V]"
+      },
+      {
+        "key": "right_voltage_v",
+        "meaning": "x=L 电极电势 [V]"
+      },
+      {
+        "key": "left_temperature_k",
+        "meaning": "x=0 端面定温 [K]"
+      },
+      {
+        "key": "right_temperature_k",
+        "meaning": "x=L 端面定温 [K]"
+      }
+    ],
+    "intake": {
+      "adapter": "confirmed_axial_strip",
+      "capability_ids": [
+        "getdp.dc_conduction",
+        "getdp.joule_heat_to_temperature",
+        "calculix.temperature_to_structure_same_mesh"
+      ],
+      "solver_role": "electrical_and_thermal"
+    }
+  },
+  {
+    "id": "noncontact_induction_to_steady_temperature",
+    "domain": "induction_heating",
+    "title": "非接触交流感应耗散至稳态测温",
+    "goals": [
+      "eddy_loss_density",
+      "workpiece_induction_power",
+      "probe_temperature",
+      "infrared_indicated_temperature",
+      "maximum_workpiece_temperature"
+    ],
+    "mechanisms": [
+      "harmonic_eddy_current",
+      "solid_heat_conduction"
+    ],
+    "conditions": {
+      "regime": [
+        "harmonic_steady"
+      ],
+      "excitation": [
+        "coil_current"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "induction_geometry",
+        "meaning": "本地提供线圈与试件的三维几何或同轴简化、匝数和分布、间隙、导体域及外部空气域；双层件标出内外层与界面。"
+      },
+      {
+        "key": "harmonic_frequency",
+        "meaning": "提供实际正弦稳态激励频率 [Hz]。"
+      },
+      {
+        "key": "coil_current_amplitude",
+        "meaning": "提供每匝或线圈端子电流 [A]；给定电压/功率时另确认线圈与电路模型。"
+      },
+      {
+        "key": "coil_phasor_convention",
+        "meaning": "明确给定电流是峰值还是 RMS；多线圈须声明相位基准和绕向。"
+      },
+      {
+        "key": "coil_model",
+        "meaning": "确认显式绕组或均匀化线圈、匝数归一方式，以及是否要求线圈铜损、冷却和电路损耗。"
+      },
+      {
+        "key": "em_material_properties",
+        "meaning": "提供石墨/试件和相关绕组材料的 σ [S/m]、μ [H/m] 或本构，以及温变是否需反馈。"
+      },
+      {
+        "key": "solid_thermal_properties",
+        "meaning": "提供导热率 k [W/(m·K)]，并说明温度依赖和取值范围。"
+      },
+      {
+        "key": "inner_outer_heat_boundaries",
+        "meaning": "分别定义内侧气体与外侧环境、换热系数和参考流体温度、线圈冷却与支撑导热等边界。"
+      },
+      {
+        "key": "thermal_contact_and_radiation",
+        "meaning": "确认内外层接触/间隙和热连续或接触热阻；确认辐射是否纳入，若纳入则给表面发射率、包络或视角关系。"
+      }
+    ],
+    "goal_inputs": {
+      "probe_temperature": [
+        {
+          "key": "probe_measurement_definition",
+          "meaning": "定义接触式热电偶的定位孔、接点坐标和插深、接触/导热条件及稳态判据。"
+        }
+      ],
+      "maximum_workpiece_temperature": [
+        {
+          "key": "peak_temperature_selection",
+          "meaning": "指定取峰的试件实体或表面、温度单位和工况；全域峰值与测点读数分别列报。"
+        }
+      ],
+      "infrared_indicated_temperature": [
+        {
+          "key": "infrared_readout_definition",
+          "meaning": "定义仪器波段和发射率设定、瞄准表面/斑点、石英窗或其他光路透过率、反射背景与标定；用对应辐射响应预测指示温度。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "感应加热",
+          "感应炉",
+          "感应线圈",
+          "涡流加热",
+          "非接触线圈",
+          "induction heating",
+          "induction coil",
+          "eddy current heating",
+          "harmonic_eddy_current",
+          "交流线圈",
+          "交变线圈",
+          "高频线圈",
+          "线圈扫频",
+          "绕组感应",
+          "电磁感应",
+          "ac coil",
+          "alternating coil",
+          "套在线圈",
+          "绕在线圈",
+          "外绕线圈",
+          "线圈通交流",
+          "交流磁场",
+          "交流励磁",
+          "交变磁场",
+          "外部绕组",
+          "alternating magnetic field",
+          "线圈套在",
+          "线圈套着",
+          "线圈外绕",
+          "交流激励",
+          "高频交变",
+          "通交变电流",
+          "铜管绕成",
+          "罐子本身不接线"
+        ],
+        [
+          "温度",
+          "热电偶",
+          "发热",
+          "损耗",
+          "最高温",
+          "temperature",
+          "thermocouple",
+          "loss",
+          "probe_temperature",
+          "eddy_loss_density",
+          "workpiece_induction_power",
+          "maximum_workpiece_temperature",
+          "冷却",
+          "散热",
+          "热源",
+          "发热量",
+          "热平衡",
+          "温升",
+          "升温",
+          "hot spot",
+          "heating",
+          "热电偶",
+          "测温偶",
+          "最高能到",
+          "估温",
+          "测温"
+        ]
+      ],
+      "exclude": [
+        "微波加热",
+        "感应淬火相变",
+        "加热曲线随时间",
+        "瞬态温升",
+        "脉冲感应",
+        "transient heating",
+        "microwave heating",
+        "direct resistance heating",
+        "直接通电",
+        "直流自加热",
+        "已给温度场",
+        "直接读取温度场",
+        "现成温度场",
+        "贴合热源",
+        "线圈冷却本身",
+        "只算线圈冷却",
+        "只看线圈冷却",
+        "prescribed temperature field",
+        "coil cooling only",
+        "现成节点温度",
+        "已有实测温度场",
+        "只评估线圈冷却",
+        "只计算冷却水",
+        "线圈水冷温度",
+        "只有线圈水冷",
+        "线圈自身温度",
+        "线圈管壁最高温",
+        "只关心水冷线圈",
+        "线圈本身温度",
+        "coil temperature only",
+        "网格节点的实测温度",
+        "不用再算线圈",
+        "贴合导热",
+        "铜管绕组自身的最高温度",
+        "只关心铜管",
+        "仅关心铜管"
+      ],
+      "incompatible_conditions": [
+        "transient",
+        "phase_change",
+        "direct_resistance_heating"
+      ],
+      "goal_terms": {
+        "probe_temperature": [
+          "热电偶",
+          "测点",
+          "探头",
+          "thermocouple",
+          "probe temperature",
+          "probe_temperature",
+          "传感器",
+          "埋入",
+          "埋点",
+          "测温点",
+          "thermal probe",
+          "测温偶"
+        ],
+        "maximum_workpiece_temperature": [
+          "最高温",
+          "峰温",
+          "热点",
+          "peak temperature",
+          "maximum_workpiece_temperature",
+          "最高能到多少度",
+          "最高能到",
+          "热点在哪里"
+        ],
+        "eddy_loss_density": [
+          "体热源",
+          "损耗密度",
+          "eddy loss density",
+          "eddy_loss_density"
+        ],
+        "workpiece_induction_power": [
+          "试件损耗",
+          "工件功率",
+          "试件功率",
+          "试件发热功率",
+          "workpiece induction power",
+          "workpiece_induction_power"
+        ],
+        "infrared_indicated_temperature": [
+          "红外",
+          "红外枪",
+          "指示温度",
+          "infrared",
+          "infrared_indicated_temperature"
+        ]
+      },
+      "goal_aliases": {
+        "thermocouple_temperature": "probe_temperature",
+        "peak_temperature": "maximum_workpiece_temperature"
+      },
+      "capability_ids": [
+        "getdp.harmonic_eddy_current",
+        "getdp.eddy_loss_to_temperature"
+      ],
+      "solver_role": "electromagnetic_and_thermal",
+      "research_scope_terms": [
+        "10.1155/2021/9922503"
+      ],
+      "research_reference": {
+        "doi": "10.1155/2021/9922503",
+        "intent_terms": [
+          "复现",
+          "复建",
+          "复算",
+          "核对",
+          "reproduce",
+          "replicate",
+          "verify"
+        ]
+      },
+      "research_needs": {
+        "published_coil_current_convention": "仅以 DOI 10.1155/2021/9922503 公开原文及作者原件/附表核对表 2 电流是峰值还是 RMS、对应线圈端或每匝定义及 COMSOL 输入映射。记录直接证据或明确原文未说明；不索取用户几何。"
+      },
+      "goal_terminal_steps": {
+        "eddy_loss_density": "average_eddy_loss",
+        "workpiece_induction_power": "average_eddy_loss",
+        "probe_temperature": "temperature_observable",
+        "maximum_workpiece_temperature": "peak_observable",
+        "infrared_indicated_temperature": "infrared_observable"
+      },
+      "scope_terms": [
+        "热电偶",
+        "测点",
+        "探头",
+        "thermocouple",
+        "probe temperature",
+        "probe_temperature",
+        "传感器",
+        "埋入",
+        "埋点",
+        "测温点",
+        "thermal probe",
+        "测温偶",
+        "最高温",
+        "峰温",
+        "热点",
+        "peak temperature",
+        "maximum_workpiece_temperature",
+        "最高能到多少度",
+        "最高能到",
+        "热点在哪里",
+        "体热源",
+        "损耗密度",
+        "eddy loss density",
+        "eddy_loss_density",
+        "试件损耗",
+        "工件功率",
+        "试件功率",
+        "试件发热功率",
+        "workpiece induction power",
+        "workpiece_induction_power",
+        "红外",
+        "红外枪",
+        "指示温度",
+        "infrared",
+        "infrared_indicated_temperature"
+      ],
+      "scope_question": {
+        "key": "temperature_observation_scope",
+        "meaning": "确认目标是测点/仪器读数、规定域峰温，还是单独求试件体损耗；按对应坐标和域定义。"
+      },
+      "input_evidence": {
+        "harmonic_frequency": "(?<![\\d.])\\d+(?:\\.\\d+)?\\s*(?:kHz|MHz|Hz|千赫(?:兹)?|赫兹)(?![a-zA-Z])",
+        "coil_current_amplitude": "(?<![\\d.])\\d+(?:\\.\\d+)?\\s*(?:mA|A|安培|安)(?![a-zA-Z])",
+        "coil_phasor_convention": "(?<![a-zA-Z])RMS(?![a-zA-Z])|有效值|峰值电流|电流峰值|peak current|峰值\\s*(?:电流|[)\\）])|峰值\\s*\\d+(?:\\.\\d+)?\\s*(?:A|安培|安)(?![a-z])|\\d+(?:\\.\\d+)?\\s*(?:A|安培|安)\\s*[（(]?\\s*峰值"
+      },
+      "ambiguous_input_evidence": {
+        "coil_phasor_convention": "(?:峰值|RMS|有效值).{0,8}(?:还是|或|or\\b).{0,8}(?:RMS|有效值|峰值)|(?:峰值|RMS|有效值).{0,8}(?:不明确|不清楚|待确认|未知)|(?:不明确|不清楚|待确认|未知).{0,8}(?:RMS|有效值|峰值)"
+      },
+      "require_target_selection": true
+    }
+  },
+  {
+    "id": "external_temperature_to_static_structure",
+    "domain": "thermoelasticity",
+    "title": "外部节点温度到固体热应力或位移",
+    "goals": [
+      "thermal_stress",
+      "thermal_displacement"
+    ],
+    "mechanisms": [
+      "prescribed_temperature",
+      "linear_thermoelasticity"
+    ],
+    "conditions": {
+      "analysis": [
+        "static"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "external_field_and_mesh_mapping",
+        "meaning": "在本地提供外部节点温度及单位、工况/时刻、源和目标网格坐标系、节点 ID 对应；异网格给出插值、未匹配点和外推规则。"
+      },
+      {
+        "key": "initial_and_reference_temperature",
+        "meaning": "提供初始节点温度 T₀ 和材料热膨胀系数的参考温度 T_ref，说明是否取同一无应力参考态。"
+      },
+      {
+        "key": "elastic_and_expansion_material",
+        "meaning": "提供弹性、热膨胀和温变材料关系，注明采用的温标和一致单位。"
+      },
+      {
+        "key": "structural_support_and_output",
+        "meaning": "提供约束、外载和应力读数定义；若输出位移，指定测点和方向。"
+      }
+    ],
+    "intake": {
+      "all_of": [
+        [
+          "外部温度场",
+          "给定温度场",
+          "已给温度场",
+          "已有温度场",
+          "现成温度场",
+          "逐节点温度",
+          "prescribed temperature",
+          "external temperature field"
+        ],
+        [
+          "静力热应力",
+          "热应力",
+          "热变形",
+          "热位移",
+          "thermal stress",
+          "thermal displacement",
+          "thermal deformation"
+        ]
+      ],
+      "exclude": [
+        "瞬态热冲击",
+        "热屈曲",
+        "transient structural dynamics",
+        "thermal buckling"
+      ],
+      "incompatible_conditions": [
+        "transient",
+        "thermal_buckling"
+      ],
+      "goal_terms": {
+        "thermal_stress": [
+          "热应力",
+          "thermal stress"
+        ],
+        "thermal_displacement": [
+          "热变形",
+          "热位移",
+          "位移",
+          "thermal deformation",
+          "thermal displacement"
+        ]
+      },
+      "capability_ids": [
+        "calculix.temperature_to_structure_same_mesh"
+      ],
+      "solver_role": "structural",
+      "research_scope_terms": [
+        "温度输入卡",
+        "温度卡",
+        "参考温度",
+        "temperature card",
+        "reference temperature"
+      ],
+      "research_needs": {
+        "calculix_nodal_temperature_input_contract": "查 CalculiX 2.22 官方手册 §7.131、§7.76 和 §7.56 Eq. 871，验证目标节点直接温度赋值、初温 T₀、膨胀参考 ZERO 与温标一致性。只查公开卡片，不上传源/目标网格数据。"
+      }
+    }
+  },
+  {
+    "id": "enclosed_air_natural_convection",
+    "domain": "natural_convection_cavity",
+    "title": "密闭空气腔两侧温差自然对流",
+    "mechanisms": [
+      "thermal_buoyancy",
+      "air_energy_transport"
+    ],
+    "goals": [
+      "interior_temperature",
+      "interior_velocity",
+      "wall_convective_heat_flux"
+    ],
+    "conditions": {
+      "time_mode": [
+        "steady",
+        "transient"
+      ],
+      "density_model": [
+        "boussinesq",
+        "variable_density"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "cavity_hot_cold_spacing",
+        "meaning": "给冷热竖壁之间的净间距与长度单位。"
+      },
+      {
+        "key": "cavity_height",
+        "meaning": "给密闭空气域净高及长度单位。"
+      },
+      {
+        "key": "cavity_depth",
+        "meaning": "给前后净深，或说明采用理想二维中深截面及其适用性。"
+      },
+      {
+        "key": "hot_wall_temperature",
+        "meaning": "给热竖壁温度及单位；若非恒温，给空间或时间规律。"
+      },
+      {
+        "key": "cold_wall_temperature",
+        "meaning": "给冷竖壁温度及单位；若非恒温，给空间或时间规律。"
+      },
+      {
+        "key": "horizontal_wall_conditions",
+        "meaning": "若上下板已测或可提供温度曲线，请给各自的沿程位置和温度表及单位；否则分别说明绝热、给定温度或其他热边界。"
+      },
+      {
+        "key": "air_properties_and_gravity",
+        "meaning": "确认空气压力/参考状态、重力、ρ 或 β、ν/μ、k、cp 或 α 及其温变和 Ra 所用尺度。"
+      },
+      {
+        "key": "near_wall_turbulence_setup",
+        "meaning": "按 Ra/流态确认是否需要 RANS；采用标准 k–ε 时给初值、壁函数、Prt、网格及壁面 y+ 适用性，核验浮力湍流源项。"
+      }
+    ],
+    "inputs_when": [
+      {
+        "condition": "time_mode",
+        "values": [
+          "transient"
+        ],
+        "inputs": [
+          {
+            "key": "transient_initial_and_sampling",
+            "meaning": "提供初始 U/T/湍流场、时间步或 Courant 限制，以及物理时刻或统计平均窗。"
+          }
+        ]
+      }
+    ],
+    "goal_inputs": {
+      "interior_temperature": [
+        {
+          "key": "interior_temperature_locations",
+          "meaning": "给沿剖面的实际探头位置或采样间距、对应深度与坐标起点；报告 K/°C 或约定 θ。"
+        },
+        {
+          "key": "interior_probe_height",
+          "meaning": "指定内部测点或截线高度；顶底边界曲线不作独立验证点。"
+        }
+      ],
+      "interior_velocity": [
+        {
+          "key": "interior_velocity_locations",
+          "meaning": "指定腔内位置、速度方向分量与符号，区分瞬时、时均和波动量。"
+        }
+      ],
+      "wall_convective_heat_flux": [
+        {
+          "key": "wall_flux_definition",
+          "meaning": "指定热壁或冷壁、法向/符号、局部 W/m² 或积分 W、是否排除辐射以及 Nu 的基准尺度、温差与导热率。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "方腔",
+          "封闭腔",
+          "闭腔",
+          "密闭腔",
+          "密闭箱",
+          "密闭盒",
+          "不通风的箱",
+          "方形空腔",
+          "closed cavity",
+          "sealed cavity",
+          "square cavity",
+          "封闭方盒",
+          "密封盒",
+          "封住的方箱",
+          "密闭容器",
+          "封闭容器",
+          "没有进出口的",
+          "不透风的",
+          "密闭",
+          "封闭",
+          "封着",
+          "封住",
+          "密封箱",
+          "密闭柜",
+          "箱子无风机",
+          "箱子没有风机",
+          "箱子不接风管",
+          "机柜不接风管",
+          "机柜无进排风"
+        ],
+        [
+          "自然对流",
+          "温差",
+          "一侧加热",
+          "一边热一边冷",
+          "冷热两侧",
+          "热壁",
+          "冷壁",
+          "浮力",
+          "air circulation",
+          "differentially heated",
+          "natural convection",
+          "左热右冷",
+          "冷热面",
+          "热的一边",
+          "冷热壁",
+          "温差带动",
+          "空气自己循环",
+          "受热上升",
+          "自然环流",
+          "自然循环",
+          "一热一冷",
+          "左侧恒温",
+          "一边加热一边冷却",
+          "靠温差循环",
+          "自己循环",
+          "冷热板",
+          "电热板",
+          "制冷板",
+          "侧板温差",
+          "热板和冷板",
+          "左侧加热",
+          "右侧冷板"
+        ]
+      ],
+      "exclude": [
+        "强迫对流",
+        "进风口送风",
+        "入口送风",
+        "风扇循环",
+        "有风扇",
+        "外部绕流",
+        "外流场",
+        "已有速度场",
+        "已有温度场",
+        "只插值",
+        "强制送风",
+        "顶盖驱动",
+        "腔体开口",
+        "forced convection",
+        "fan driven",
+        "lid driven",
+        "external flow",
+        "prescribed temperature field",
+        "风扇把",
+        "风机压进",
+        "风机把",
+        "吹进来",
+        "排到室外",
+        "通风箱",
+        "有进出口",
+        "给定入口风量",
+        "每个单元的空气温度场",
+        "只需把它插值",
+        "外侧自然对流",
+        "箱外自然对流",
+        "只算固体导热",
+        "只求壁材",
+        "只算壁材",
+        "仅求壁厚",
+        "空气不参与",
+        "只看保温层"
+      ],
+      "incompatible_conditions": [
+        "forced_convection",
+        "external_flow",
+        "lid_driven"
+      ],
+      "goal_terms": {
+        "interior_temperature": [
+          "腔内温度",
+          "内部温度",
+          "温度剖面",
+          "温度分布",
+          "内部测点",
+          "中高温度",
+          "内部各点温度",
+          "中间温度",
+          "中线温度",
+          "temperature profile",
+          "interior temperature",
+          "腔中温度",
+          "中央温度",
+          "中心温度",
+          "盒子里面温度",
+          "内部空气温度",
+          "内部温度点",
+          "平均气温",
+          "空气温度剖面",
+          "一排探头",
+          "这排探头",
+          "探头各有多少度",
+          "半高处温度",
+          "空气温度"
+        ],
+        "interior_velocity": [
+          "速度剖面",
+          "速度分布",
+          "腔内速度",
+          "垂直速度",
+          "竖直速度",
+          "速度场",
+          "循环流速",
+          "velocity profile",
+          "vertical velocity",
+          "空气怎么走",
+          "气流怎么走",
+          "空气怎样循环",
+          "自然环流",
+          "空气自己循环流速",
+          "气流的循环路径"
+        ],
+        "wall_convective_heat_flux": [
+          "对流热流",
+          "壁面热流",
+          "对流换热量",
+          "努塞尔",
+          "convective heat flux",
+          "nusselt"
+        ]
+      },
+      "goal_aliases": {
+        "temperature_profile": "interior_temperature",
+        "vertical_velocity_profile": "interior_velocity"
+      },
+      "condition_evidence": {
+        "time_mode": {
+          "steady": [
+            "稳态",
+            "steady state",
+            "steady",
+            "稳定以后",
+            "稳定后",
+            "稳定下来",
+            "定常"
+          ],
+          "transient": [
+            "瞬态",
+            "随时间",
+            "启动过程",
+            "升温过程",
+            "transient"
+          ]
+        },
+        "density_model": {
+          "boussinesq": [
+            "Boussinesq",
+            "布辛涅斯克"
+          ],
+          "variable_density": [
+            "变密度",
+            "理想气体",
+            "variable density",
+            "ideal gas"
+          ]
+        }
+      },
+      "condition_questions": {
+        "time_mode": {
+          "key": "time_mode",
+          "meaning": "若只要求长期平均，请确认可用稳态 RANS 近似，还是需要瞬态结果的统计平均及时间窗；如需启动过程，请给物理时刻。"
+        },
+        "density_model": {
+          "key": "density_model",
+          "meaning": "确认 Boussinesq 近似是否成立，或采用低速变密度热物性；以给定压力和温度范围检查相对密度变化。"
+        }
+      },
+      "scope_terms": [
+        "腔内温度",
+        "内部温度",
+        "温度剖面",
+        "温度分布",
+        "内部测点",
+        "中高温度",
+        "内部各点温度",
+        "中间温度",
+        "中线温度",
+        "temperature profile",
+        "interior temperature",
+        "腔中温度",
+        "中央温度",
+        "中心温度",
+        "盒子里面温度",
+        "内部空气温度",
+        "内部温度点",
+        "平均气温",
+        "空气温度剖面",
+        "一排探头",
+        "这排探头",
+        "探头各有多少度",
+        "半高处温度",
+        "空气温度",
+        "速度剖面",
+        "速度分布",
+        "腔内速度",
+        "垂直速度",
+        "竖直速度",
+        "速度场",
+        "循环流速",
+        "velocity profile",
+        "vertical velocity",
+        "空气怎么走",
+        "气流怎么走",
+        "空气怎样循环",
+        "自然环流",
+        "空气自己循环流速",
+        "气流的循环路径",
+        "对流热流",
+        "壁面热流",
+        "对流换热量",
+        "努塞尔",
+        "convective heat flux",
+        "nusselt"
+      ],
+      "scope_question": {
+        "key": "cavity_observable",
+        "meaning": "确认腔内温度/速度剖面或壁面对流热流，并给出位置和采样定义。仅给壁温属于边界信息。"
+      },
+      "require_target_selection": true,
+      "goal_terminal_steps": {
+        "interior_temperature": "sample_temperature",
+        "interior_velocity": "sample_velocity",
+        "wall_convective_heat_flux": "wall_heat_transfer"
+      },
+      "paper_case_terms": {
+        "pachera2014-natural-convection-square-cavity": [
+          "Pachera",
+          "pachera2014-natural-convection-square-cavity"
+        ],
+        "ampofo2003-natural-convection-square-cavity": [
+          "Ampofo",
+          "Karayiannis",
+          "10.1016/S0017-9310(03)00147-9",
+          "ampofo2003-natural-convection-square-cavity"
+        ]
+      },
+      "capability_ids": [
+        "openfoam_opencfd.steady_compressible_buoyant_heat_transfer",
+        "openfoam_opencfd.transient_buoyant_heat_transfer",
+        "openfoam_opencfd.steady_boussinesq_convection",
+        "openfoam_opencfd.transient_boussinesq_convection"
+      ],
+      "solver_role": "fluid_thermal",
+      "application_choices": [
+        {
+          "time_mode": "steady",
+          "density_model": "boussinesq",
+          "application": "buoyantBoussinesqSimpleFoam"
+        },
+        {
+          "time_mode": "transient",
+          "density_model": "boussinesq",
+          "application": "buoyantBoussinesqPimpleFoam"
+        },
+        {
+          "time_mode": "steady",
+          "density_model": "variable_density",
+          "application": "buoyantSimpleFoam"
+        },
+        {
+          "time_mode": "transient",
+          "density_model": "variable_density",
+          "application": "buoyantPimpleFoam"
+        }
+      ],
+      "research_scope_terms": [
+        "Pachera",
+        "pachera2014-natural-convection-square-cavity"
+      ],
+      "research_needs": {
+        "pachera_fluent_buoyancy_wall_closure": "只核对 Pachera 2014 §6、公开作者原件及 v2606 官方源码：Fluent k–ε 中的浮力湍流产项和热壁面通量细节未完整公开。区分 OpenCFD buoyancyTurbSource 与动量方程中重力浮力；同名模型不能建立等价，也不索要私有工况。"
+      },
+      "input_evidence": {
+        "cavity_hot_cold_spacing": "(?:冷热壁间距|热冷壁间距|两壁间距|横向净宽|箱宽|宽度|净宽)\\D{0,5}[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)|[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)\\s*见方",
+        "cavity_height": "(?:净高|腔高|箱高|高度)\\D{0,5}[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)|[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)\\s*见方",
+        "cavity_depth": "(?:前后净深|净深|深度|腔深|前后)\\D{0,5}[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)|二维中深截面|2D mid-depth",
+        "hot_wall_temperature": "(?:两(?:侧)?壁|冷热(?:两)?壁|左右(?:两)?侧)[^。；，]{0,13}?[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:(?:摄氏度|°\\s*C|℃|度|K\\b))?\\s*(?:和|与|、|分别为)\\s*[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:摄氏度|°\\s*C|℃|度|K\\b)|(?:左(?:竖壁|壁|侧(?:电热板|热板|侧板)?)|热(?:侧板|墙|板|壁))[^。；，]{0,14}?[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:摄氏度|°\\s*C|℃|度|K\\b)",
+        "cold_wall_temperature": "(?:两(?:侧)?壁|冷热(?:两)?壁|左右(?:两)?侧)[^。；，]{0,13}?[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:(?:摄氏度|°\\s*C|℃|度|K\\b))?\\s*(?:和|与|、|分别为)\\s*[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:摄氏度|°\\s*C|℃|度|K\\b)|(?:右(?:竖壁|壁|侧(?:冷板|侧板)?)|冷(?:侧板|墙|板|壁))[^。；，]{0,14}?[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:摄氏度|°\\s*C|℃|度|K\\b)",
+        "interior_probe_height": "半高|中高|高度方向中线|mid-height|Y\\s*=\\s*0\\.5\\b|(?:探头高度|采样高度)\\D{0,5}[+\\-−]?\\d+(?:\\.\\d+)?\\s*(?:毫米|厘米|公分|米|mm\\b|cm\\b|m\\b)"
+      },
+      "ambiguous_input_evidence": {
+        "hot_wall_temperature": "(?:热壁|左侧)[^。；，]{0,12}(?:待定|待测|未确认|还在确认)",
+        "cold_wall_temperature": "(?:冷壁|右侧)[^。；，]{0,12}(?:待定|待测|未确认|还在确认)"
+      }
+    }
+  },
+  {
+    "id": "forced_duct_pressure_drop",
+    "domain": "duct_flow",
+    "title": "定流量送风/泵送流道的取压差",
+    "goals": [
+      "pressure_drop"
+    ],
+    "mechanisms": [
+      "flow",
+      "forced_internal_flow"
+    ],
+    "conditions": {
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "compressibility": [
+        "incompressible"
+      ],
+      "station_sampling": [
+        "wall_static_taps",
+        "mass_flow_weighted_section",
+        "area_weighted_section"
+      ],
+      "localized_resistance": [
+        "thin_baffle"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "duct_geometry",
+        "meaning": "提供本地流道几何、构件和壁面粗糙度，确认风机域外、入口速度剖面/湍流及内部测站映射。"
+      },
+      {
+        "key": "inlet_flow_rate",
+        "meaning": "提供入口风量数值及单位，或入口平均速度及方向；常用 m³/s、m³/h、CFM 或 kg/s。标况风量另给标准和入口状态。"
+      },
+      {
+        "key": "fluid_state_and_regime",
+        "meaning": "确认单相、定常、低速近不可压；提供黏度或明确采用已知气体状态对应黏度。显著可压或非稳态另行选型。"
+      },
+      {
+        "key": "fluid_density",
+        "meaning": "提供密度或参考温压；质量/标况换算及 Pa 读回须使用同一确定常密度。"
+      },
+      {
+        "key": "outlet_boundary",
+        "meaning": "给下游开口环境或连接系统的压力边界及回流条件；稳态封闭回路或需风机工作点另行建模。"
+      },
+      {
+        "key": "pressure_stations",
+        "meaning": "给两个取压位置（截面、壁面取压孔或测点）及所属管段、标高和上/下游方向；仅‘出口压降’缺上游参照定义。"
+      }
+    ],
+    "intake": {
+      "capability_ids": [
+        "openfoam_opencfd.steady_incompressible"
+      ],
+      "solver_role": "fluid",
+      "condition_evidence": {
+        "pressure_definition": {
+          "static_difference": [
+            "静压差",
+            "静压降",
+            "静压损失",
+            "static pressure difference",
+            "static pressure drop",
+            "取压嘴都贴在侧壁",
+            "两个侧壁取压嘴",
+            "壁面静压孔",
+            "侧壁静压孔"
+          ],
+          "total_loss": [
+            "总压差",
+            "总压降",
+            "总压损失",
+            "total pressure loss",
+            "total pressure drop",
+            "全压损失",
+            "全压",
+            "总压"
+          ]
+        },
+        "station_sampling": {
+          "wall_static_taps": [
+            "取压嘴都贴在侧壁",
+            "两个侧壁取压嘴",
+            "壁面静压孔",
+            "侧壁静压孔",
+            "wall static taps"
+          ],
+          "mass_flow_weighted_section": [
+            "质量流量加权",
+            "质量加权",
+            "mass-flow weighted",
+            "mass flow weighted"
+          ],
+          "area_weighted_section": [
+            "面积加权",
+            "面积平均",
+            "area-weighted",
+            "area average"
+          ]
+        },
+        "localized_resistance": {
+          "thin_baffle": [
+            "阻力跳跃",
+            "薄层阻力",
+            "薄筛网压跳",
+            "多孔跳跃",
+            "porous jump",
+            "thin porous baffle"
+          ]
+        }
+      },
+      "condition_questions": {
+        "pressure_definition": {
+          "key": "pressure_definition",
+          "meaning": "确认 A/B 上游减下游的静压差，还是不可压总压损失；仅求出口绝对压力另给物理基准。"
+        },
+        "station_sampling": {
+          "key": "station_sampling",
+          "meaning": "确认壁面静压取压孔、面积平均截面还是质量流量加权截面，并区分迎风探头和侧壁静压孔。"
+        }
+      },
+      "all_of": [
+        [
+          "风道",
+          "通风管",
+          "送风管",
+          "通风箱",
+          "内部流道",
+          "管路",
+          "管道",
+          "duct",
+          "internal passage",
+          "pipe",
+          "吸风通道",
+          "回风管",
+          "消声箱",
+          "渐缩导管",
+          "送排风通道",
+          "进排风通道",
+          "风管",
+          "导管",
+          "air passage"
+        ],
+        [
+          "压降",
+          "压差",
+          "压损",
+          "压力损失",
+          "总压损失",
+          "静压损失",
+          "静压差",
+          "风阻",
+          "pressure drop",
+          "pressure loss",
+          "pressure difference",
+          "差多少帕",
+          "掉了几个压",
+          "掉压",
+          "永久损失",
+          "全压损失",
+          "总压损失"
+        ],
+        [
+          "风机",
+          "鼓风机",
+          "送风",
+          "压进来",
+          "入口风量",
+          "进风量",
+          "给定风量",
+          "给定流量",
+          "给定体积流量",
+          "进口流量",
+          "泵送",
+          "风扇",
+          "inlet flow rate",
+          "airflow rate",
+          "fan",
+          "blower",
+          "forced flow",
+          "抽风机",
+          "抽量",
+          "吸风",
+          "回风",
+          "吹扫空气",
+          "正压送气",
+          "空气通过",
+          "皮托管遍历",
+          "轴向速度",
+          "pitot traverse"
+        ]
+      ],
+      "exclude": [
+        "求风机性能曲线",
+        "预测风机性能曲线",
+        "生成风机曲线",
+        "计算风机特性曲线",
+        "风机扬程曲线",
+        "泵性能曲线",
+        "泵扬程",
+        "叶轮性能",
+        "实际工作点",
+        "风机额定性能",
+        "整机风机特性",
+        "fan performance curve",
+        "pump performance curve",
+        "自然对流",
+        "自然通风",
+        "靠浮力",
+        "靠温差",
+        "外部绕流",
+        "外流场",
+        "跨声速",
+        "两相",
+        "多孔阻力区",
+        "室外环境风",
+        "naturally ventilated",
+        "natural convection",
+        "external flow",
+        "transonic",
+        "已有压力场",
+        "已有计算结果",
+        "已有流场",
+        "已有 OpenFOAM",
+        "已算完",
+        "已有计算场",
+        "已求完",
+        "沿已有场",
+        "只做后处理",
+        "只后处理",
+        "直接读现有",
+        "已有仿真场",
+        "已有求解结果",
+        "已有速度压力场",
+        "existing pressure field",
+        "existing flow solution",
+        "postprocess only",
+        "已有网格和压力",
+        "压力场已经有",
+        "只做读取",
+        "已有模拟结果",
+        "已经算过压力",
+        "靠自然风",
+        "自由进出风",
+        "无驱动风机",
+        "不建模",
+        "别起模拟",
+        "只算表数",
+        "只用表数",
+        "no simulation",
+        "求风机本体",
+        "求叶轮效率",
+        "求叶轮给气体做功",
+        "计算风轮压升",
+        "计算轴功率",
+        "计算风机全压升"
+      ],
+      "incompatible_conditions": [
+        "transient",
+        "compressible_fluid",
+        "two_phase",
+        "external_flow",
+        "natural_convection"
+      ],
+      "input_evidence": {
+        "inlet_flow_rate": "(?:入口(?:风量|流量|体积流量|质量流量)?|(?:实际|实测)(?:体积)?(?:风量|流量)|送风量|进风量|给定(?:风量|流量)|inlet\\s+(?:flow\\s+rate|airflow))[^。；;，,\\n\\d]{0,10}[+\\-]?\\d+(?:\\.\\d+)?(?:[eE][+\\-]?\\d+)?\\s*(?:[nNmM]?[mM][³3]\\s*/\\s*(?:h|s|min)|m\\^3\\s*/\\s*(?:h|s|min)|立方米\\s*(?:每|/)\\s*(?:小时|秒|分钟)|(?:kg|l|L)\\s*/\\s*(?:h|s|min)|cfm\\b|升\\s*(?:每|/)\\s*(?:分钟|秒))|(?:抽量|风量|流量|送风量)[^。；，]{0,8}每(?:小时|秒|分钟)\\s*[+\\-]?\\d+(?:\\.\\d+)?\\s*立方(?:米)?|(?:轴向|入口(?:平均|轴向)?(?:流速|速度)|平均入口速度)\\D{0,5}[+\\-]?\\d+(?:\\.\\d+)?\\s*(?:米每秒|m\\s*/\\s*s\\b)",
+        "pressure_stations": "(?:从|比较|取|分别取)?(?:上游|入口|进口)(?:取压孔|取压点|截面|测站)\\s*(?:到|至|和|与|减|—|–|->)\\s*(?:下游|出口)(?:取压孔|取压点|截面|测站)",
+        "outlet_boundary": "(?:末端|出口|下游)(?:直接)?(?:接|连通|通向|排至|通到)(?:大气|外界)",
+        "fluid_density": "[+\\-]?\\d+(?:\\.\\d+)?\\s*(?:千克每立方米|kg\\s*/\\s*m[³3])"
+      },
+      "ambiguous_input_evidence": {
+        "inlet_flow_rate": "(?:标准风量|标况风量|标方|Nm[³3]\\s*/|sm[³3]\\s*/|风量单位待定|流量单位未定|(?:风量|流量)[^。；，]{0,15}(?:还是|或至少|不确定|待确认))|(?:标准|标[准况态]|额定)(?:体积|送风|进风|入口|抽气)?(?:风量|流量|量)|(?:风量|流量)[^。；;，,\\n]{0,8}(?:额定|标况|标态|标准)|(?:风量|流量)[^。；;，,\\n]{0,35}\\d[^。；;，,\\n]{0,15}(?:或者|或|至|到|[-~～–—])\\s*[+\\-]?\\d"
+      },
+      "research_needs": {
+        "openfoam_surface_station_weighting": "仅查 OpenCFD v2606 官方 surfaceFieldValue 对 patch/faceZone 的 areaAverage、weightedAverage 与 weightedAreaAverage 权重定义、phi/rhoPhi 方向与回流处理。确认面通量已含面积时如何避免重复加权，明确截面离散的权重和符号约定。不得发送客户几何、坐标或风量。"
+      },
+      "research_needs_by_condition": [
+        {
+          "condition": "station_sampling",
+          "values": [
+            "mass_flow_weighted_section",
+            "area_weighted_section"
+          ],
+          "needs": {
+            "openfoam_surface_station_weighting": "仅查 OpenCFD v2606 官方 surfaceFieldValue 对 patch/faceZone 的 areaAverage、weightedAverage 与 weightedAreaAverage 权重定义、phi/rhoPhi 方向与回流处理。确认面通量已含面积时如何避免重复加权，明确截面离散的权重和符号约定。不得发送客户几何、坐标或风量。"
+          }
+        },
+        {
+          "condition": "station_sampling",
+          "values": [
+            "wall_static_taps"
+          ],
+          "needs": {}
+        },
+        {
+          "condition": "localized_resistance",
+          "values": [
+            "thin_baffle"
+          ],
+          "needs": {
+            "openfoam_v2606_thin_porous_baffle_contract": "仅查 OpenCFD v2606 官方 porousBafflePressure 对 cyclic 面、D/I/length、运动学/物理压力及有向 phi 的支持和限定；产品专有滤芯曲线由用户在本地提供。"
+          }
+        }
+      ],
+      "pattern_groups": {
+        "0": "(?:抽|吸|排|送|回|引)(?:风|气|湿)?(?:渐扩|渐缩|扩压|收缩)?(?:主管|支管|管路|通道|风道|管段|箱|舱)|(?:气流|通风|试验|测试|消声|稳流|过流)(?:管路|舱|箱|段|通道)|(?:前后|进出口|上下游)(?:这段|管段|测站)|气路|(?:抽|吸|排|送|回|引)(?:风|气)管",
+        "1": "(?:总压|全压|静压)(?:的)?(?:压差|差值|损耗|耗损|损失|降幅)|(?:失去|掉了|损失|高|低|相差|差)多少(?:帕|千帕|压)|差压(?:表|计)|(?:壁孔|静压孔|取压孔|引压管)[^。；]{0,22}(?:比|减|相差|压差)|(?:上游|入口)(?:.{0,14})(?:减|比)(?:.{0,14})(?:下游|出口|末端)[^。；]{0,14}(?:帕|压)|(?:两(?:个|处|只)?(?:孔|测点|测站|测面|取压口|取压孔|静压孔)|(?:上下游|进出口)(?:测点|测站|测面|取压口|取压孔))[^。；，]{0,14}(?:相差|差|高出|低了)(?:多少|多大|几)\\s*(?:千帕|帕|k?pa\\b)",
+        "2": "(?:吸|抽|排|送|回|引)(?:风(?:的)?|气|湿)|(?:风机|鼓风机).{0,18}(?:动|供|吹|压|吸|抽|送)|(?:入口|进口|进气)\\s*(?:为|约|是|给定)?\\s*[+\\-]?\\d+(?:\\.\\d+)?\\s*(?:m[\\^³3]|立方|cfm|kg\\s*/)|(?:风|空气|气体).{0,10}(?:流过|流经|吹入|吹向|穿过)"
+      },
+      "condition_patterns": {
+        "pressure_definition": {
+          "static_difference": "(?:壁上|侧壁|管壁|侧面)(?:[^。；，]{0,7})(?:静压孔|壁孔|取压孔|取压嘴)|(?:上游|入口|前端)[^。；]{0,12}静压孔|(?:贴壁|齐平|靠壁|管壁|侧壁)[^。；，]{0,8}(?:引压管|取压嘴|压嘴|取压孔|测压孔)|(?:引压管|取压孔)[^。；，]{0,5}(?:贴壁|齐平)",
+          "total_loss": "(?:全压|总压)(?:的)?(?:损耗|耗损|损失|降幅|差值)"
+        },
+        "station_sampling": {
+          "wall_static_taps": "(?:壁上|侧壁|管壁|侧面)(?:[^。；，]{0,7})(?:静压孔|壁孔|取压孔|取压嘴)|(?:上游|入口|前端)[^。；]{0,12}静压孔|(?:贴壁|齐平|靠壁|管壁|侧壁)[^。；，]{0,8}(?:引压管|取压嘴|压嘴|取压孔|测压孔)|(?:引压管|取压孔)[^。；，]{0,5}(?:贴壁|齐平)",
+          "mass_flow_weighted_section": "(?:质量(?:流量|通量)|质量流率)(?:[^。；，]{0,7})(?:平均|权重|加权)",
+          "area_weighted_section": "(?:截面)?面积(?:[^。；，]{0,5})(?:平均|加权|权重)"
+        }
+      },
+      "research_scope_terms": [
+        "截面统计定义",
+        "截面加权怎么",
+        "截面怎么平均",
+        "面通量权重",
+        "截面质量通量加权",
+        "回流怎么处理",
+        "surfaceFieldValue"
+      ]
+    },
+    "inputs_when": [
+      {
+        "condition": "localized_resistance",
+        "values": [
+          "thin_baffle"
+        ],
+        "inputs": [
+          {
+            "key": "filter_resistance_curve",
+            "meaning": "在本地提供该滤芯风量–压降或面速度–静压差曲线、参考截面/气体状态、厚度和有效范围；或提供已确认的 Darcy/惯性系数与方向。"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "existing_duct_pressure_readback",
+    "domain": "duct_flow",
+    "title": "已有流场的测站压差读回",
+    "goals": [
+      "pressure_drop"
+    ],
+    "mechanisms": [
+      "pressure_readback"
+    ],
+    "conditions": {
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ],
+      "station_sampling": [
+        "wall_static_taps",
+        "mass_flow_weighted_section",
+        "area_weighted_section"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "existing_field_metadata",
+        "meaning": "提供本地已算场的求解器、时刻、压力单位或量纲及参考基准；若是运动学压力补密度，总压需同一时刻的速度。"
+      },
+      {
+        "key": "pressure_stations",
+        "meaning": "给两个取压位置（截面、壁面取压孔或测点）及所属管段、标高和上/下游方向；仅‘出口压降’缺上游参照定义。"
+      }
+    ],
+    "intake": {
+      "capability_ids": [
+        "openfoam_opencfd.steady_incompressible"
+      ],
+      "solver_role": "postprocessing",
+      "condition_evidence": {
+        "pressure_definition": {
+          "static_difference": [
+            "静压差",
+            "静压降",
+            "静压损失",
+            "static pressure difference",
+            "static pressure drop",
+            "取压嘴都贴在侧壁",
+            "两个侧壁取压嘴",
+            "壁面静压孔",
+            "侧壁静压孔"
+          ],
+          "total_loss": [
+            "总压差",
+            "总压降",
+            "总压损失",
+            "total pressure loss",
+            "total pressure drop",
+            "全压损失",
+            "全压",
+            "总压"
+          ]
+        },
+        "station_sampling": {
+          "wall_static_taps": [
+            "取压嘴都贴在侧壁",
+            "两个侧壁取压嘴",
+            "壁面静压孔",
+            "侧壁静压孔",
+            "wall static taps"
+          ],
+          "mass_flow_weighted_section": [
+            "质量流量加权",
+            "质量加权",
+            "mass-flow weighted",
+            "mass flow weighted"
+          ],
+          "area_weighted_section": [
+            "面积加权",
+            "面积平均",
+            "area-weighted",
+            "area average"
+          ]
+        }
+      },
+      "condition_questions": {
+        "pressure_definition": {
+          "key": "pressure_definition",
+          "meaning": "确认 A/B 上游减下游的静压差，还是不可压总压损失；仅求出口绝对压力另给物理基准。"
+        },
+        "station_sampling": {
+          "key": "station_sampling",
+          "meaning": "确认壁面静压取压孔、面积平均截面还是质量流量加权截面，并区分迎风探头和侧壁静压孔。"
+        }
+      },
+      "all_of": [
+        [
+          "压降",
+          "压差",
+          "压损",
+          "压力损失",
+          "总压损失",
+          "静压损失",
+          "静压差",
+          "风阻",
+          "pressure drop",
+          "pressure loss",
+          "pressure difference"
+        ],
+        [
+          "已有压力场",
+          "已有计算结果",
+          "已有流场",
+          "已有 OpenFOAM",
+          "已算完",
+          "已有计算场",
+          "已求完",
+          "沿已有场",
+          "只做后处理",
+          "只后处理",
+          "直接读现有",
+          "已有仿真场",
+          "已有求解结果",
+          "已有速度压力场",
+          "existing pressure field",
+          "existing flow solution",
+          "postprocess only"
+        ]
+      ],
+      "exclude": [
+        "求风机性能曲线",
+        "预测风机性能曲线",
+        "生成风机曲线",
+        "计算风机特性曲线",
+        "风机扬程曲线",
+        "泵性能曲线",
+        "泵扬程",
+        "叶轮性能",
+        "实际工作点",
+        "风机额定性能",
+        "整机风机特性",
+        "fan performance curve",
+        "pump performance curve",
+        "自然对流",
+        "自然通风",
+        "靠浮力",
+        "靠温差",
+        "外部绕流",
+        "外流场",
+        "跨声速",
+        "两相",
+        "多孔阻力区",
+        "室外环境风",
+        "naturally ventilated",
+        "natural convection",
+        "external flow",
+        "transonic",
+        "需要重新求解",
+        "改动几何后重算",
+        "重新网格求解",
+        "没有现成压力场",
+        "风机本身",
+        "叶片和蜗壳",
+        "轴功率",
+        "总压升",
+        "全压升",
+        "扫几个转速",
+        "叶轮与蜗壳",
+        "impeller",
+        "shaft power"
+      ],
+      "incompatible_conditions": [
+        "two_phase"
+      ],
+      "input_evidence": {
+        "pressure_stations": "(?:从|比较|取|分别取)?(?:上游|入口|进口)(?:取压孔|取压点|截面|测站)\\s*(?:到|至|和|与|减|—|–|->)\\s*(?:下游|出口)(?:取压孔|取压点|截面|测站)"
+      }
+    }
+  },
+  {
+    "id": "flexible_capacitance_fixed_geometry",
+    "title": "柔性电容：已知几何的静电端子电容",
+    "domain": "tactile_sensor",
+    "mechanisms": [
+      "electrostatics"
+    ],
+    "goals": [
+      "tactile_capacitance",
+      "electrode_charge"
+    ],
+    "conditions": {
+      "electrical_model": [
+        "electrostatic"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "sensor_geometry",
+        "meaning": "指垫固体、介质、空气和每个电极的三维几何及米制坐标，电极和区域唯一标识。"
+      },
+      {
+        "key": "dielectric_properties",
+        "meaning": "各区域介电常数 F/m 或无量纲 εr、适用频率/应变/温度，以及独立材料测量或样本来源；由目标电容反算的 εr 只作校准。"
+      },
+      {
+        "key": "electrical_bc",
+        "meaning": "确认各电极的激励、参考、短接或浮置及测量端口。"
+      },
+      {
+        "key": "electrical_model_details",
+        "meaning": "给空气外边界、频率、寄生校正和端口电荷条件（浮置且中性可用 Q=0），并核查低损耗假设。"
+      }
+    ],
+    "intake": {
+      "all_of": [
+        [
+          "指垫",
+          "指腹",
+          "触觉",
+          "海绵",
+          "泡棉",
+          "泡沫电极",
+          "柔性电极",
+          "柔性电容",
+          "电容式压力传感",
+          "电容压力传感",
+          "柔性夹爪",
+          "软夹爪",
+          "压敏",
+          "触压",
+          "触摸",
+          "双指",
+          "夹持",
+          "夹紧",
+          "夹爪",
+          "软垫",
+          "tactile",
+          "finger pad",
+          "fingertip",
+          "gripper",
+          "pad compression",
+          "pad deformation",
+          "sponge",
+          "foam electrode",
+          "pressure sensor",
+          "触觉片",
+          "机器人手指",
+          "机械手指",
+          "硅橡胶",
+          "PDMS",
+          "电子皮肤"
+        ],
+        [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF",
+          "c0"
+        ],
+        [
+          "求电容",
+          "计算电容",
+          "电容是多少",
+          "电容多大",
+          "容量多少",
+          "核对电容",
+          "核对端子电容",
+          "预测端子电容",
+          "初始电容"
+        ]
+      ],
+      "pattern_groups": {
+        "2": "(?:端子|极板|电极)[^。；]{0,12}电容|(?:电容|多少)\\s*(?:pF|皮法)|(?:求|算|核对|估计|计算|预测)[^。；]{0,10}c[0₀]\\b"
+      },
+      "include_pattern": "未(?:受力|受压|加载|按压)|无(?:外载|载荷)|没(?:有)?(?:加载|受压|压上去)|零(?:压|载荷?)|卸载(?:时|后|态)|固定(?:的)?(?:厚度|几何|形状)|已知(?:变形后|当前|压后)(?:的)?(?:几何|厚度|形状)|初始电容|unloaded|fixed geometry",
+      "signal_roles": {
+        "competing": [
+          "应变电桥",
+          "应变桥",
+          "电阻应变",
+          "应变片",
+          "应变计",
+          "应变式",
+          "惠斯通",
+          "四臂电桥",
+          "全桥",
+          "半桥",
+          "strain gauge",
+          "strain bridge",
+          "wheatstone",
+          "压阻",
+          "piezoresistive"
+        ],
+        "signal": [
+          "电容",
+          "皮法",
+          "皮法拉",
+          "电荷",
+          "两片电极",
+          "极板",
+          "电极",
+          "capacitance",
+          "capacitive",
+          "picofarad",
+          "electrode",
+          "pF"
+        ],
+        "incidental": [
+          "寄生",
+          "杂散",
+          "对地",
+          "线缆",
+          "电缆",
+          "旁观",
+          "顺便",
+          "附带",
+          "干扰",
+          "只用来屏蔽",
+          "parasitic",
+          "stray",
+          "cable"
+        ],
+        "readout": [
+          "反演",
+          "反推",
+          "反算",
+          "估计",
+          "推算",
+          "力值",
+          "测力",
+          "标定",
+          "换算",
+          "换成",
+          "信号",
+          "主读数",
+          "主通道",
+          "主要读数",
+          "测量量",
+          "载荷",
+          "夹持力",
+          "抓力",
+          "转成",
+          "读出",
+          "图谱",
+          "读数",
+          "estimate",
+          "infer",
+          "force",
+          "calibrate",
+          "calibration",
+          "readout"
+        ],
+        "reference": [
+          "仅供",
+          "只作",
+          "只做",
+          "只用",
+          "参考",
+          "对照",
+          "基准",
+          "真值",
+          "独立校准",
+          "独立校验",
+          "核对",
+          "不参与",
+          "reference",
+          "ground truth"
+        ]
+      },
+      "goal_aliases": {},
+      "capability_ids": [
+        "getdp.electrostatics_dielectric",
+        "getdp.electrode_charge_readback",
+        "getdp.tactile_capacitance_from_charge"
+      ],
+      "paper_case_terms": {
+        "wang2025-pure-pdms-capacitance": [
+          "10.3390/s25030637",
+          "Wang 2025"
+        ]
+      },
+      "input_evidence": {
+        "electrical_bc": "(?s)\\A(?=.*(?:[\\d一二三四]+\\s*号\\s*)?(?:电极|极板|端子)[^。；;，,\\n]{0,10}(?:激励|加压|加电|施加电压))(?=.*(?:背板|底板|底电极|参考电极|下电极|参考端)[^。；;，,\\n]{0,8}(?:接地|零电位|0\\s*v))(?=.*(?:其余|另外|剩下|其他)[^。；;，,\\n]{0,12}(?:悬空|浮置)).*"
+      },
+      "ambiguous_input_evidence": {
+        "electrical_bc": "(?:未(?:定|确认|接地)|不(?:接地|确定)|待确认|还是|是否)[^。；;，,\\n]{0,12}(?:接地|激励|悬空|浮置)|(?:接地|激励|悬空|浮置)[^。；;，,\\n]{0,10}(?:待确认|未定|不确定|还是)"
+      }
+    }
+  },
+  {
+    "id": "soft_pneumatic_static_actuator",
+    "title": "软气动执行器：规定内压驱动的有限变形",
+    "domain": "structural_static",
+    "mechanisms": [
+      "solid_elasticity",
+      "pressure_loading"
+    ],
+    "goals": [
+      "free_bending_angle",
+      "blocked_tip_force",
+      "actuator_deformation"
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "coupling": [
+        "prescribed_pressure"
+      ],
+      "output_boundary": [
+        "free_tip",
+        "blocked_tip"
+      ],
+      "angle_reference": [
+        "relative_unpressurized",
+        "relative_equal_pressure",
+        "relative_initial_pose",
+        "absolute_reference"
+      ],
+      "support": [
+        "fixed_root"
+      ],
+      "force_direction": [
+        "stop_normal",
+        "sensor_axis"
+      ],
+      "sensor_axis": [
+        "vertical_up"
+      ],
+      "force_reference": [
+        "relative_equal_pressure"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "actuator_geometry",
+        "meaning": "本地提供软体和端盖几何、各材料域、腔室/对外暴露面的标识及单位；确认受压内壁和实际封闭端盖，入口开口不虚设固壁。"
+      },
+      {
+        "key": "pressure_schedule",
+        "meaning": "给各腔达到准静态时的内外压差和工况历程（Pa 或 kPa）；若给绝压再给外界压力，若给表压明确其参考和加载腔。"
+      },
+      {
+        "key": "hyperelastic_material_parameters",
+        "meaning": "给各域独立标定的超弹参数、拉压适用范围与可压缩性；初始 E、ν 只约束小应变切线，不能确认大应变拟合。重力需要密度。"
+      },
+      {
+        "key": "actuator_support_and_orientation",
+        "meaning": "给夹持面的位移约束、安装姿态和重力；明确零压时是否已有重力挠曲。"
+      }
+    ],
+    "goal_inputs": {
+      "free_bending_angle": [
+        {
+          "key": "angle_readback_definition",
+          "meaning": "给自由端切线或端盖标记、弯曲平面和角度正方向；明确绝对姿态或相对初始状态。"
+        }
+      ],
+      "blocked_tip_force": [
+        {
+          "key": "blocking_fixture",
+          "meaning": "给刚性挡块的位置、接触法向、间隙和允许滑动的摩擦参数，确认测力点合反力及投影方向。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "软气动",
+          "软体执行器",
+          "软执行器",
+          "气动执行器",
+          "软体气动",
+          "气动软指",
+          "气动弯曲",
+          "气动夹爪",
+          "波纹腔",
+          "气囊",
+          "气室",
+          "充气软指",
+          "pneumatic actuator",
+          "silicone bellows",
+          "气动执行指",
+          "波纹软指"
+        ],
+        [
+          "充气",
+          "打气",
+          "加压",
+          "气压",
+          "内压",
+          "表压",
+          "压差",
+          "压力",
+          "pressur",
+          "inflation",
+          "pressure",
+          "腔压",
+          "压强",
+          "保压",
+          "抽气",
+          "负压",
+          "绝压"
+        ],
+        [
+          "弯曲角",
+          "自由弯曲",
+          "偏角",
+          "弯折",
+          "弯曲",
+          "位移",
+          "形变",
+          "变形",
+          "堵转力",
+          "阻挡力",
+          "堵转",
+          "blocked force",
+          "bending",
+          "angular deflection",
+          "安装轴的夹角",
+          "测力板"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "(?:软|柔性|硅胶|弹性)[^。；，]{0,10}(?:波纹|气腔|腔室|气室|气囊|软指|手指)|(?:波纹|折纸)[^。；，]{0,8}(?:软指|腔|执行器)|(?:气动|充气)[^。；，]{0,6}(?:波纹管|波纹腔|波纹指|柔性指)|软(?:气爪|气动爪)|软(?:手指|指|气爪|气动爪)",
+        "2": "(?:弯|转|偏)[^。；，]{0,7}(?:几度|多少度|角度)|(?:自由端|尖端|指尖|末端)[^。；，]{0,14}(?:偏转|弯|位移)|(?:顶住|挡住|不让)[^。；，]{0,14}(?:多大力|多少力|推力|反力)|(?:尖端|末端|自由端)[^。；，]{0,20}(?:切线|姿态)[^。；，]{0,20}(?:几度|转角|角度|转了|多转)|(?:挡块|止挡|测力片)[^。；，]{0,10}(?:法向|接触)反力|(?:法线|法向)[^。；，,;\\n]{0,8}(?:推力|反力|接触力)|(?:挡块|止挡|限位块|测力片)[^。；，,;\\n]{0,14}(?:多少牛|多少\\s*N\\b|推力|反力)"
+      },
+      "exclude_pattern": "(?:双向(?:气固|流固)|(?:气固|流固)双向|气体质量守恒|阀门[^。；，]{0,12}(?:流量决定|流量和|压力响应)|封闭气体[^。；，]{0,12}(?:气压随体积|未知气压)|电热驱动|液压驱动)|阀前[^。；，]{0,10}(?:供气|压力)|(?:快速进气|充气瞬态)[^。；]{0,22}(?:轨迹|随时间)|腔压[^。；，]{0,18}(?:随|取决于)[^。；，]{0,15}(?:体积|鼓起|膨胀|变形)|(?:金属|不锈钢|钢制)[^。；，]{0,10}波纹管",
+      "goal_aliases": {
+        "tip_bending_angle": "free_bending_angle",
+        "blocked_force": "blocked_tip_force"
+      },
+      "goal_terms": {
+        "free_bending_angle": [
+          "自由弯曲",
+          "弯曲角",
+          "偏角",
+          "多少度",
+          "转角",
+          "弯多少",
+          "bending angle",
+          "angular deflection",
+          "转过多少度",
+          "弯到几度",
+          "多转几度",
+          "转几度",
+          "切线角",
+          "安装轴的夹角"
+        ],
+        "blocked_tip_force": [
+          "堵转力",
+          "堵转",
+          "阻挡力",
+          "挡住",
+          "止挡力",
+          "顶住",
+          "blocked force",
+          "挡块法向反力",
+          "止挡反力",
+          "挡块反力",
+          "法向反力"
+        ],
+        "actuator_deformation": [
+          "位移",
+          "形变",
+          "变形",
+          "位移场",
+          "deformation"
+        ]
+      },
+      "require_target_selection": true,
+      "goal_terminal_steps": {
+        "free_bending_angle": "angle",
+        "blocked_tip_force": "blocked_force",
+        "actuator_deformation": "free_solid"
+      },
+      "capability_ids": [
+        "calculix.neo_hooke_nearly_incompressible",
+        "calculix.nlgeom_follower_surface_pressure"
+      ],
+      "research_needs": {
+        "calculix_222_neo_hooke_material_contract": "查 CalculiX CrunchiX 2.22 原厂手册 §6.8.6 与 §7.73 Eq.(884) 或同版本源码，对照 C10、D1、温度字段、体积惩罚模型、D1=0 的默认行为和近不可压单元限制。只传公开版本术语。",
+        "calculix_222_pressure_surface_contract": "查 CalculiX CrunchiX 2.22 原厂手册 §7.43、§7.44、*STEP NLGEOM 与对应版本源码，核实实体内壁 Px 面序、正压力符号与当前构形载荷方向和面积的实现。只传公开版本术语。"
+      },
+      "goal_exclude_patterns": {
+        "free_bending_angle": "(?:不能|不可|不要|不许|不以|不由|不采用|不要求)[^。；，]{0,10}自由(?:端|弯曲)[^。；，]{0,25}(?:换算|代替|推算|计算)|(?:不是|不要|不问|不看|不需要)(?:看|求|算)?[^。；，]{0,14}(?:弯|转|偏)[^。；，]{0,8}(?:多(?:少|大)|几度|角度)",
+        "actuator_deformation": "(?:不能|不可|不要|不许|不以|不由|不采用|不要求)[^。；，]{0,10}自由(?:端|弯曲)[^。；，]{0,25}(?:换算|代替|推算|计算)"
+      },
+      "condition_evidence": {
+        "angle_reference": {
+          "relative_unpressurized": [
+            "相对零位",
+            "相对零压",
+            "相对没充气",
+            "相对未充气"
+          ],
+          "relative_initial_pose": [
+            "比初始姿态",
+            "相对初始姿态"
+          ],
+          "absolute_reference": [
+            "绝对角度",
+            "绝对偏角"
+          ]
+        },
+        "output_boundary": {
+          "free_tip": [
+            "末端自由",
+            "尖端悬空",
+            "自由端"
+          ],
+          "blocked_tip": [
+            "刚性限位",
+            "刚性止挡",
+            "刚性挡块",
+            "刚性测力板"
+          ]
+        },
+        "support": {
+          "fixed_root": [
+            "根部固定",
+            "根端固定",
+            "固定根部"
+          ]
+        },
+        "force_direction": {
+          "stop_normal": [
+            "法向推力",
+            "法向反力",
+            "法向接触力"
+          ]
+        },
+        "sensor_axis": {},
+        "force_reference": {}
+      },
+      "condition_patterns": {
+        "angle_reference": {
+          "relative_unpressurized": "(?:相对|比|较|以)[^。；，]{0,6}(?:未充气|没充气|未抽气|没抽气|零压|无压|零位)",
+          "relative_initial_pose": "(?:比|相对|较)[^。；，]{0,4}初始姿态",
+          "absolute_reference": "(?:与|和|跟|相对|以)[^。；，,;\\n]{0,5}(?:安装轴|基座轴|安装基准)[^。；，,;\\n]{0,5}(?:夹角|角度)"
+        },
+        "output_boundary": {
+          "free_tip": "(?:前端|末端|自由端|手指|指尖|尖端)[^。；，]{0,14}(?:没有碰|没有接触|未接触|不接触|悬空|悬着)",
+          "blocked_tip": "(?:顶在|顶着|抵住|顶住|接触)[^。；，]{0,12}(?:挡块|止挡|限位块|测力板)"
+        },
+        "support": {
+          "fixed_root": "(?:根部|根端|根座|基座|尾座)[^。；，,]{0,8}(?:夹牢|夹紧|夹住|夹死|固定|固支|锁紧)"
+        },
+        "force_direction": {
+          "stop_normal": "(?:法线|法向)[^。；，,]{0,8}(?:推力|反力|接触力|堵转力|阻挡力|受(?:到|力)[^。；，,]{0,6}力)"
+        }
+      },
+      "goal_patterns": {
+        "free_bending_angle": "(?:弯|转|偏)[^。；，,;\\n]{0,7}(?:几度|多少度|角度)|(?:末端|尖端|自由端)[^。；，,;\\n]{0,10}(?:安装轴|基座轴|安装基准)[^。；，,;\\n]{0,5}(?:夹角|角度)",
+        "blocked_tip_force": "(?:法线|法向)[^。；，,;\\n]{0,8}(?:推力|反力|接触力)|(?:挡块|止挡|限位块|测力片|测力板)[^。；，,;\\n]{0,14}(?:多大力|多少力|多少牛|多少\\s*N\\b|推力|反力)"
+      },
+      "research_scope_pattern": "\\A(?![\\s\\S]*(?:CalculiX|CrunchiX)\\s*(?:v(?:ersion)?\\s*)?(?!2\\.22(?![\\d.]))\\d+(?:\\.\\d+)+)(?=[\\s\\S]*(?<!不)(?:核查|核实|查证|查阅|查一下|查下|查|确认|验证|对照|verify|check|look up))(?:(?=[\\s\\S]*(?:原厂|官方|CalculiX|CrunchiX|同版本|对应版本)[^。；;!?！？\\n]{0,16}(?:手册|文档|源码|源代码))|(?=[\\s\\S]*(?:CalculiX|CrunchiX)[^。；;!?！？\\n]{0,28}(?<![\\d.])(?:v\\s*)?2\\.22(?![\\d.]))(?=[\\s\\S]*(?:neo[\\s_-]*hooke(?:an)?|新胡克|(?:材料|本构)[^。；;，,\\n]{0,8}(?:参数|默认值)|\\b(?:C10|D1)\\b|随动(?:面)?压力|跟随(?:面)?压力|follower[\\s_-]*pressure|压力(?:定义|符号|面序)|\\*(?:DLOAD|DSLOAD)\\b)))",
+      "research_topic_patterns": {
+        "calculix_222_neo_hooke_material_contract": "neo[\\s_-]*hooke(?:an)?|新胡克|(?:材料|本构)[^。；;，,\\n]{0,8}(?:参数|默认值)|\\b(?:C10|D1)\\b",
+        "calculix_222_pressure_surface_contract": "随动(?:面)?压力|跟随(?:面)?压力|follower[\\s_-]*pressure|压力(?:定义|符号|面序)|\\*(?:DLOAD|DSLOAD)\\b"
+      },
+      "condition_input_refinements": {
+        "support": {
+          "fixed_root": {
+            "actuator_support_and_orientation": "根部固定已给；补 CAD 夹持面的实际范围、安装姿态及重力工况。"
+          }
+        },
+        "angle_reference": {
+          "relative_unpressurized": {
+            "angle_readback_definition": "以未充气或未抽气的姿态为基准；指定自由端切线或端盖标记、测角平面及基准工况的重力。"
+          },
+          "relative_initial_pose": {
+            "angle_readback_definition": "已给初始姿态基准；只需指定自由端切线或端盖标记及测角平面。"
+          },
+          "absolute_reference": {
+            "angle_readback_definition": "给安装参考轴或基准面的方向、自由端切线或端盖标记及测角平面；读回包含实际重力挠曲的绝对角。"
+          },
+          "relative_equal_pressure": {
+            "angle_readback_definition": "按内外等压且安装与重力相同的姿态取零；给相机视角及标定、端盖或端部标记、投影平面和角度正方向。"
+          }
+        },
+        "force_direction": {
+          "stop_normal": {
+            "blocking_fixture": "按挡块法向投影合力；补 CAD 中的挡块位置、法向坐标、接触面和初始间隙，以及允许滑动时的摩擦参数。"
+          },
+          "sensor_axis": {
+            "blocking_fixture": "求止挡的矢量反力并投影到实际测力轴；保留接触的法向和摩擦切向贡献。给止挡相对位姿、接触面、间隙、摩擦及轴线或测力件传力关系。"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "soft_pneumatic_transient_gas_structure",
+    "title": "软气动执行器：阀控气腔与结构瞬态双向候选",
+    "domain": "structural_dynamics",
+    "mechanisms": [
+      "gas_compressibility",
+      "solid_elasticity",
+      "pressure_loading"
+    ],
+    "goals": [
+      "transient_tip_trajectory",
+      "chamber_pressure_history"
+    ],
+    "conditions": {
+      "operation": [
+        "transient"
+      ],
+      "coupling": [
+        "gas_structure_feedback",
+        "prescribed_chamber_histories"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "valve_mass_flow_characteristic",
+        "meaning": "给阀开度/时序、软管尺寸或标定阻力、流量系数或标定质量流量特性；给上游绝压及温度、回压和流向/堵塞流条件。"
+      },
+      {
+        "key": "chamber_initial_state",
+        "meaning": "给初始绝压、温度或质量、气体和腔体初始容积，以及外界压力和可接受热交换假设。"
+      }
+    ],
+    "intake": {
+      "all_of": [
+        [
+          "气囊",
+          "软气动",
+          "软执行器",
+          "波纹软指",
+          "气动夹爪",
+          "气动执行指",
+          "柔性气腔",
+          "pneumatic actuator"
+        ],
+        [
+          "快速进气",
+          "阀前",
+          "阀口",
+          "阀后",
+          "变容",
+          "气固双向",
+          "双向气固",
+          "流固",
+          "瞬态充气",
+          "随橡胶鼓起",
+          "气体质量守恒",
+          "阀控",
+          "流量特性",
+          "节流孔",
+          "容积互相影响",
+          "孔口",
+          "容积反馈",
+          "阀上游",
+          "供气端"
+        ],
+        [
+          "轨迹",
+          "毫秒",
+          "瞬态形变",
+          "时间响应",
+          "随时间",
+          "变形过程",
+          "transient",
+          "trajectory",
+          "形状变化",
+          "时间历程"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "(?:软|硅胶|橡胶)[^。；，]{0,8}(?:气室|气腔|气囊|腔室|软指)|气动(?:软指|柔性指|手指)|软(?:手指|指)",
+        "1": "(?:腔压|内压|气压)[^。；，]{0,10}(?:随|取决于)[^。；，]{0,15}(?:体积|鼓起|膨胀|变形)|(?:腔|袋|气囊)[^。；，]{0,5}(?:压力|压强)[^。；，]{0,18}(?:容积|体积)[^。；，]{0,12}(?:互相|相互|反馈|耦合)",
+        "2": "(?:腔压|(?:腔内|腔里|内腔|气腔)[^。；，,;\\n]{0,12}(?:压力|压强))[^。；，,;\\n]{0,8}(?:曲线|随时间|时序|时间历程|时间响应)|(?:腔压|腔内压力|气腔压力)\\s*p\\s*\\(\\s*t\\s*\\)"
+      },
+      "exclude": [
+        "只求静力",
+        "只看稳定后"
+      ],
+      "goal_aliases": {},
+      "capability_ids": [],
+      "solver_role": "component",
+      "condition_evidence": {
+        "coupling": {},
+        "pressure_reference": {},
+        "outlet_boundary": {},
+        "gas_species": {}
+      },
+      "goal_terms": {
+        "chamber_pressure_history": [],
+        "transient_tip_trajectory": [
+          "端部轨迹",
+          "指尖轨迹",
+          "尖端轨迹",
+          "末端轨迹",
+          "瞬态形变",
+          "形状变化",
+          "变形过程",
+          "trajectory"
+        ]
+      },
+      "goal_patterns": {
+        "chamber_pressure_history": "(?:腔压|(?:腔内|腔里|内腔|气腔)[^。；，,;\\n]{0,12}(?:压力|压强))[^。；，,;\\n]{0,8}(?:曲线|随时间|时序|时间历程|时间响应)|(?:腔压|腔内压力|气腔压力)\\s*p\\s*\\(\\s*t\\s*\\)"
+      },
+      "goal_terminal_steps": {
+        "chamber_pressure_history": "chamber_pressure",
+        "transient_tip_trajectory": "trajectory"
+      },
+      "terminal_scope": {
+        "chamber_pressure": "阀控气腔压力时序候选。通过量测 V(t)、证明容积近似恒定或建立变容模型闭合。仅在结构求解负责提供 V(t) 时才需 CalculiX 组件。"
+      }
+    },
+    "goal_inputs": {
+      "transient_tip_trajectory": [
+        {
+          "key": "transient_actuator_structure",
+          "meaning": "给完整气腔几何及材料域、超弹性/速率相关数据、密度和阻尼、安装夹持姿态、重力和初始结构位移/速度。"
+        },
+        {
+          "key": "trajectory_observation",
+          "meaning": "给端部标记、坐标系、采样步长和起始时刻定义。"
+        }
+      ],
+      "chamber_pressure_history": [
+        {
+          "key": "chamber_volume_history_or_model",
+          "meaning": "给独立量测的变容 V(t) 或经标定的气腔顺应性/结构模型；若近似定容，给容积及该近似的依据。软管若有显著传播延迟或容积，保留其分布储气与压降。"
+        },
+        {
+          "key": "pressure_history_observation",
+          "meaning": "给腔室/测站、所需表压或绝压基准、采样率和动作起点。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "internally_heated_forced_cht",
+    "title": "有源固体与强迫气流的共轭传热",
+    "domain": "thermal",
+    "mechanisms": [
+      "solid_heat_conduction",
+      "forced_convection"
+    ],
+    "goals": [
+      "probe_temperature",
+      "peak_temperature",
+      "temperature_difference"
+    ],
+    "conditions": {
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "air_drive": [
+        "prescribed_flow",
+        "fan_curve",
+        "unconfirmed"
+      ],
+      "solid_conduction": [
+        "anisotropic",
+        "layered"
+      ],
+      "contact": [
+        "finite_resistance",
+        "ideal_contact",
+        "joint_to_characterize"
+      ],
+      "radiation": [
+        "included",
+        "neglected"
+      ],
+      "heat_input": [
+        "volumetric_generation",
+        "total_thermal_power",
+        "provided_power_histories"
+      ],
+      "air_circuit": [
+        "closed_recirculation"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "cht_geometry",
+        "meaning": "给固体域、实际发热范围及连通流体域、接口、流向、泄漏旁通和开口几何；换热面与接触面分别标识。"
+      },
+      {
+        "key": "heat_source_definition",
+        "meaning": "给发热固体、热源范围和分布、稳态耗散总热功率或体积发热率。电输入功率不能直接替代实际发热。瞬态另给时序和实际热转换。"
+      },
+      {
+        "key": "air_thermal_boundaries",
+        "meaning": "给进气温度和流体物性/温压范围、出口或外界压力、回流温度及空气物性；定义外露固体如何散热。"
+      },
+      {
+        "key": "solid_thermal_properties",
+        "meaning": "给各固体导热率和温度依赖；瞬态还需密度、比热及初温。"
+      },
+      {
+        "key": "interface_thermal_conditions",
+        "meaning": "列每一流固及固固接口与配对，说明导热路径、有无间隙/接触热阻或可采用理想接触的依据。"
+      }
+    ],
+    "inputs_when": [
+      {
+        "condition": "air_drive",
+        "values": [
+          "fan_curve"
+        ],
+        "inputs": [
+          {
+            "key": "fan_characteristics",
+            "meaning": "给实际转速、安装方向和压升—体积流量曲线、密度基准和静压/全压约定；模型内外的过滤器等阻力和出口压力也须闭合。"
+          }
+        ]
+      },
+      {
+        "condition": "air_drive",
+        "values": [
+          "prescribed_flow"
+        ],
+        "inputs": [
+          {
+            "key": "installed_inlet_flow",
+            "meaning": "使用装机实测或明确给定的供风量；提供流量记录和单位、对应密度或参考温压、供风测量面积及速度型面和湍流输入。"
+          }
+        ]
+      },
+      {
+        "condition": "radiation",
+        "values": [
+          "included"
+        ],
+        "inputs": [
+          {
+            "key": "surface_radiation_inputs",
+            "meaning": "给参与辐射面、表面发射率、遮蔽/视角条件和开口或环境辐射温度；确认介质可否视为不参与。"
+          }
+        ]
+      },
+      {
+        "condition": "operation",
+        "values": [
+          "transient"
+        ],
+        "inputs": [
+          {
+            "key": "initial_thermal_state",
+            "meaning": "给固体和气体初温、热源与送风记录的同步时间零点及输出采样时刻。"
+          }
+        ]
+      }
+    ],
+    "goal_inputs": {
+      "probe_temperature": [
+        {
+          "key": "thermal_probe_definition",
+          "meaning": "给实际热电偶或探针位置、侧别和固定接触条件；瞬态确认传感器与固体的接触/热惯性及采样时刻。指定点值、插值或测量体积平均口径。"
+        }
+      ],
+      "peak_temperature": [
+        {
+          "key": "peak_temperature_definition",
+          "meaning": "给峰值搜索的固体域或表面及时间窗，明确胞元、表面或空间平均口径；结果附峰值时刻及空间位置。"
+        }
+      ],
+      "temperature_difference": [
+        {
+          "key": "temperature_difference_definition",
+          "meaning": "给两点或两区域及减法次序；多组件需明确各组件同一时刻的代表测点、面积/体积平均还是各域峰值，再计算组件间极差。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "体积发热",
+          "内部发热",
+          "内热源",
+          "发热",
+          "耗散功率",
+          "热源",
+          "volumetric heat generation"
+        ],
+        [
+          "风冷",
+          "风道",
+          "风机",
+          "强迫对流",
+          "进风",
+          "通风",
+          "送风",
+          "吹风",
+          "forced convection",
+          "airflow"
+        ],
+        [
+          "温度",
+          "温差",
+          "温升",
+          "峰温",
+          "热点",
+          "测温",
+          "temperature"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "(?:发热|生热|产热|热耗散|散热功率|热功率|热负荷|热量密度|体积热源|功率密度|内部加热)",
+        "1": "(?:气流|空气)[^。；，,\\n]{0,10}(?:流过|通过|掠过|吹过|流量|冷却)|(?:入口|实际)[^。；，,\\n]{0,10}(?:风量|风速|空气流量)",
+        "2": "(?:温度|最高温|峰温|温差|温升|多热|达到几度|热点|热斑)"
+      },
+      "exclude_pattern": "(?:自然对流|自然冷却)[^。；，,\\n]{0,12}(?:无风机|不用风机|无强迫)|(?:仅|只)(?:测|求|算|校核)[^。；，,\\n]{0,10}(?:压降|流阻)(?:[。；，,\\n]|$)",
+      "goal_terms": {
+        "probe_temperature": [
+          "测点温度",
+          "探针温度",
+          "热电偶温度",
+          "探头温度",
+          "probe temperature"
+        ],
+        "peak_temperature": [
+          "最高温度",
+          "峰值温度",
+          "最大温度",
+          "峰温",
+          "最高温",
+          "热斑温度",
+          "peak temperature",
+          "热点温度"
+        ],
+        "temperature_difference": [
+          "温差",
+          "温升",
+          "temperature difference"
+        ]
+      },
+      "goal_patterns": {
+        "probe_temperature": "(?:测点|探头|探针|热电偶|取样点|监测点)[^。；，,\\n]{0,17}(?:温度|几度|温升)|(?:温度|几度)[^。；，,\\n]{0,12}(?:测点|探头|探针|热电偶)|(?:两点|[AB]两点)[^。；，,\\n]{0,8}(?:各自|各点|分别)[^。；，,\\n]{0,8}(?:温度|几度)",
+        "peak_temperature": "(?:最热(?:位置|处|点)?|热点|热斑|峰值)[^。；，,\\n]{0,12}(?:温度|几度|多高|多热)",
+        "temperature_difference": "(?:两(?:点|端|面|处|侧)|温度)[^。；，,\\n]{0,16}(?:差多少|相差|差值)|(?:各(?:区|点|块|模块|组件)|(?:[二三四五六七八九十0-9]+)(?:块|件|组|个))[^。；，,\\n]{0,10}(?:间|之间|彼此)[^。；，,\\n]{0,8}(?:差多少|相差|温差)|最大温度[^。；，,\\n]{0,6}最小温度"
+      },
+      "require_target_selection": true,
+      "goal_terminal_steps": {
+        "probe_temperature": "probe_readback",
+        "peak_temperature": "peak_readback",
+        "temperature_difference": "difference_readback"
+      },
+      "capability_ids": [
+        "openfoam_opencfd.steady_cht",
+        "openfoam_opencfd.transient_cht",
+        "openfoam_opencfd.solid_volumetric_heat_source",
+        "openfoam_opencfd.directional_conduction_and_thin_contact",
+        "openfoam_opencfd.fan_curve_operating_point",
+        "openfoam_opencfd.surface_view_factor_exchange"
+      ],
+      "solver_role": "fluid_thermal",
+      "condition_evidence": {
+        "operation": {
+          "steady": [
+            "稳态",
+            "热平衡",
+            "稳定后"
+          ],
+          "transient": [
+            "瞬态",
+            "升温曲线",
+            "随时间"
+          ]
+        },
+        "solid_conduction": {
+          "anisotropic": [
+            "各向异性",
+            "方向性导热",
+            "正交异性"
+          ],
+          "layered": [
+            "铺层",
+            "叠层"
+          ]
+        },
+        "contact": {
+          "finite_resistance": [
+            "接触热阻",
+            "界面导热系数",
+            "等效热阻"
+          ],
+          "ideal_contact": [
+            "理想热接触",
+            "完全热接触"
+          ],
+          "joint_to_characterize": [
+            "压紧接缝",
+            "压接接缝"
+          ]
+        },
+        "radiation": {
+          "included": [
+            "表面辐射",
+            "热辐射",
+            "长波辐射",
+            "发射率"
+          ],
+          "neglected": [
+            "忽略辐射",
+            "不算辐射",
+            "不考虑辐射",
+            "不计辐射"
+          ]
+        },
+        "air_drive": {},
+        "heat_input": {},
+        "air_circuit": {}
+      },
+      "condition_patterns": {
+        "solid_conduction": {
+          "anisotropic": "(?:面内|沿层|轴向)[^。；，,\\n]{0,16}(?:厚度方向|跨层|径向)[^。；，,\\n]{0,10}(?:导热|热导率)|(?:沿|横)[^。；，,\\n]{0,10}(?:导热率|热导)[^。；，,\\n]{0,12}(?:不同|不一样)"
+        },
+        "contact": {
+          "finite_resistance": "(?:接合|压紧|贴合|搭接|接触)[^。；，,\\n]{0,12}(?:等效热阻|导热系数|热阻|导热垫|热界面材料)"
+        },
+        "radiation": {
+          "included": "(?:考虑|计入|包含|同时求|加上)[^。；，,\\n]{0,6}(?:辐射|表面长波)"
+        }
+      },
+      "condition_questions": {
+        "air_drive": {
+          "key": "air_drive_choice",
+          "meaning": "确认是已测安装态入口流量，还是由风机压流曲线和系统阻力决定。只给额定/free-air 风量不能确定工作点。"
+        },
+        "operation": {
+          "key": "thermal_time_scope",
+          "meaning": "确认稳态目标或升温/冷却过程与所需时间窗。"
+        }
+      },
+      "condition_input_refinements": {
+        "solid_conduction": {
+          "anisotropic": {
+            "solid_thermal_properties": "给各固体主方向导热率或可重建的导热张量及轴向与 CAD 坐标对应，允许随温度变化；瞬态另给密度、比热和初温。"
+          },
+          "layered": {
+            "solid_thermal_properties": "给铺层序列、厚度、各材料主方向导热率及材料轴与 CAD 轴对应；瞬态另给密度、比热和初温。"
+          }
+        },
+        "contact": {
+          "finite_resistance": {
+            "interface_thermal_conditions": "给接触面、压紧/温度工况和热阻口径，区分面热阻 m²·K/W 与整界面 K/W；如为薄层，给厚度和导热率，避免两侧重复计同一热阻。"
+          },
+          "joint_to_characterize": {
+            "interface_thermal_conditions": "给接缝位置、装配预压、接触范围和材料、界面热阻或等效薄层导热。理想热接触需要明确依据。"
+          }
+        },
+        "heat_input": {
+          "volumetric_generation": {
+            "heat_source_definition": "已给体积发热率；补所属固体、热源范围和非均匀分布/时序。按体积积分核对总热功率。"
+          },
+          "total_thermal_power": {
+            "heat_source_definition": "已给热功率；补发热体积与各区功率分配、空间/时间分布，再由体积积分反查总功率。"
+          },
+          "provided_power_histories": {
+            "heat_source_definition": "直接使用每个热源已有的耗散功率 P_i(t) 时序；提供记录与热源区域映射、体积和空间分配、共享时间基准，积分核对各区域功率。"
+          }
+        }
+      },
+      "research_scope_pattern": "(?i)(?=.*(?:核查|查证|核实|核对|查阅|校对|verify|check))(?=.*(?:原厂|官方|OpenFOAM|同版本))(?=.*(?:手册|源码|版本|OpenFOAM|fvOptions))",
+      "research_needs": {
+        "openfoam_v2606_solid_source_contract": "查 OpenFOAM OpenCFD v2606 的固体能量装配与 fvOptions 源码，核对求解能量变量、绝对与体积源量纲及区域选择。",
+        "openfoam_v2606_thermal_interface_contract": "查 OpenFOAM OpenCFD v2606 的 directionalSolidThermo、temperatureCoupledBase 与映射热接口源码，核对材料方向、薄层热阻和界面热流口径。",
+        "openfoam_v2606_fan_curve_contract": "查 OpenFOAM OpenCFD v2606 的 fanMomentumSource 与定流量入口源码，核对压流曲线、流量/压力单位、区域流向及固定流量区别。",
+        "openfoam_v2606_radiation_contract": "查 OpenFOAM OpenCFD v2606 的 viewFactor 及视角因子预处理源码，核对发射率、开口、辐射热流符号及与热边界的配合。"
+      },
+      "research_topic_patterns": {
+        "openfoam_v2606_solid_source_contract": "体积(?:热源|发热)|fvOptions|semiImplicitSource|源项",
+        "openfoam_v2606_thermal_interface_contract": "接触热阻|薄层|directionalSolidThermo|各向异性|材料轴|界面热流",
+        "openfoam_v2606_fan_curve_contract": "风机|压流|fanMomentumSource|风量边界",
+        "openfoam_v2606_radiation_contract": "辐射|viewFactor|发射率"
+      }
+    }
+  },
+  {
+    "id": "internally_heated_solid_conduction",
+    "title": "内部发热的层状/各向异性固体导热",
+    "domain": "thermal",
+    "mechanisms": [
+      "solid_heat_conduction"
+    ],
+    "goals": [
+      "peak_temperature",
+      "probe_temperature",
+      "temperature_difference"
+    ],
+    "conditions": {},
+    "inputs": [
+      {
+        "key": "solid_heat_source",
+        "meaning": "给实际发热区域、净耗散热功率或体积热源、空间分布；功率已知时仅当需要非均匀电损耗分布才另求电场。"
+      },
+      {
+        "key": "solid_conduction_and_interfaces",
+        "meaning": "给实体层、粘接或接触面几何，材料主导热率、铺层与 CAD 轴的对应、胶层厚度与导热率或面接触热阻。"
+      },
+      {
+        "key": "solid_heat_sink_boundaries",
+        "meaning": "给各外表面的温度或已测膜系数和环境温度、连接件散热；若需辐射给发射率和环境/视角，未知边界不能假定绝热。若风道流场也未知则另建 CHT。"
+      }
+    ],
+    "goal_inputs": {
+      "peak_temperature": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ],
+      "probe_temperature": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ],
+      "temperature_difference": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "发热",
+          "内热源",
+          "体积热源",
+          "生热"
+        ],
+        [
+          "固体",
+          "导热",
+          "复材",
+          "层状"
+        ],
+        [
+          "温度",
+          "峰温",
+          "温差",
+          "测温"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "体积发热|发热|生热|热耗散",
+        "1": "导热|穿厚|面内|层状|接触热阻|胶层|材料轴",
+        "2": "温度|最高温|最热|温差|多少度"
+      },
+      "require_target_selection": true,
+      "goal_terms": {
+        "peak_temperature": [
+          "峰温",
+          "最高温",
+          "最热",
+          "热点",
+          "maximum temperature"
+        ],
+        "probe_temperature": [
+          "测点温度",
+          "热电偶",
+          "取样温度",
+          "探头温度"
+        ],
+        "temperature_difference": [
+          "温差",
+          "temperature difference"
+        ]
+      },
+      "goal_terminal_steps": {
+        "peak_temperature": "readback",
+        "probe_temperature": "readback",
+        "temperature_difference": "readback"
+      },
+      "capability_ids": [
+        "calculix.steady_solid_heat",
+        "calculix.orthotropic_volumetric_steady_heat",
+        "calculix.pressure_dependent_thermal_contact"
+      ],
+      "exclude_pattern": "风冷|风道|风机|强迫对流|进风|通风|送风|吹风|每摩尔|反应焓|(?:移动|线速)[^。；，]{0,20}(?:吸收|照射)",
+      "goal_patterns": {
+        "peak_temperature": "最热|什么(?:位置|部位)[^。；，]{0,6}(?:热|温)"
+      },
+      "research_scope_pattern": "(?i)(?=.*(?:核对|核查|查证|核实|verify|check))(?=.*(?:CalculiX|CrunchiX|官方|原厂))(?=.*(?:手册|源码|BF|ORTHO|ORIENTATION))",
+      "research_needs": {
+        "calculix_222_orthotropic_solid_heat_contract": "查 CalculiX 2.22 的 *DFLUX BF、*CONDUCTIVITY TYPE=ORTHO、*ORIENTATION、NT/RFL/HFL 的单位及组装，限定官方手册和同版源码。"
+      }
+    }
+  },
+  {
+    "id": "moving_solid_surface_heating",
+    "title": "移动固体通过表面加热区",
+    "domain": "thermal",
+    "mechanisms": [
+      "solid_heat_conduction"
+    ],
+    "goals": [
+      "probe_temperature",
+      "temperature_difference"
+    ],
+    "conditions": {},
+    "inputs": [
+      {
+        "key": "moving_solid_heat_properties",
+        "meaning": "给带材厚度、导热率、密度、比热、温度依赖及入口温度；有层状结构时给方向性导热与接触。"
+      },
+      {
+        "key": "surface_heating_history",
+        "meaning": "给实际吸收面、加热段和线速、吸收热流在材料坐标中随时间或位置的分布；已知净吸收值时无需另用吸收率反算入射热流。"
+      },
+      {
+        "key": "moving_solid_cooling_and_contact",
+        "meaning": "给两面散热条件和周围温度，及辊轮或支承接触的覆盖和热阻；若蒸发或涂覆实际存在，需另建相应机制。"
+      }
+    ],
+    "goal_inputs": {
+      "probe_temperature": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ],
+      "temperature_difference": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "线速",
+          "移动",
+          "连续通过",
+          "带材"
+        ],
+        [
+          "吸收热流",
+          "辐照",
+          "表面加热",
+          "灯架"
+        ],
+        [
+          "出口温度",
+          "背面温度",
+          "温度",
+          "多热"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "沿[^。；，]{0,5}(?:方向|走带)|一直[^。；，]{0,6}(?:走|运动)|线速度?|运行速度|连续输送",
+        "1": "吸收|加热区|照射|热通量|热流密度|照到",
+        "2": "温度|多热|温差|多少度"
+      },
+      "require_target_selection": true,
+      "goal_terms": {
+        "probe_temperature": [
+          "出口温度",
+          "背面温度",
+          "出口背温",
+          "离开时温度"
+        ],
+        "temperature_difference": [
+          "前后温差",
+          "厚向温差",
+          "温差"
+        ]
+      },
+      "goal_terminal_steps": {
+        "probe_temperature": "readback",
+        "temperature_difference": "readback"
+      },
+      "capability_ids": [
+        "calculix.transient_solid_heat",
+        "calculix.time_dependent_uniform_surface_heat_flux"
+      ],
+      "exclude_pattern": "(?:主要|同时|需要)(?:求|考虑)[^。；，,\\n]{0,8}(?:蒸发|干燥传质|溶剂)",
+      "goal_patterns": {
+        "probe_temperature": "(?:背面|出(?:口|区)|离开)[^。；，,\\n]{0,18}(?:多热|多少度|几度|温度)"
+      }
+    }
+  },
+  {
+    "id": "reacting_bed_thermal_transport",
+    "title": "反应床组分、放热与壁面冷却",
+    "domain": "thermal",
+    "mechanisms": [
+      "reactive_species_transport",
+      "solid_heat_conduction"
+    ],
+    "goals": [
+      "peak_temperature",
+      "probe_temperature",
+      "temperature_difference"
+    ],
+    "conditions": {},
+    "inputs": [
+      {
+        "key": "reacting_bed_rate_and_basis",
+        "meaning": "给化学计量、反应速率律（例如 Arrhenius 温度依赖）或独立量测的空间/时序反应速率、适用浓度范围和单位；明确按床体积、固体体积或催化剂质量的基准。"
+      },
+      {
+        "key": "reacting_bed_feed",
+        "meaning": "给入口组分、流量、温度与压力、出口压力，以及通流或停留时间；没有速度场时补多孔阻力及流动边界。"
+      },
+      {
+        "key": "reacting_bed_transport",
+        "meaning": "给床和管的几何、装填率/孔隙率、传质与有效热物性，确认可用局部热平衡或需分别求流体和颗粒温度。"
+      },
+      {
+        "key": "reacting_bed_jacket_wall",
+        "meaning": "给夹套流体的体温与流量/膜系数，管壁厚度和导热率、床侧对壁传热；夹套体温不能直接作为内壁固定温度。"
+      }
+    ],
+    "goal_inputs": {
+      "peak_temperature": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ],
+      "probe_temperature": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ],
+      "temperature_difference": [
+        {
+          "key": "thermal_observable",
+          "meaning": "给指定材料域/界面或探头侧别，约定点值/区域取值、绝对温度或温差的基准、采样时间及峰值位置口径。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "反应床",
+          "颗粒床",
+          "填料床",
+          "固定床",
+          "反应管"
+        ],
+        [
+          "反应热",
+          "放热",
+          "反应速率",
+          "反应焓"
+        ],
+        [
+          "温度",
+          "热点",
+          "峰温"
+        ]
+      ],
+      "pattern_groups": {
+        "0": "(?:多孔|颗粒|填料|催化)[^。；，,\\n]{0,8}(?:床|区|反应器)",
+        "1": "每摩尔[^。；，,\\n]{0,6}放热|放热|反应速率|反应焓",
+        "2": "温度|最高温|最热|温升|热斑|热点"
+      },
+      "require_target_selection": true,
+      "goal_terms": {
+        "peak_temperature": [
+          "峰温",
+          "最高温",
+          "最热",
+          "热点",
+          "maximum temperature"
+        ],
+        "probe_temperature": [
+          "测点温度",
+          "热电偶",
+          "取样温度",
+          "探头温度"
+        ],
+        "temperature_difference": [
+          "温差",
+          "temperature difference"
+        ]
+      },
+      "goal_terminal_steps": {
+        "peak_temperature": "readback",
+        "probe_temperature": "readback",
+        "temperature_difference": "readback"
+      },
+      "capability_ids": [
+        "openfoam_opencfd.reacting_species_heat_release",
+        "openfoam_opencfd.steady_incompressible_porous_pressure_loss"
+      ],
+      "goal_patterns": {
+        "peak_temperature": "最大温度|最热|热斑|热点"
+      }
+    }
+  },
+  {
+    "id": "steady_heated_internal_flow",
+    "domain": "thermal",
+    "title": "单相稳态受热内流及热/压测站回读",
+    "mechanisms": [
+      "forced_internal_flow",
+      "fluid_energy_transport"
+    ],
+    "goals": [
+      "bulk_temperature",
+      "wall_bulk_temperature_difference",
+      "internal_heat_transfer_coefficient",
+      "pressure_drop",
+      "reynolds_number",
+      "wall_temperature",
+      "external_probe_temperature",
+      "fluid_heat_duty"
+    ],
+    "conditions": {
+      "section_shape": [
+        "rectangular",
+        "circular"
+      ],
+      "wall_control": [
+        "prescribed_wall_temperature",
+        "prescribed_wall_heat_flux"
+      ],
+      "velocity_development": [
+        "developing",
+        "fully_developed"
+      ],
+      "thermal_development": [
+        "developing",
+        "fully_developed"
+      ],
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ],
+      "sampling": [
+        "wall_static_taps",
+        "mass_weighted_section",
+        "area_weighted_section",
+        "manifold_static_taps"
+      ],
+      "local_losses": [
+        "within_stations",
+        "exclude_from_report"
+      ],
+      "heated_wall_extent": [
+        "partial_perimeter",
+        "full_perimeter"
+      ],
+      "momentum_regime": [
+        "laminar_candidate"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "internal_flow_geometry",
+        "meaning": "给实际过流截面尺寸和形状、全部流体润湿壁及独立的受热面与起止位置。矩形需宽高比，圆管需内径；给变截面、粗糙度、弯头、收缩、扩张等实际构件。"
+      },
+      {
+        "key": "internal_flow_operating_point",
+        "meaning": "给断面平均速度、实际体积流量或质量流量及位置与温压参考，给入口温度、速度/湍流剖面和下游压力边界；中心或单点速度不能充当断面平均。"
+      },
+      {
+        "key": "internal_flow_fluid_properties",
+        "meaning": "给介质、温压范围及 ρ、μ、cp、k 的相应取值或物性曲线；核对压缩性、浮力、流态与温升。"
+      },
+      {
+        "key": "internal_flow_development_lengths",
+        "meaning": "分别给流动入口位置、加热起点、前段长度及目标测站；判断速度充分发展和热充分发展是两件事，不能从稳态自动推断。"
+      },
+      {
+        "key": "internal_flow_wall_values",
+        "meaning": "给每个壁面恒壁温或热流密度的实际量值和空间分布，明确正方向、非加热壁散热/绝热与是否有真实固体导热；同一壁面不能同时指定两项。"
+      }
+    ],
+    "goal_inputs": {
+      "bulk_temperature": [
+        {
+          "key": "bulk_temperature_stations",
+          "meaning": "给混合杯计算的准确截面、流向、回流处理与入口/出口温标；变物性优先用净焓流反解混合温度。"
+        }
+      ],
+      "wall_bulk_temperature_difference": [
+        {
+          "key": "wall_bulk_observation",
+          "meaning": "给同一轴向位置上的壁面侧、被加热边及壁温取法，和断面的质量或热容流加权混合杯温度；确认是局部、段平均还是壁－流体端差。"
+        }
+      ],
+      "internal_heat_transfer_coefficient": [
+        {
+          "key": "wall_bulk_observation",
+          "meaning": "给受热壁面取值、热流口径和对应截面的混合杯温度；定义局部 h/Nu 或按段总热与驱动温差工作值。"
+        }
+      ],
+      "pressure_drop": [
+        {
+          "key": "internal_flow_pressure_stations",
+          "meaning": "给两个取压孔或截面位置、标高及上游减下游方向；指定静压或全压及聚合方法，明确两站之间是否含入口、弯头、阀件或缩扩散。"
+        }
+      ],
+      "reynolds_number": [],
+      "wall_temperature": [
+        {
+          "key": "wall_bulk_observation",
+          "meaning": "给壁温所对应的轴向位置和内壁侧；区分内壁、实体外壁和外贴探头，局部壁温与同位混合杯温度须分开。"
+        }
+      ],
+      "external_probe_temperature": [
+        {
+          "key": "external_solid_probe_model",
+          "meaning": "给电热源面积和分配、实体基底厚度/导热率、与流体及外界散热边界、外贴探头坐标、粘接/接触热阻和安装条件；需要流固共轭或经标定的热阻。"
+        }
+      ],
+      "fluid_heat_duty": [
+        {
+          "key": "fluid_heat_duty_definition",
+          "meaning": "明确流体净吸热功率，与电输入、壁面总热量和散热分开；按相同流量与进出口混合焓作核对。"
+        }
+      ]
+    },
+    "intake": {
+      "all_of": [
+        [
+          "内流",
+          "管内",
+          "风道",
+          "管道",
+          "圆管",
+          "矩形管",
+          "流道",
+          "管路",
+          "通道",
+          "duct",
+          "internal flow",
+          "矩形槽",
+          "流槽"
+        ],
+        [
+          "壁温",
+          "壁面加热",
+          "恒热流",
+          "等热流",
+          "恒壁温",
+          "水力直径",
+          "受热周长",
+          "heated wall",
+          "单面供热",
+          "均匀供热"
+        ],
+        [
+          "努塞尔数",
+          "Nu",
+          "雷诺数",
+          "Re",
+          "混合杯",
+          "混合焓",
+          "温升",
+          "温差",
+          "换热系数",
+          "压降",
+          "压损",
+          "bulk temperature",
+          "出水升温",
+          "出口水温",
+          "内壁温度",
+          "探头温度",
+          "出口内壁温度",
+          "混合温度",
+          "实际吸热功率",
+          "吸热功率"
+        ]
+      ],
+      "include_pattern": "受热|加热|壁温|壁面[^。；，,\\n]{0,7}热流|恒热通量|恒热流|热入口段|heat(?:ed|ing)|wall (?:heat flux|temperature)|(?:薄膜电阻|电阻)[^。；，,\\n]{0,14}(?:贴|底面)|(?:底|侧|顶)(?:面|壁)[^。；，,\\n]{0,9}(?:贴|电热|热源)|均匀供热|(?:内表面|内壁)[^。；，,\\n]{0,12}(?:稳定|维持|保持|恒定)|实际吸热|夹套",
+      "pattern_groups": {
+        "0": "(?:管|风道|流道|通道)[^。；，,\\n]{0,10}(?:截面|内流|流过)|(?:矩形|圆形|正方形)[^。；，,\\n]{0,6}(?:风道|管|流道|通道)|(?:流经|流过)[^。；，,\\n]{0,6}(?:管|风道|流道|通道)",
+        "1": "(?:壁|周|沿程)[^。；，,\\n]{0,9}(?:热通量|发热|热流|供热|规定温度|定温|加热)|(?:侧|底|顶)[^。；，,\\n]{0,5}(?:加热|受热)|(?:热入口|热发展)|(?:薄膜电阻|电阻)[^。；，,\\n]{0,14}(?:贴|底面)|(?:内表面|内壁)[^。；，,\\n]{0,12}(?:稳定在|维持在|保持|恒定)|夹套[^。；，,\\n]{0,12}(?:恒温|壁温)",
+        "2": "出口[^。；，,\\n]{0,10}(?:温度|几度)|沿程[^。；，,\\n]{0,10}(?:温度|热流|压力)|壁[^。；，,\\n]{0,12}(?:温差|压差)|(?<![A-Za-z])(?:Nu|Re)(?:_?D[hH])?(?![A-Za-z])"
+      },
+      "exclude_pattern": "(?:沸腾|相变|两相流|凝结|蒸发|化学反应|放热反应|(?:瞬态|非稳态)[^。；，,\\n]{0,12}(?:求解|模拟|传热)|(?:发热体|实体|固体)[^。；，,\\n]{0,14}(?:内部发热|体积热源))",
+      "require_target_selection": true,
+      "goal_terminal_steps": {
+        "bulk_temperature": "bulk_readback",
+        "wall_bulk_temperature_difference": "wall_readback",
+        "internal_heat_transfer_coefficient": "wall_readback",
+        "pressure_drop": "pressure_readback",
+        "reynolds_number": "flow",
+        "wall_temperature": "wall_readback",
+        "external_probe_temperature": "external_probe_readback",
+        "fluid_heat_duty": "energy"
+      },
+      "goal_terms": {
+        "bulk_temperature": [
+          "混合杯温度",
+          "混合焓",
+          "混合平均温度",
+          "混合温度",
+          "主流温度",
+          "bulk temperature",
+          "出口平均温度",
+          "沿程温升",
+          "出口温升",
+          "出水升温",
+          "出口混合水温",
+          "出口水温",
+          "混合温度"
+        ],
+        "wall_bulk_temperature_difference": [
+          "壁温与流体温差",
+          "壁－流温差",
+          "壁流温差",
+          "壁温减体温",
+          "wall to bulk temperature difference",
+          "壁面温差",
+          "壁温差"
+        ],
+        "internal_heat_transfer_coefficient": [
+          "换热系数",
+          "努塞尔数",
+          "Nu",
+          "heat transfer coefficient",
+          "Nusselt"
+        ],
+        "pressure_drop": [
+          "压降",
+          "压损",
+          "压差",
+          "压力损失",
+          "局部损失",
+          "压力差",
+          "pressure drop",
+          "pressure loss"
+        ],
+        "reynolds_number": [
+          "雷诺数",
+          "Re",
+          "Reynolds number"
+        ],
+        "wall_temperature": [
+          "出口内壁温度",
+          "内壁温度",
+          "内壁温",
+          "管壁有多热"
+        ],
+        "external_probe_temperature": [
+          "外贴探头温度",
+          "外贴温度探头"
+        ],
+        "fluid_heat_duty": [
+          "吸热功率",
+          "流体净吸热",
+          "fluid heat duty"
+        ]
+      },
+      "goal_patterns": {
+        "bulk_temperature": "(?:混合杯|混合平均|质量(?:流量)?加权)[^。；，,\\n]{0,14}(?:温度|温升|热到几度)|出口[^。；，,\\n]{0,8}(?:温升|热到几度)|\\bT_?b\\b",
+        "wall_bulk_temperature_difference": "(?:壁面|壁温|管壁)[^。；，,\\n]{0,14}(?:与|比|减)[^。；，,\\n]{0,14}(?:流体|主流|混合杯|断面)[^。；，,\\n]{0,10}(?:温差|几度|多少)|\\bT_?w\\s*[-−]\\s*T_?b\\b",
+        "internal_heat_transfer_coefficient": "(?<![A-Za-z])Nu(?:_?D[hH])?(?![A-Za-z])",
+        "reynolds_number": "(?<![A-Za-z])Re(?:_?D[hH])?(?![A-Za-z])",
+        "external_probe_temperature": "(?:外侧|外面|外壁|外表面)[^。；，,\\n]{0,14}(?:探头|热电偶|测温探针)"
+      },
+      "capability_ids": [
+        "openfoam_opencfd.steady_compressible_buoyant_heat_transfer",
+        "openfoam_opencfd.steady_boussinesq_convection",
+        "openfoam_opencfd.wall_heat_flux_readback",
+        "openfoam_opencfd.mass_weighted_thermal_readback",
+        "elmer.navier_stokes",
+        "elmer.heat_conduction",
+        "elmer.scalar_result_diagnostics",
+        "openfoam_opencfd.steady_cht",
+        "elmer.conjugate_heat_transfer"
+      ],
+      "solver_role": "fluid_thermal",
+      "condition_evidence": {
+        "section_shape": {
+          "rectangular": [
+            "矩形管",
+            "矩形截面",
+            "方管",
+            "正方形截面",
+            "rectangular duct",
+            "矩形槽"
+          ],
+          "circular": [
+            "圆管",
+            "圆形截面",
+            "circular tube"
+          ]
+        },
+        "wall_control": {
+          "prescribed_wall_temperature": [
+            "恒壁温",
+            "等壁温",
+            "定壁温",
+            "恒定壁温",
+            "constant wall temperature"
+          ],
+          "prescribed_wall_heat_flux": [
+            "恒热流",
+            "恒热通量",
+            "等热流",
+            "定热流",
+            "均匀热流",
+            "constant wall heat flux"
+          ]
+        },
+        "velocity_development": {
+          "developing": [
+            "速度入口段",
+            "水力入口段",
+            "速度发展段",
+            "hydrodynamically developing"
+          ],
+          "fully_developed": [
+            "速度充分发展",
+            "水力充分发展",
+            "hydrodynamically developed"
+          ]
+        },
+        "thermal_development": {
+          "developing": [
+            "热入口段",
+            "热发展段",
+            "thermally developing"
+          ],
+          "fully_developed": [
+            "热充分发展",
+            "热场充分发展",
+            "thermally developed"
+          ]
+        },
+        "pressure_definition": {
+          "static_difference": [
+            "静压差",
+            "静压降",
+            "壁面静压孔",
+            "侧壁取压孔"
+          ],
+          "total_loss": [
+            "总压损失",
+            "全压损失",
+            "总压差",
+            "全压差"
+          ]
+        },
+        "sampling": {
+          "wall_static_taps": [
+            "取压孔",
+            "取压嘴",
+            "壁面静压孔",
+            "侧壁静压孔",
+            "齐平静压孔"
+          ],
+          "mass_weighted_section": [
+            "质量流量加权",
+            "质量加权"
+          ],
+          "area_weighted_section": [
+            "截面面积平均",
+            "断面面积平均"
+          ],
+          "manifold_static_taps": [
+            "集流腔取压",
+            "集流腔压力表",
+            "两腔压力表"
+          ]
+        },
+        "local_losses": {
+          "within_stations": [
+            "包含弯头",
+            "包括入口损失",
+            "含局部损失"
+          ],
+          "exclude_from_report": [
+            "不计局部损失",
+            "扣除局部损失"
+          ]
+        },
+        "heated_wall_extent": {
+          "partial_perimeter": [
+            "单侧加热",
+            "单面加热",
+            "一侧加热",
+            "底面加热",
+            "顶面加热",
+            "两侧加热",
+            "槽底这一面",
+            "只加热底面",
+            "仅底面受热"
+          ],
+          "full_perimeter": [
+            "四壁加热",
+            "四面加热",
+            "周向加热",
+            "全周加热",
+            "整周加热",
+            "整圈均匀供热",
+            "整圈受热",
+            "沿整圈",
+            "全周内壁",
+            "全圆周"
+          ]
+        },
+        "momentum_regime": {}
+      },
+      "condition_patterns": {
+        "wall_control": {
+          "prescribed_wall_temperature": "(?:壁面|管壁|壁温)[^。；，,\\n]{0,10}(?:设为|固定在|保持|维持|规定温度)|(?:内表面|内壁)[^。；，,\\n]{0,10}(?:设为|固定在|稳定在|保持|维持)",
+          "prescribed_wall_heat_flux": "(?:壁|表面)[^。；，,\\n]{0,8}(?:均匀|恒定|给定)[^。；，,\\n]{0,5}(?:热通量|热流)|(?:热流密度|热通量)[^。；，,\\n]{0,5}(?:不变|恒定|均匀)|(?:轴向|沿程|环向|整圈|全周)[^。；，,\\n]{0,8}(?:均匀供热|均匀加热)"
+        },
+        "section_shape": {
+          "rectangular": "矩形[^。；，,\\n]{0,8}(?:风道|管|通道|流道)"
+        },
+        "sampling": {
+          "manifold_static_taps": "(?:集流腔|回收腔|汇流腔|两(?:个)?腔)[^。；，,\\n]{0,15}(?:压力表|取压孔|静压孔)|(?:压力表|取压孔|静压孔)[^。；，,\\n]{0,14}(?:集流腔|回收腔|汇流腔|两(?:个)?腔)"
+        }
+      },
+      "condition_questions": {
+        "wall_control": {
+          "key": "internal_flow_wall_control",
+          "meaning": "分别确认各壁面是恒温、恒热流、绝热还是实际流固耦合；给 Tw 或 q'' 的数值/分布，避免把两种热边界同时硬施到同一壁面。"
+        }
+      },
+      "condition_input_refinements": {
+        "heated_wall_extent": {
+          "partial_perimeter": {
+            "internal_flow_geometry": "部分周长受热：确认实际加热边及未加热壁条件。水力直径使用全部湿周，热功率只积分受热边；提供尺寸、宽高比及受热段。"
+          }
+        }
+      },
+      "goal_aliases": {
+        "nusselt_number": "internal_heat_transfer_coefficient",
+        "mixed_cup_temperature": "bulk_temperature"
+      },
+      "research_scope_pattern": "(?i)(?=.*(?:核查|查证|核实|核对|查阅|verify|check))(?=.*(?:原厂|官方|OpenFOAM|Elmer|同版本))(?=.*(?:手册|源码|实现|接口|资料))",
+      "research_needs": {
+        "heated_internal_flow_energy_and_mixed_temperature": "仅查所选版本的官方求解器手册和源码：恒壁温/给定热流、速度与温度耦合，以及质量通量加权的温度或焓读回；核对面面积和回流。",
+        "heated_internal_flow_pressure_station_readback": "仅查所选版本的公开压力字段、压力基准、高度修正和截面积聚合实现；区分壁面取压孔与截面静压/全压读取。"
+      },
+      "research_topic_patterns": {
+        "heated_internal_flow_energy_and_mixed_temperature": "恒壁温|恒热流|混合杯|焓流|热流|受热边界",
+        "heated_internal_flow_pressure_station_readback": "测压|取压|静压|全压|压降"
+      }
+    }
+  },
+  {
+    "id": "steady_fixed_temperature_solid_conduction",
+    "title": "无内热源稳态固体定温导热",
+    "domain": "thermal",
+    "mechanisms": [
+      "solid_heat_conduction"
+    ],
+    "goals": [
+      "heat_transfer_rate",
+      "solid_temperature"
+    ],
+    "conditions": {},
+    "inputs": [
+      {
+        "key": "solid_geometry_and_conductivity",
+        "meaning": "给固体尺寸、材料导热系数及其方向或温度依赖。"
+      },
+      {
+        "key": "solid_thermal_boundaries",
+        "meaning": "给热冷面及空间分布、其余各面绝热或实际边界、接触与热源；实际边缘需要环境对流、辐射及夹持信息。"
+      }
+    ],
+    "goal_inputs": {},
+    "intake": {
+      "all_of": [
+        [
+          "固体",
+          "铝板",
+          "板材",
+          "导热"
+        ],
+        [
+          "温度",
+          "℃",
+          "摄氏度",
+          "定温"
+        ],
+        [
+          "热流",
+          "温度分布",
+          "截面温度"
+        ]
+      ],
+      "include_pattern": "绝热|定温|恒温|保持在|保持.*摄氏度",
+      "exclude_pattern": "电池|流道|风道|流体|熔化|相变|瞬态|非稳态|体积发热|内热源为正",
+      "goal_terms": {
+        "heat_transfer_rate": [
+          "总热流",
+          "热流率",
+          "热功率"
+        ],
+        "solid_temperature": [
+          "中间截面",
+          "温度分布",
+          "中面温度"
+        ]
+      },
+      "goal_terminal_steps": {
+        "heat_transfer_rate": "readback",
+        "solid_temperature": "readback"
+      },
+      "capability_ids": [
+        "calculix.steady_solid_heat"
+      ],
+      "require_target_selection": true
+    }
+  },
+  {
+    "id": "steady_extended_surface_conduction",
+    "domain": "thermal",
+    "title": "稳态翅片与扩展表面导热散热",
+    "mechanisms": [
+      "solid_heat_conduction"
+    ],
+    "goals": [
+      "solid_temperature",
+      "heat_transfer_rate"
+    ],
+    "conditions": {
+      "tip_boundary": [
+        "adiabatic",
+        "unknown"
+      ],
+      "side_exchange": [
+        "combined",
+        "convection",
+        "unknown"
+      ],
+      "radiation": [
+        "included",
+        "unknown"
+      ],
+      "base_boundary": [
+        "temperature",
+        "heat_flux",
+        "unknown"
+      ]
+    },
+    "inputs": [
+      {
+        "key": "fin_geometry_material",
+        "meaning": "给翅片或棒的实际截面、长度、材料导热率和方向；指定一维近似或三维网格。"
+      },
+      {
+        "key": "fin_thermal_boundaries",
+        "meaning": "给基端温度或热流、侧面膜系数及参考温度、端部绝热/对流/定温；系数若含辐射不得重复添加辐射。"
+      },
+      {
+        "key": "fin_observables",
+        "meaning": "给温度的测点位置、材料侧和单位；总热量的边界、法向及热流正号。"
+      }
+    ],
+    "goal_inputs": {},
+    "intake": {
+      "all_of": [
+        [
+          "翅片",
+          "散热片",
+          "扩展表面",
+          "fin"
+        ],
+        [
+          "导热",
+          "散热",
+          "温度",
+          "换热"
+        ],
+        [
+          "温度",
+          "热流",
+          "热量",
+          "功率"
+        ]
+      ],
+      "exclude_pattern": "熔化|沸腾|化学反应|瞬态|非稳态|流道|管内(?:流|换热)|流体流经|双面(?:板|定温)|(?:不是|并非|非)\\s*(?:翅片|散热片|扩展表面)|(?:不是|并非|非)\\s*细长",
+      "goal_terms": {
+        "solid_temperature": [
+          "温度",
+          "温度分布",
+          "测点"
+        ],
+        "heat_transfer_rate": [
+          "热流",
+          "散热量",
+          "散热功率",
+          "热量"
+        ]
+      },
+      "goal_terminal_steps": {
+        "solid_temperature": "readback",
+        "heat_transfer_rate": "readback"
+      },
+      "capability_ids": [
+        "calculix.steady_solid_heat"
+      ],
+      "require_target_selection": true,
+      "pattern_groups": {
+        "0": "(?:细长|长径比大|细杆|细棒)[^。；，,\\n]{0,16}(?:金属|铝|铜|钢|固体|棒|杆|柱|针)|(?:金属|铝|铜|钢|固体)[^。；，,\\n]{0,12}(?:细杆|细棒|细长)"
+      },
+      "condition_evidence": {
+        "tip_boundary": {},
+        "side_exchange": {},
+        "radiation": {},
+        "base_boundary": {}
+      },
+      "goal_patterns": {
+        "solid_temperature": "沿(?:着)?(?:长度|轴向|杆长)[^。；，,\\n]{0,8}温度|沿程温度",
+        "heat_transfer_rate": "(?:根部|基部|底部|根端)[^。；，,\\n]{0,14}(?:热量|热流|功率)"
+      }
+    }
+  }
+]

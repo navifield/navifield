@@ -1,0 +1,14 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["radiation"],
+  "goals": ["radiative_flux"],
+  "conditions": {
+    "geometry": "enclosure",
+    "motion": "none",
+    "radiation": "participating_medium",
+    "optical": "thin",
+    "time": "steady"
+  },
+  "known_inputs": ["absorption_coefficient", "emissivity", "wall_temperature", "medium_temperature", "angular_resolution"],
+  "description": "Estimate the net radiative heat flux at the refractory walls of a closed chamber filled with a hot absorbing and emitting gas. The gas is optically thin for the characteristic path through the chamber. The measured wall temperatures, gas temperature field, gas absorption data, wall emissivities and planned angular resolution are available."
+}

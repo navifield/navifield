@@ -1,0 +1,217 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "chains": [
+    {
+      "id": "independent_vacuum_feet",
+      "status": "custom",
+      "scope": "固定支撑组合、指定壁材/姿态/负载的独立抽气足。v2606 解流动和面积分；接触、电耗与转速可行集需外部模型和实测。",
+      "steps": [
+        {
+          "id": "leak_pump",
+          "operation": "逐脚匹配泄漏与抽气工况",
+          "equation": "稳态 ṁ漏入=ṁ抽出。漏隙接大气，泵/叶轮从腔内排出；大气侧边界和排气背压分别给定。压差定义 Δp=p_amb−p_cup；用解析叶轮 MRF 或逐脚实测泵曲线与漏隙曲线交点。 第 i 足独立计量 ṁ_i [kg/s]：漏隙面求外法向代数和后变号，排气面求外法向代数和；只在汇报总量时求和。",
+          "receives": [
+            "开度/壁材",
+            "环境与排气绝压",
+            "转速/泵曲线",
+            "气体物性"
+          ],
+          "produces": [
+            "各脚腔压 [Pa 绝压]、净漏入 [kg/s]、相应抽气状态"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flow",
+            "mrf",
+            "flux",
+            "cup"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "aero",
+          "operation": "分开读回吸附力、机体气动载荷与叶轮轴矩",
+          "equation": "在闭合气动力账本中取真实机器人湿表面并补外侧压力；等效平面只作替代，F_s=∫(p_amb−p_cup)dA_proj，吸附方向为壁外法线的反向。叶轮单独积分关于轴心的流体力矩 T_air。",
+          "receives": [
+            "腔内外压力场",
+            "湿表面和有效投影",
+            "壁法向与参考点",
+            "同一试块与同一压力取样位置、力及力矩参考点"
+          ],
+          "produces": [
+            "逐脚吸附力 [N]、气动力/力矩 [N, N·m]、叶轮反扭矩 [N·m]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "forces",
+            "cup"
+          ],
+          "depends_on": [
+            "leak_pump"
+          ]
+        },
+        {
+          "id": "hold",
+          "operation": "按贴壁受力平衡筛除滑移、离壁和翻转工况",
+          "equation": "静态 ΣF=0、ΣM_O=0；每足接触反力 N_i≥0，|f_t,i|≤μ_i N_i，接触合力位置及力矩需满足接触斑/剥离限值。用相容约束求可行反力分配；刚体平衡可有多解，唯一分配需变形/控制闭合。 若边缘开缝，按实测间隙–接触载荷/翘边关系更新 h_i 并回算漏率、腔压和接触，直到一致；无法闭合或已脱附单列。",
+          "receives": [
+            "机器人气动力与力矩",
+            "重力和载荷",
+            "着壁足位",
+            "接触斑",
+            "摩擦/剥离数据"
+          ],
+          "produces": [
+            "候选姿态的静态平衡可行性与各足约束余量"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "cup",
+            "robot"
+          ],
+          "depends_on": [
+            "aero"
+          ]
+        },
+        {
+          "id": "electrical",
+          "operation": "汇总可保持姿态的电输入范围",
+          "equation": "解析叶轮时 P_shaft=−T_air·ω，ω=2πn/60；给轴功加实测非气动负载后按已标定电驱效率换算，或实测 P_DC=⟨VI⟩。按各足启停与监测期加总泵、关节保持及辅助电耗；给可行工况范围 [W]，时段积分另为 [J]。",
+          "receives": [
+            "满足接触约束的工况",
+            "逐脚泵运行点/轴矩与效率或 V/I 数据",
+            "占空比与辅助负载"
+          ],
+          "produces": [
+            "吸附子系统及整机母线电输入范围 [W]",
+            "各独立转速组合对应的平均/峰值母线分项功率 [W]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "cup",
+            "robot"
+          ],
+          "depends_on": [
+            "leak_pump",
+            "aero",
+            "hold"
+          ]
+        },
+        {
+          "id": "envelope",
+          "operation": "返回满足防滑、防翘和电池限功率的转速可行集",
+          "equation": "对每个载荷、姿态、壁材和要求的异常工况 c，保留满足规定防滑/防翘余量、单侧接触及电池平均/峰值限功率（含储备）的转速向量 n∈S_c [rpm]。统一转速策略报告一维区间或离散点，逐脚独立调速报告联合可行组合，禁止把各轴投影的任意组合视为可行。仅在同一转速设定必须覆盖全部指定工况时另报 ∩_c S_c；完整且通过验证的搜索域可报告空集，缺数据时报告未定。",
+          "receives": [
+            "逐脚转速扫描范围、步长、同时调速或单脚增速策略及起始/零速基准 [rpm]",
+            "各工况接触余量 [N、N·m 或安全系数] 与功率 [W]",
+            "最低防滑/防翻防翘裕度、电池功率上限/储备、评估窗口和是否要求跨工况交集"
+          ],
+          "produces": [
+            "逐工况转速可行集 [rpm]，注明覆盖域、离散分辨率和边界，允许空集",
+            "按需给同一控制设定下跨工况交集 [rpm]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "cup",
+            "robot"
+          ],
+          "depends_on": [
+            "hold",
+            "electrical"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "漏隙与泵匹配",
+          "relation": "均匀小薄环缝可用 Q=πh³Δp/[6μ ln(r_o/r_i)]，SI 输出 m³/s；高压差或裂缝按可压 CFD 或实测漏率。 若翘边扩大漏隙，采用相同预压、材料下实测 h_i(接触状态) 或漏率关系回算，保留逐足气压和载荷反馈。",
+          "applicability": "低速、连续、黏性、近不可压且小间隙；密封压缩显著需换用随载荷的实测关系。",
+          "implementation": "custom",
+          "evidence": [
+            "flow",
+            "cup"
+          ]
+        },
+        {
+          "name": "压缩接触与摩擦",
+          "relation": "吸力与压缩接触反力各自入账，以有效接触斑和剥离阈值限制偏载。",
+          "applicability": "准静态贴壁固定支撑组合；脱离、自由飞行、动态稳定性和柔性裙边运动需额外模型。",
+          "implementation": "custom",
+          "evidence": [
+            "cup",
+            "robot"
+          ]
+        },
+        {
+          "name": "电机与闭环",
+          "relation": "在实测运行点插值电输入，或对负载扭矩、非气动阻力和驱动效率建模。",
+          "applicability": "压差乘流量用于流体侧近似，额定功率、单点空气功率和扣除空载后的试台功耗均不能直接当整机输入。",
+          "implementation": "external",
+          "evidence": [
+            "cup",
+            "robot"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "配网格和边界并读取逐脚通量与湿壁力；泵曲线与漏隙迭代、吸附投影、接触可行性及电耗范围需自行实现与实验标定。",
+        "对相同试块固定压力测点、抽气流量基准及受力原点；沿逐脚独立调速和共同转速两种约定中客户实际采用的一种扫描，保留原始工况样本和可行集。"
+      ],
+      "checks": [
+        "核查逐脚质量闭合和压差/力/轴矩符号；用均匀压差平板核对 F_s=ΔpA，改变参考点核对矩平移。",
+        "用不同壁材、已知偏心载荷与低摩擦/单脚泄压工况验证滑移和翻转分支。",
+        "漏隙标定与验证用不同工况。改变间隙、转速和姿态，分别对比压力、力和同步电压/电流。",
+        "增速和零速用独立测速、压力和电流通道校零；在同一试块同测点，对未参与标定的独立转速组合逐脚回读流量、压力和脱附/电流，并复核扫描边界。无证据时保留离散点，避免插值跨过不可行区。",
+        "同墙面、同密封预压、同实际转速同步记录腔内绝压和环境绝压、法向测力与电功率；重复测量报告离散性、偏差及独立转速下的预测误差。",
+        "续航核对电池母线总功率 ⟨VI⟩，另列传感器位置、辅助负载和空载电流；论文 V(I−I₀) 仅对齐扣空载后的台架读数。",
+        "首轮限定已测壁面上的稳态驻留；跨缝、湿面、步态换脚、突然掉电须另验。单侧裙边开缝若引发新增漏路，回传实际间隙并迭代腔压或标记失效。"
+      ],
+      "sources": [
+        {
+          "id": "flow",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/rhoSimpleFoam.C",
+          "locator": "Description、createFields、SIMPLE loop",
+          "claim": "稳态可压流体求解。"
+        },
+        {
+          "id": "mrf",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/UEqn.H",
+          "locator": "MRF.correctBoundaryVelocity、MRF.DDt",
+          "claim": "动量方程含多旋转参考系项。"
+        },
+        {
+          "id": "flux",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.H",
+          "locator": "patch / sum / areaAverage",
+          "claim": "可对面通量求代数和、对压力做测站平均。"
+        },
+        {
+          "id": "forces",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/forces/forces/forces.C",
+          "locator": "calcForcesMoments、pRef、sumPatchForces",
+          "claim": "按湿表面及指定参考点积分压力和黏性力与力矩。"
+        },
+        {
+          "id": "cup",
+          "kind": "physics_reference",
+          "url": "https://doi.org/10.3390/s21041117",
+          "locator": "§3.3、§4.1、§5.2；表 7–9、图 9–10",
+          "claim": "独立离心叶轮吸盘原型，标定等效漏隙并对比其他转速的真空及功耗；试验功率按 V(I−I₀) 定义。"
+        },
+        {
+          "id": "robot",
+          "kind": "physics_reference",
+          "url": "https://doi.org/10.1177/17298806221123416",
+          "locator": "Adhesion system；Experimental results 表 2",
+          "claim": "单模块自重脱附边界，在不同壁材和倾角试验。表 2 列电流、相对大气压的真空幅值、节流百分比和续航；90° 四种壁材为 3.08–3.44 A、4078–4250 Pa。"
+        }
+      ]
+    }
+  ]
+}

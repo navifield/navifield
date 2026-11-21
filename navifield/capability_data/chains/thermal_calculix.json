@@ -1,0 +1,373 @@
+{
+  "solver": "calculix",
+  "version": "2.22",
+  "chains": [
+    {
+      "id": "internally_heated_solid_conduction",
+      "scope": "CalculiX 2.22 稳态导热选型候选，适合净固体发热已知而边界需要独立辨识。薄层降阶须守恒，并检查与峰值量的相容性。",
+      "status": "custom",
+      "steps": [
+        {
+          "id": "solid_source",
+          "operation": "在实际发热体上定义净热源",
+          "equation": "P=∫q'''dV；均匀薄层 q'''=P/(Aδ)，如降阶以 P/A 作为一次等效面输入，避免给两侧各施加一次总热。",
+          "receives": [
+            "发热功率或热源分布、热源体积和单位"
+          ],
+          "produces": [
+            "限定区域的体积热源或单次等效面热源"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "heat_cards",
+            "heat_assembly"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "conduction",
+          "operation": "解方向相关导热和固体接触",
+          "equation": "−∇·(K∇T)=q'''。旋转材料主轴 K=R diag(k₁,k₂,k₃) Rᵀ；有限界面热阻的温降 q_n R''，外部冷却依真实边界。",
+          "receives": [
+            "固体材料与方向、接口、双侧冷却和热源"
+          ],
+          "produces": [
+            "固体温度与界面热流"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "heat_cards"
+          ],
+          "depends_on": [
+            "solid_source"
+          ]
+        },
+        {
+          "id": "readback",
+          "operation": "读取固体温度和指定热量",
+          "equation": "指定温度取值的区域、侧别、基准和时间；峰值报告位置，固定温面用热反力并核对总功率。",
+          "receives": [
+            "材料/接触域、测点定义"
+          ],
+          "produces": [
+            "温度、峰温位置或温差"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "heat_cards"
+          ],
+          "depends_on": [
+            "conduction"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "热边界可辨识性",
+          "relation": "已知内热源仍需至少一个有效散热路径和相应温度或传热条件；无散热闭合不能确定稳态温度。",
+          "applicability": "通风需要独立风道边界或多区域解。",
+          "implementation": "custom",
+          "evidence": [
+            "heat_cards"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "按实际工况建立区域、系数、边界、守恒验证和观测回读。"
+      ],
+      "checks": [
+        "核对正确发热域的积分功率、材料轴、固固热流守恒、外边界的散热功率及目标温度对网格的敏感性。",
+        "RFL 阶段需扣除固定节点分摊的直接体积热源再按外向热量汇总。直接低阶 HFL 面迹积分偏低：厚板粗/细每面 7/7.5 W 对 8 W，旋转粗/细每面 0.0435/0.04725 W 对 0.051 W。均是固定温面的稳态子问题，未验证界面热阻、膜系数、辐射、风道或 Wang 全包。"
+      ],
+      "sources": [
+        {
+          "id": "heat_cards",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§6.9.8 Heat transfer; *DFLUX, *CONDUCTIVITY, *ORIENTATION; thermal output NT, RFL, HFL",
+          "claim": "定义稳态/瞬态导热、分布体积发热、方向性材料与热读回；有限接触、外部换热及辐射需另给数据。",
+          "kind": "version_manual"
+        },
+        {
+          "id": "heat_assembly",
+          "url": "https://www.dhondt.de/ccx_2.22.src.tar.bz2",
+          "locator": "e_c3d_rhs.f; materialdata_cond.f",
+          "claim": "体积发热按体积分配，导热张量使用材料方向；核验积分功率并读回热通量。",
+          "kind": "version_source"
+        }
+      ],
+      "benchmarks": [
+        {
+          "id": "ccx_222_orthotropic_volumetric_steady_slab",
+          "kind": "native_numerical_control",
+          "title": "CalculiX 2.22 正交导热与均匀体积热源解析子问题",
+          "source_url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "source_locator": "*HEAT TRANSFER / *DFLUX BF / *CONDUCTIVITY TYPE=ORTHO / *ORIENTATION",
+          "native_status": "PASS_NUMERICAL_CONTROL_ONLY",
+          "source_commit": "89017b2c521e122b2387e12853bf31eaefba9401",
+          "scope": "CalculiX 2.22 原生 DC3D8 两级网格，6 项解析子问题：BF 输入 W/m³、正交材料主值与旋转轴、固定温面、其余绝热、NT/RFL/HFL。厚向 k=2/8 W/(m·K) 时峰温 305/301.25 K，两面各 8 W；旋转 45° 的制造解 301 K，指定点全局 HFL=(425,175) W/m²，修正 RFL 汇总 0.204 W。",
+          "limitations": "RFL 阶段需扣除固定节点分摊的直接体积热源再按外向热量汇总。直接低阶 HFL 面迹积分偏低：厚板粗/细每面 7/7.5 W 对 8 W，旋转粗/细每面 0.0435/0.04725 W 对 0.051 W。均是固定温面的稳态子问题，未验证界面热阻、膜系数、辐射、风道或 Wang 全包。",
+          "numerical_review_sha256": "e91f1c859a3013b16fe6f57657316d82dd8fbf0368ba8251b51d7d7ce4e53335",
+          "face_review_sha256": "a9a276776b0bc60f49f63c08bb8338b5ebdf179de5584423a5891ab122e290d7",
+          "station_receipt_sha256": "650ef40fa31b2fcdb075a874a71fb6f7d894ef2f9525baff83d856a8b7aaa3cf",
+          "runs": [
+            {
+              "case": "through-low-8",
+              "deck_sha256": "c5729557137e4a25b7bdb79080496def1997b5efa172464b45f04906efcbecaf",
+              "native_dat_sha256": "359a8e67bf17dfd99640ff421d2a605634097cc9825e220f3cc3ee87249e6894",
+              "mesh_shape": [
+                2,
+                2,
+                8
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "face_0_8W": true,
+                "face_1_8W": true
+              }
+            },
+            {
+              "case": "through-low-16",
+              "deck_sha256": "89c02716789089f331223959242a559e35b1db6759d948b094411dbc9264e5c2",
+              "native_dat_sha256": "5335025d766fb03c5e96850a62bf646dbb0b57f49f9f7941e4695450bad57e8d",
+              "mesh_shape": [
+                2,
+                2,
+                16
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "face_0_8W": true,
+                "face_1_8W": true
+              }
+            },
+            {
+              "case": "through-high-8",
+              "deck_sha256": "bcae7e530183f9f97ebcaaf0e19692a5426640dc2dede9f09e795474db3bd426",
+              "native_dat_sha256": "0c681507dd109480d98affa8594912445d3baf54d14d3a92467c45a652727b1f",
+              "mesh_shape": [
+                2,
+                2,
+                8
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "face_0_8W": true,
+                "face_1_8W": true
+              }
+            },
+            {
+              "case": "through-high-16",
+              "deck_sha256": "22e6651d90852b17b612b78fc0755bd859ddbae14769dadf32284cff2d0526b0",
+              "native_dat_sha256": "86cacffdc1e00de2f0c79f4ee88360cf76f021e5b0d3ba7c832cd180237d88f0",
+              "mesh_shape": [
+                2,
+                2,
+                16
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "face_0_8W": true,
+                "face_1_8W": true
+              }
+            },
+            {
+              "case": "diagonal-8",
+              "deck_sha256": "3b3ed159d1c393447f4e0a8f5751feb77fc3c666b70db32cbc817ff25f88b9b7",
+              "native_dat_sha256": "e8d6de21c9ad543671ea01e04bdfb34a90a03d244096c3904c1b2703b15928e2",
+              "mesh_shape": [
+                8,
+                8,
+                2
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "two_global_flux_components": true
+              }
+            },
+            {
+              "case": "diagonal-16",
+              "deck_sha256": "595859b2c09fd26b889328df042063b5d75c30e866263c9ceb286c0be6be9994",
+              "native_dat_sha256": "0a21acd389f9d2b5a27a8ad1350be25335f48e4d2f8d9574c5bddc05d9948051",
+              "mesh_shape": [
+                16,
+                16,
+                2
+              ],
+              "numeric_gates": {
+                "max_temperature_all_nodes": true,
+                "net_heat_balance": true,
+                "fixed_nodes_RFL_sum_vs_CCX_printed_total": true,
+                "two_global_flux_components": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moving_solid_surface_heating",
+      "scope": "CalculiX 2.22 材料坐标下的过段瞬态导热。恒速、固定加热区可用材料随动时间；如需设备全场和非均匀进料则另设欧拉对流或随动模型。",
+      "status": "custom",
+      "steps": [
+        {
+          "id": "exposure",
+          "operation": "转换加热区为材料曝光时序",
+          "equation": "恒速通过 τ=L/U；吸收面热通量 q'' 对应 D=∫q''dt。若均匀，D=q''τ；只有已知吸收深度和分布才能改作内部体积源项。",
+          "receives": [
+            "加热段长度、线速、吸收面与吸收热流分布"
+          ],
+          "produces": [
+            "曝光时间、表面施加时序与剂量"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flux_cards"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "transient_solid",
+          "operation": "解材料坐标下厚向瞬态",
+          "equation": "ρcp∂T/∂t=∇·(K∇T)，按位置转时间施加正面热流和两面冷却。仅当厚向热扩散及换热尺度支持时可用集中模型。",
+          "receives": [
+            "时间热边界、入口温度、厚度和热物性"
+          ],
+          "produces": [
+            "厚向温度随时间分布"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flux_cards"
+          ],
+          "depends_on": [
+            "exposure"
+          ]
+        },
+        {
+          "id": "readback",
+          "operation": "读取离开热区的背面温度",
+          "equation": "取材料时间 τ 对应的出口，背表面 T(z=h,τ)，可同时计算相同时间前后面温差。",
+          "receives": [
+            "背面与出口时刻、取样定义"
+          ],
+          "produces": [
+            "出口背温或指定温差"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flux_cards"
+          ],
+          "depends_on": [
+            "transient_solid"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "吸收量与湿态边界",
+          "relation": "给定净吸收通量时不反推光学吸收率；只有实际存在液体或相变化才需汽化或组分传输。",
+          "applicability": "适用干燥固体的已知表面热源。",
+          "implementation": "custom",
+          "evidence": [
+            "flux_cards"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "按实际工况建立区域、系数、边界、守恒验证和观测回读。"
+      ],
+      "checks": [
+        "比较曝光量与热收支，检查厚向温度梯度和网格/时间步敏感性；输入不足时不给唯一出口温度。"
+      ],
+      "sources": [
+        {
+          "id": "flux_cards",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "*HEAT TRANSFER, *DFLUX Sx, *AMPLITUDE, *DENSITY, *SPECIFIC HEAT",
+          "claim": "用静止材料网格模拟其通行期间的瞬态热通量历史，按材料坐标读取出口对应时刻。",
+          "kind": "version_manual"
+        }
+      ]
+    },
+    {
+      "id": "steady_fixed_temperature_solid_conduction",
+      "scope": "CalculiX 2.22 固体稳态导热候选；定温与绝热边界须由工况明确给出。",
+      "status": "custom",
+      "steps": [
+        {
+          "id": "solve",
+          "operation": "建立并求解固体稳态温度场",
+          "equation": "−∇·(K∇T)=0；对向两面定温且侧面绝热的均质板有 Q=k A ΔT/L，T(z)=T_hot−ΔT z/L。",
+          "receives": [
+            "固体几何、导热率、热边界与热源"
+          ],
+          "produces": [
+            "温度场与热流"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "manual"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "readback",
+          "operation": "读取指定位置温度及穿过热面的总热流",
+          "equation": "对定温面热反力按符号汇总；温度取指定位置，同步核对热面收支。",
+          "receives": [
+            "指定热面、观察截面及符号约定"
+          ],
+          "produces": [
+            "总热流及截面温度"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "manual"
+          ],
+          "depends_on": [
+            "solve"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "现实热边界",
+          "relation": "理想侧边绝热与定温下的温度可算；现实边缘需给环境对流、辐射及接触条件。",
+          "applicability": "仅限指定稳态固体热边界",
+          "implementation": "custom",
+          "evidence": [
+            "manual"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "建立几何、材料、定温与绝热面的映射，恢复温度及热流。"
+      ],
+      "checks": [
+        "核对两面热收支、单位、热流符号与网格收敛。"
+      ],
+      "sources": [
+        {
+          "id": "manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "*HEAT TRANSFER, *CONDUCTIVITY, *BOUNDARY, NT and RFL",
+          "claim": "稳态热传导、温度边界与温度和反力热量输出。",
+          "kind": "version_manual"
+        }
+      ]
+    }
+  ]
+}

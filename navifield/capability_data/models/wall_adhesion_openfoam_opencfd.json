@@ -1,0 +1,102 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "domain": "wall_adhesion",
+  "models": [
+    {
+      "id": "independent_foot_flow_signals",
+      "label": "逐足吸附腔漏率及壁法向吸力",
+      "capability_ids": [
+        "openfoam_opencfd.steady_compressible",
+        "openfoam_opencfd.suction_pressure_projection",
+        "openfoam_opencfd.wall_force_and_moment"
+      ],
+      "mechanisms": [
+        "vacuum_adhesion",
+        "leakage_flow"
+      ],
+      "goals": [
+        "suction_leakage",
+        "suction_force"
+      ],
+      "conditions": {
+        "operation": [
+          "steady"
+        ],
+        "support_mode": [
+          "wall_contact"
+        ],
+        "vacuum_architecture": [
+          "independent_feet"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "foot_geometry",
+          "meaning": "逐脚吸盘、裙边、叶轮/抽气口几何 [m]、实际密封区域和开度。"
+        },
+        {
+          "key": "wall_leakage_law",
+          "meaning": "各壁材与预压下有效间隙/裂缝范围 [m] 或实测漏率曲线 [kg/s]；解析实际间隙时直接用几何。"
+        },
+        {
+          "key": "pump_operating_map",
+          "meaning": "逐脚转速 [rpm] 下实测流量–压升曲线及工作方向，或可解析叶轮几何、转速和出口背压 [Pa]。"
+        },
+        {
+          "key": "ambient_state",
+          "meaning": "外界静压 [Pa 绝压]、温度 [K]、气体物性和排气背压 [Pa 绝压]。"
+        },
+        {
+          "key": "adhesion_readout",
+          "meaning": "逐脚正向壁外法线、受力选择面/有效投影面积、参考点 [m] 和压差基准 [Pa]。"
+        }
+      ],
+      "outputs": [
+        "逐足 [Pa 绝压]、漏入质量流率 [kg/s]、指向壁面法向吸力 [N]、所选湿壁力矩 [N·m]"
+      ],
+      "assumptions": [
+        "固定开度与着壁姿态；每足独立抽气，稳态工作点逐足查验。"
+      ],
+      "limitations": [
+        "只提供气动环节，吸附投影与泵曲线迭代需自研。接触与整机电耗见 independent_vacuum_feet 链。"
+      ],
+      "couplings": [
+        {
+          "from_field": "suction_pressure_state",
+          "to_field": "suction_force",
+          "quantity": "逐脚有向吸附力 [N]",
+          "transfer": "压力差沿有效墙面投影积分，或同基准的 CFD 气动力投影。",
+          "custom_work": "提供接触投影、壁法线、参考压；避免与独立气动力重复计数。"
+        }
+      ],
+      "basis": "按逐脚漏率、绝压和力分别验证。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/rhoSimpleFoam.C",
+          "locator": "Description、createFields、SIMPLE loop",
+          "claim": "稳态可压流体求解。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/UEqn.H",
+          "locator": "MRF.correctBoundaryVelocity、MRF.DDt",
+          "claim": "动量方程含多旋转参考系项。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.H",
+          "locator": "patch / sum / areaAverage",
+          "claim": "可对面通量求代数和、对压力做测站平均。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/forces/forces/forces.C",
+          "locator": "calcForcesMoments、pRef、sumPatchForces",
+          "claim": "按湿表面及指定参考点积分压力和黏性力与力矩。"
+        }
+      ]
+    }
+  ]
+}

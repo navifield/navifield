@@ -121,3 +121,48 @@ def _publish_residuals(root, run, log):
     run['residuals_path'] = relative
     run['artifacts'].append({'path': relative, 'kind': 'residual', 'media_type': 'text/csv',
                              'run_id': run['run_id'], 'label': 'Native residual history'})
+
+
+def _epoch(value):
+    from datetime import datetime
+    try:
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00')).timestamp()
+    except (TypeError, ValueError):
+        return None
+
+
+def snapshot_tables(root, run, *, limit_bytes=8 * 1024 * 1024):
+    """Keep the monitor tables written during this run beside its results; never affects the outcome."""
+    relative = 'result/' + run['run_id'] + '/monitor-tables'
+    kept = {'path': relative, 'copied': [], 'skipped': []}
+    run['monitor_tables'] = kept
+    try:
+        started = _epoch((run.get('execution_state') or {}).get('started_at'))
+        if started is None:
+            kept['skipped'].append({'path': '.', 'reason': 'start_time_unavailable'})
+            return kept
+        base = project.resolve_path(root, run['execution_case_path']) / 'postProcessing'
+        for source in sorted(base.glob('*/*/*')):
+            if not source.is_file() or source.suffix not in ('', '.dat'):
+                continue
+            name = source.relative_to(base).as_posix()
+            try:
+                if source.is_symlink():
+                    kept['skipped'].append({'path': name, 'reason': 'link'})
+                    continue
+                info = source.stat()
+                if info.st_mtime < started - 2:
+                    continue  # written before this run started, so not this run's data
+                if info.st_size > limit_bytes:
+                    kept['skipped'].append({'path': name, 'size': info.st_size, 'reason': 'size_limit'})
+                    continue
+                target = project.resolve_path(root, relative + '/' + name)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+                kept['copied'].append(name)
+            except (OSError, ValueError):
+                kept['skipped'].append({'path': name, 'reason': 'copy_failed'})
+    except (OSError, ValueError, KeyError, TypeError):
+        kept['skipped'].append({'path': '.', 'reason': 'snapshot_unavailable'})
+        return kept
+    return kept

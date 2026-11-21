@@ -1,0 +1,541 @@
+[
+  {
+    "id": "fukuda2021-rectangular-helium-pressure-drop",
+    "doi": "10.3390/mi12121580",
+    "title": "Analysis of Aspect Ratio in a Miniature Rectangle Channel for Low Frictional Resistance",
+    "authors": "Takashi Fukuda and Makoto Ryo Harada",
+    "year": 2021,
+    "software": "COMSOL",
+    "software_version": null,
+    "industry": "微尺度内流",
+    "targets": [
+      "pressure_drop"
+    ],
+    "keywords": [
+      "rectangular duct",
+      "laminar friction",
+      "helium",
+      "矩形管",
+      "压降"
+    ],
+    "source_url": "https://www.mdpi.com/2072-666X/12/12/1580",
+    "source_locator": "Fig. 6(a–c), PDF p. 10; steady incompressible helium, selected straight channel",
+    "conditions": [
+      "图 6 的 2.4 × 0.36 × 260 mm 矩形通道；氦，论文采用 ρ=0.166 kg/m³、μ=2.0×10⁻⁵ Pa·s、无滑移。",
+      "名义输入约 670 mL_STP/min，来自图读（约 ±15 mL/min），不直接当作入口实际体积流量；STP 温压基准未明。"
+    ],
+    "model_chain": [
+      "作者以 COMSOL 求稳态不可压流场，采用发展入口假设；具体版本未公开。",
+      "实验对照是扣除了独立测量弯头损失的直段静压差。开源候选需固定取压区间、实际流量定义并验算质量守恒与网格收敛。"
+    ],
+    "required_inputs": [
+      "统一标况和实际入口温压，核对选定图形点的实际流量、测压段坐标、入口剖面及压力采样口径。",
+      "取得实验原始压力表、粗糙度/加工和扣弯损不确定度，及作者 COMSOL 模型版本、工程文件。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "pressure_drop",
+        "detail": "黑色倒三角，扣弯头后的实验，约 5.65 kPa，图读范围 5.3–6.0 kPa。",
+        "locator": "Fig. 6(a), PDF p. 10"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "pressure_drop",
+        "detail": "灰色倒三角，作者 COMSOL，约 6.83 kPa，图读范围 6.5–7.2 kPa。",
+        "locator": "Fig. 6(b), PDF p. 10"
+      }
+    ],
+    "limitations": [
+      "两范围为图形估读区间，压力计 ±1% 和流量计 ±3% 也不是系统总不确定度。",
+      "矩形氦流压降证据不含加热边界、热传递量或温度实验。"
+    ],
+    "provenance": "出版社论文及独立冻结图读记录，PDF SHA-256 d2a70fa84bc1ecf371a563e1a3773a9eef893a2ba9613f0013a3bac99e107baf。",
+    "reproduction": {
+      "status": "native_readback_acceptance_not_set",
+      "scope": "OpenCFD v2606 氦气矩形直段压降已完成三工况。两套细网通过全部数值门。粗网解析偏差 −2.223% 仅作诊断，预登记 2% 解析阈值只用于细网。同标称流量粗细差 0.9442%，满足两级预登记阈值。实验验收阈值未设，没有传热验证。",
+      "routes": [
+        {
+          "chain": "forced_duct_pressure_drop",
+          "solver": "openfoam_opencfd",
+          "version": "v2606",
+          "requires_explicit_doi": true
+        }
+      ],
+      "cases": [
+        {
+          "case": "nominal_as_actual_volume_coarse",
+          "solver": "OpenFOAM OpenCFD",
+          "version": "v2606",
+          "source_commit_prefix": "8cc4a7ed",
+          "native_status": "NATIVE_COMPLETED_COARSE_DIAGNOSTIC",
+          "analytic_2pct_acceptance": "NOT_APPLICABLE",
+          "native_time": "232",
+          "n_cells": 163296,
+          "measured_length_m": 0.26,
+          "actual_full_section_flow_m3_s": 1.1166666666666668e-05,
+          "pressure_drop_Pa": 6719.7648990648995,
+          "gates": {
+            "all_phi_planes_0.5pct": true,
+            "developed_U_integral_1pct": true,
+            "all_lateral_numeric_leakage_0.1pct": true,
+            "half_slope_spread_1pct": true,
+            "regression_vs_endpoints_1pct": true,
+            "analytic_2pct": null
+          },
+          "pressure_slope_Pa_m": {
+            "whole": 25845.24962196814,
+            "halves": [
+              25845.249633901527,
+              25845.249591539
+            ],
+            "endpoint": 25845.249611788073
+          },
+          "analytic_comparison": {
+            "reference": 6872.564880266009,
+            "predicted": 6719.7648990648995,
+            "signed_difference": -152.7999812011094,
+            "signed_percent": -2.223332683840662
+          },
+          "experimental_figure_comparison": {
+            "reference": 5658.9810574,
+            "predicted": 6719.7648990648995,
+            "signed_difference": 1060.7838416648992,
+            "signed_percent": 18.74513858422904
+          },
+          "author_comsol_figure_comparison": {
+            "reference": 6860.1227013,
+            "predicted": 6719.7648990648995,
+            "signed_difference": -140.35780223510028,
+            "signed_percent": -2.0459955068806934
+          },
+          "review_record": {
+            "name": "station-8cc4a7ed-r01-coarse.json",
+            "sha256": "4dc660648efcd8383d1e88e9deda5ad5f9f636da02e7bac9a6a9f4df4f23961c"
+          },
+          "station_bundle_sha256": "f0bb5ea0c5af8efd9559c26ae6fa594ef91a1ed2668af60ab8ffbc6509e4d5fb",
+          "station_receipt_sha256": "f5933577c24ef3bc6bda9260ac4bd392ed93efa1b83d401e499899e065b8445a",
+          "native_input_review_sha256": "627426b6ad5ea65c6896fe91ec06df909bf59cfb7fed9b49d3f200d9b5255cc8",
+          "native_files_sha256": {
+            "232\\U": "0d65bda5bf1470a647f75b23ffb63e57f32982b0bec61f6fce88074c1fffdf70",
+            "232\\phi": "0431129c13a82dd766d1b4f186137ce999781302006ddbcefb989c3e506c5948",
+            "232\\p": "c709db0683c1ac36fe91eef82658513f4d3f5f0a140cd2243ebd9a99e5c55c10",
+            "constant\\polyMesh\\points": "0f254b1e9b099a7a998bc48fed391dbc030004f96a7c66bb70167cbee43c786b",
+            "constant\\polyMesh\\faces": "d30c8a5f8992aaf966aaa108637768ab5b5cfac6893addf97cf19bef0ce2d18b",
+            "constant\\polyMesh\\owner": "c1a51eff993a0d454f39223dfc1d1bb7d3e904685f2851fe2f3b0b82459c0781",
+            "constant\\polyMesh\\neighbour": "d4de9f9c22d10ca89c6585faee6ba2fda6be8cf053beec36273954709fe87e21",
+            "constant\\polyMesh\\boundary": "6e9ad68119ec8a34db5a8679a8f6c58e6c6ab98512eceb5cb9fd4bd5bc075ecb"
+          },
+          "solver_logs": {
+            "blockMesh": {
+              "sha256": "44844bdd77dc48140eaf70d737cc7c178ade602f1ef56c7becefbcef635eb268",
+              "exit": 0,
+              "elapsed_s": 3.538
+            },
+            "checkMesh": {
+              "sha256": "1b83de178de66157518377aafa3630c30ff9ee66d4ffb0675964b2dc9b36ccf3",
+              "exit": 0,
+              "elapsed_s": 5.714,
+              "quality_ok": true,
+              "determinant_line": "Cell determinant (wellposedness) : minimum: 0.00157939670709 average: 0.0432422057007"
+            },
+            "simpleFoam": {
+              "sha256": "3af13a501e2a51cb25ed9edeae331d9b0d4e603898fc3f0d3ab66cbc39801997",
+              "exit": 0,
+              "elapsed_s": 1027.97,
+              "natural_end": true,
+              "last_iterations": [
+                "230",
+                "231",
+                "232"
+              ],
+              "residual_control_converged": true,
+              "last_linear_residuals": [
+                "GAMG:  Solving for p, Initial residual = 9.59444189416e-10, Final residual = 9.59444189416e-10, No Iterations 0",
+                "smoothSolver:  Solving for Ux, Initial residual = 3.68515655701e-08, Final residual = 3.16822804995e-10, No Iterations 3",
+                "smoothSolver:  Solving for Uy, Initial residual = 9.93194521661e-08, Final residual = 9.74754314521e-10, No Iterations 3",
+                "smoothSolver:  Solving for Uz, Initial residual = 7.25761302838e-09, Final residual = 2.68815610721e-10, No Iterations 2",
+                "GAMG:  Solving for p, Initial residual = 1.01497815973e-09, Final residual = 9.89096287323e-10, No Iterations 19"
+              ]
+            }
+          }
+        },
+        {
+          "case": "nominal_as_actual_volume",
+          "solver": "OpenFOAM OpenCFD",
+          "version": "v2606",
+          "source_commit_prefix": "8cc4a7ed",
+          "native_status": "NUMERICAL_GATES_PASS",
+          "native_time": "335",
+          "n_cells": 387072,
+          "measured_length_m": 0.26,
+          "actual_full_section_flow_m3_s": 1.1166666666666668e-05,
+          "pressure_drop_Pa": 6783.818466696404,
+          "gates": {
+            "all_phi_planes_0.5pct": true,
+            "developed_U_integral_1pct": true,
+            "all_lateral_numeric_leakage_0.1pct": true,
+            "half_slope_spread_1pct": true,
+            "regression_vs_endpoints_1pct": true,
+            "analytic_2pct": true
+          },
+          "pressure_slope_Pa_m": {
+            "whole": 26091.609512953964,
+            "halves": [
+              26091.609427898627,
+              26091.60919020904
+            ],
+            "endpoint": 26091.609487293863
+          },
+          "analytic_comparison": {
+            "reference": 6872.564880266009,
+            "predicted": 6783.818466696404,
+            "signed_difference": -88.74641356960456,
+            "signed_percent": -1.2913143071872968
+          },
+          "experimental_figure_comparison": {
+            "reference": 5658.9810574,
+            "predicted": 6783.818466696404,
+            "signed_difference": 1124.837409296404,
+            "signed_percent": 19.87703082740493
+          },
+          "author_comsol_figure_comparison": {
+            "reference": 6860.1227013,
+            "predicted": 6783.818466696404,
+            "signed_difference": -76.30423460359543,
+            "signed_percent": -1.1122867319725338
+          },
+          "review_record": {
+            "name": "station-8cc4a7ed-r02-fine.json",
+            "sha256": "0c1c546415253fa1b1e401ba9e44e02a1bc5e6e6c5a2b6b402f93bd89aeaa6cd"
+          },
+          "station_bundle_sha256": "0ee6f1f111d59d64d1a323b78db73fae25a23c19bd977d4476f8411fd4e07015",
+          "station_receipt_sha256": "ab8f62a786444521fac2ba1a2d8c7c88d2d98bd040e2a2af528647ee2a8c52ec",
+          "native_input_review_sha256": "627426b6ad5ea65c6896fe91ec06df909bf59cfb7fed9b49d3f200d9b5255cc8",
+          "native_files_sha256": {
+            "335\\U": "29be3f134d6ab13b9d98ba9fc087801813a2dfca6596539965755a2b255109e4",
+            "335\\phi": "7cf96f1d3741e9168235914d3920577e7e9158ec4cc8df6d7163a7c9fc52b08c",
+            "335\\p": "5e39b2b3ac446cea06586bae3c30091edd183858063b87255ad1135bc6d1681e",
+            "constant\\polyMesh\\points": "665906ccf9f1c704b919465ad7817a208888f8043c4f1922836522688df3370f",
+            "constant\\polyMesh\\faces": "9b876c83d5f8c03c58f05159f1cd7ea0c3249bff8f93bead6653490163031f5b",
+            "constant\\polyMesh\\owner": "84f0981aabda9da0a34de62a462b2512e7a9337cad81643386e0def7d33383f2",
+            "constant\\polyMesh\\neighbour": "b6768d376847201cbc763bae6c3e95ec1b51f04cb3e7e7464c7a5b37af5933b1",
+            "constant\\polyMesh\\boundary": "4a34392e25d322a58404dd362f16809b2dc91b57af167a176b1c188f06635488"
+          },
+          "solver_logs": {
+            "blockMesh": {
+              "sha256": "1fc2d459e59bfdb61fd67c508ba23a42365070a2e14693a3ec8def23647aebe4",
+              "exit": 0,
+              "elapsed_s": 7.126
+            },
+            "checkMesh": {
+              "sha256": "bcb8fccf4bc76dbb8724b296a5468759d383e1d40b17a9fbdecc614abc309cf6",
+              "exit": 0,
+              "elapsed_s": 11.796,
+              "quality_ok": true,
+              "determinant_line": "Cell determinant (wellposedness) : minimum: 0.00157939670709 average: 0.040482576647"
+            },
+            "simpleFoam": {
+              "sha256": "10e8b9b012564e580aad833dc497cafe2aeca2d707eba80b9024e2c95b0a6c09",
+              "exit": 0,
+              "elapsed_s": 454.089,
+              "natural_end": true,
+              "last_iterations": [
+                "333",
+                "334",
+                "335"
+              ],
+              "residual_control_converged": true,
+              "last_linear_residuals": [
+                "GAMG:  Solving for p, Initial residual = 7.39478193593e-10, Final residual = 7.39478193593e-10, No Iterations 0",
+                "smoothSolver:  Solving for Ux, Initial residual = 4.14920111613e-08, Final residual = 5.72484795629e-10, No Iterations 3",
+                "smoothSolver:  Solving for Uy, Initial residual = 9.90401977954e-08, Final residual = 1.57305933043e-09, No Iterations 3",
+                "smoothSolver:  Solving for Uz, Initial residual = 1.66598689564e-08, Final residual = 3.98072409891e-10, No Iterations 3",
+                "GAMG:  Solving for p, Initial residual = 1.34251922129e-09, Final residual = 6.36218483097e-10, No Iterations 2"
+              ]
+            }
+          }
+        },
+        {
+          "case": "stp_to_actual_volume_sensitivity",
+          "solver": "OpenFOAM OpenCFD",
+          "version": "v2606",
+          "source_commit_prefix": "8cc4a7ed",
+          "native_status": "NUMERICAL_GATES_PASS",
+          "native_time": "339",
+          "n_cells": 387072,
+          "measured_length_m": 0.26,
+          "actual_full_section_flow_m3_s": 1.2227914679853487e-05,
+          "pressure_drop_Pa": 7428.532939761834,
+          "gates": {
+            "all_phi_planes_0.5pct": true,
+            "developed_U_integral_1pct": true,
+            "all_lateral_numeric_leakage_0.1pct": true,
+            "half_slope_spread_1pct": true,
+            "regression_vs_endpoints_1pct": true,
+            "analytic_2pct": true
+          },
+          "pressure_slope_Pa_m": {
+            "whole": 28571.28054220069,
+            "halves": [
+              28571.283870610016,
+              28571.27701804668
+            ],
+            "endpoint": 28571.280537545517
+          },
+          "analytic_comparison": {
+            "reference": 7525.713760088081,
+            "predicted": 7428.532939761834,
+            "signed_difference": -97.18082032624625,
+            "signed_percent": -1.2913169889829712
+          },
+          "experimental_figure_comparison": {
+            "reference": 5658.9810574,
+            "predicted": 7428.532939761834,
+            "signed_difference": 1769.551882361834,
+            "signed_percent": 31.26979688415583
+          },
+          "author_comsol_figure_comparison": {
+            "reference": 6860.1227013,
+            "predicted": 7428.532939761834,
+            "signed_difference": 568.4102384618345,
+            "signed_percent": 8.285715332090483
+          },
+          "review_record": {
+            "name": "station-8cc4a7ed-r03-fine-normal-volume.json",
+            "sha256": "0947e2f12bebea2dce76d8faf20f171f7d2714e4ab5a13604b62a99e667abba7"
+          },
+          "station_bundle_sha256": "6591d98d663348498989406bfd6788eedf97284ce5b773834f6b826bc22873dd",
+          "station_receipt_sha256": "b6e54b52c9db5c8c2df023198768f2a6e28246626371a16da0433e344b51ec8f",
+          "native_input_review_sha256": "627426b6ad5ea65c6896fe91ec06df909bf59cfb7fed9b49d3f200d9b5255cc8",
+          "native_files_sha256": {
+            "339\\U": "22d4d92f4d6e94ba51e2d18f36d2963d132ff0561172e4d7bc1ae25371eeaad2",
+            "339\\phi": "18da2bf243c3167fe67239c29a32d23447f795fb7cb916236cf7615dcc6ce925",
+            "339\\p": "2266b2a0acf8a2a09797d71546f9aaabc9910221729512ccdafe93635a8b732d",
+            "constant\\polyMesh\\points": "665906ccf9f1c704b919465ad7817a208888f8043c4f1922836522688df3370f",
+            "constant\\polyMesh\\faces": "9b876c83d5f8c03c58f05159f1cd7ea0c3249bff8f93bead6653490163031f5b",
+            "constant\\polyMesh\\owner": "84f0981aabda9da0a34de62a462b2512e7a9337cad81643386e0def7d33383f2",
+            "constant\\polyMesh\\neighbour": "b6768d376847201cbc763bae6c3e95ec1b51f04cb3e7e7464c7a5b37af5933b1",
+            "constant\\polyMesh\\boundary": "4a34392e25d322a58404dd362f16809b2dc91b57af167a176b1c188f06635488"
+          },
+          "solver_logs": {
+            "blockMesh": {
+              "sha256": "7db1f3c4fa6d1136cbf91e9c06b6d657828cb32b7ed5669aa10648d26fe72d2e",
+              "exit": 0,
+              "elapsed_s": 7.039
+            },
+            "checkMesh": {
+              "sha256": "8cf78b601fbcbaa519a446d162b76e871d867029f3d4f99415b596bd95914e11",
+              "exit": 0,
+              "elapsed_s": 12.272,
+              "quality_ok": true,
+              "determinant_line": "Cell determinant (wellposedness) : minimum: 0.00157939670709 average: 0.040482576647"
+            },
+            "simpleFoam": {
+              "sha256": "865c7ff87a9388207f80ed055211590cc57a4366b504b6e82b46f0d48bbd8373",
+              "exit": 0,
+              "elapsed_s": 459.15,
+              "natural_end": true,
+              "last_iterations": [
+                "337",
+                "338",
+                "339"
+              ],
+              "residual_control_converged": true,
+              "last_linear_residuals": [
+                "GAMG:  Solving for p, Initial residual = 6.33270332157e-10, Final residual = 6.33270332157e-10, No Iterations 0",
+                "smoothSolver:  Solving for Ux, Initial residual = 3.80627376116e-08, Final residual = 5.25812342666e-10, No Iterations 3",
+                "smoothSolver:  Solving for Uy, Initial residual = 9.67252457334e-08, Final residual = 1.59131839751e-09, No Iterations 3",
+                "smoothSolver:  Solving for Uz, Initial residual = 2.25920535273e-08, Final residual = 5.484598138e-10, No Iterations 3",
+                "GAMG:  Solving for p, Initial residual = 1.29657344067e-09, Final residual = 5.93251954242e-10, No Iterations 4"
+              ]
+            }
+          }
+        }
+      ],
+      "brief_results": [
+        {
+          "kind": "native_and_publication_pressure_comparison",
+          "conditions": "工作站 simpleFoam 层流，0.26 m 测压段。670 mL/min 与图标中心约 668.042 mL_STP/min 是不同口径；两个计算分别按标称值取实际体积及按声明标准到工况换算。差值以实际输出减各自参考。",
+          "measurements": [
+            {
+              "quantity": "pressure_drop",
+              "kind": "native_openfoam_pressure_drop",
+              "case": "nominal_as_actual_volume_coarse",
+              "unit": "kPa",
+              "value": 6.7197648990648995,
+              "native_status": "NATIVE_COMPLETED_COARSE_DIAGNOSTIC",
+              "analytic_2pct_acceptance": "NOT_APPLICABLE",
+              "experimental_acceptance": "NOT_SET",
+              "reference_differences_percent": {
+                "developed_rectangular_analytic": -2.223332683840662,
+                "published_experiment_vector": 18.74513858422904,
+                "published_author_COMSOL_vector": -2.0459955068806934
+              },
+              "review_sha256": "4dc660648efcd8383d1e88e9deda5ad5f9f636da02e7bac9a6a9f4df4f23961c"
+            },
+            {
+              "quantity": "pressure_drop",
+              "kind": "native_openfoam_pressure_drop",
+              "case": "nominal_as_actual_volume",
+              "unit": "kPa",
+              "value": 6.783818466696404,
+              "native_status": "NUMERICAL_GATES_PASS",
+              "experimental_acceptance": "NOT_SET",
+              "reference_differences_percent": {
+                "developed_rectangular_analytic": -1.2913143071872968,
+                "published_experiment_vector": 19.87703082740493,
+                "published_author_COMSOL_vector": -1.1122867319725338
+              },
+              "review_sha256": "0c1c546415253fa1b1e401ba9e44e02a1bc5e6e6c5a2b6b402f93bd89aeaa6cd"
+            },
+            {
+              "quantity": "pressure_drop",
+              "kind": "native_openfoam_pressure_drop",
+              "case": "stp_to_actual_volume_sensitivity",
+              "unit": "kPa",
+              "value": 7.428532939761834,
+              "native_status": "NUMERICAL_GATES_PASS",
+              "experimental_acceptance": "NOT_SET",
+              "reference_differences_percent": {
+                "developed_rectangular_analytic": -1.2913169889829712,
+                "published_experiment_vector": 31.26979688415583,
+                "published_author_COMSOL_vector": 8.285715332090483
+              },
+              "review_sha256": "0947e2f12bebea2dce76d8faf20f171f7d2714e4ab5a13604b62a99e667abba7"
+            },
+            {
+              "quantity": "pressure_drop",
+              "kind": "experimental_graph_readback_corrected_bend_loss",
+              "flow_STP_mL_min_approx": 668,
+              "value": 5.65,
+              "unit": "kPa",
+              "graph_reading_interval_kPa": [
+                5.3,
+                6.0
+              ],
+              "locator": "Fig. 6(a), black downward triangle",
+              "independent_vector_readback": {
+                "flow_mL_STP_min": 668.042228517182,
+                "pressure_kPa": 5.658981057420044,
+                "conservative_full_symbol_x_interval_mL_STP_min": [
+                  652.3384500444545,
+                  683.6313853380688
+                ],
+                "conservative_full_symbol_pressure_interval_kPa": [
+                  5.179719123423566,
+                  5.8986120244182825
+                ]
+              }
+            },
+            {
+              "quantity": "pressure_drop",
+              "kind": "author_comsol_graph_readback",
+              "flow_STP_mL_min_approx": 669,
+              "value": 6.83,
+              "unit": "kPa",
+              "graph_reading_interval_kPa": [
+                6.5,
+                7.2
+              ],
+              "locator": "Fig. 6(b), gray downward triangle",
+              "independent_vector_readback": {
+                "flow_mL_STP_min": 668.0417995640279,
+                "pressure_kPa": 6.860122701302918,
+                "conservative_full_symbol_x_interval_mL_STP_min": [
+                  652.4579994216102,
+                  683.7401819724912
+                ],
+                "conservative_full_symbol_pressure_interval_kPa": [
+                  6.374940258085073,
+                  7.102713922911844
+                ]
+              }
+            }
+          ],
+          "two_grid_comparison": {
+            "scope": "同一标称实际体积流量、0.26 m 测压段的两级同拓扑网格；以细网值作分母。",
+            "coarse_to_fine_percent_of_fine": 0.9442111098043249,
+            "predeclared_threshold_percent": 2.0,
+            "within_threshold": true,
+            "continuum_convergence": "NOT_ESTABLISHED",
+            "review_sha256": "775cee1d1570e280e6a3a3a92fa00e513341154b482e6daa9a05f4074ed431d6"
+          }
+        },
+        {
+          "kind": "published_pressure_graph_comparison",
+          "conditions": "相同 2.4 × 0.36 × 260 mm 通道；两个近似标准流量来自各自图形点，两区间为保守图读范围。",
+          "measurements": [
+            {
+              "quantity": "pressure_drop",
+              "kind": "experimental_graph_readback_corrected_bend_loss",
+              "flow_STP_mL_min_approx": 668,
+              "value": 5.65,
+              "unit": "kPa",
+              "graph_reading_interval_kPa": [
+                5.3,
+                6.0
+              ],
+              "locator": "Fig. 6(a), black downward triangle",
+              "independent_vector_readback": {
+                "flow_mL_STP_min": 668.042228517182,
+                "pressure_kPa": 5.658981057420044,
+                "conservative_full_symbol_x_interval_mL_STP_min": [
+                  652.3384500444545,
+                  683.6313853380688
+                ],
+                "conservative_full_symbol_pressure_interval_kPa": [
+                  5.179719123423566,
+                  5.8986120244182825
+                ]
+              }
+            },
+            {
+              "quantity": "pressure_drop",
+              "kind": "author_comsol_graph_readback",
+              "flow_STP_mL_min_approx": 669,
+              "value": 6.83,
+              "unit": "kPa",
+              "graph_reading_interval_kPa": [
+                6.5,
+                7.2
+              ],
+              "locator": "Fig. 6(b), gray downward triangle",
+              "independent_vector_readback": {
+                "flow_mL_STP_min": 668.0417995640279,
+                "pressure_kPa": 6.860122701302918,
+                "conservative_full_symbol_x_interval_mL_STP_min": [
+                  652.4579994216102,
+                  683.7401819724912
+                ],
+                "conservative_full_symbol_pressure_interval_kPa": [
+                  6.374940258085073,
+                  7.102713922911844
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "作者 STP 基准温压、实验粗糙度及扣弯损的不确定度和验收阈值仍未定；两级网格结果不能估计连续极限或 GCI。"
+      ],
+      "independent_vector_review": {
+        "sha256": "9fb847a12382cbbd787640aca92e68f7195777743988c5ef2d235bcaf459d418",
+        "pdf_sha256": "d2a70fa84bc1ecf371a563e1a3773a9eef893a2ba9613f0013a3bac99e107baf",
+        "locator": "Fig. 6(a-b), PDF p. 10",
+        "method": "Mean of three vertices; the series origin marker in each panel gives zero at this anchor. PDF rectangle midpoint is lower for the inverted marker and has an artificial pressure shift.",
+        "uncertainty": "Full painted triangle width/height before line stroke is a conservative graphic span; it is not measurement uncertainty. Stroke ~0.5 PDF pt is secondary. Native vector centroids have smaller digitizer precision but do not recover original raw experiment or inner solver values."
+      },
+      "experimental_acceptance": "NOT_SET",
+      "two_grid_comparison": {
+        "scope": "同一标称实际体积流量、0.26 m 测压段的两级同拓扑网格；以细网值作分母。",
+        "coarse_to_fine_percent_of_fine": 0.9442111098043249,
+        "predeclared_threshold_percent": 2.0,
+        "within_threshold": true,
+        "continuum_convergence": "NOT_ESTABLISHED",
+        "review_sha256": "775cee1d1570e280e6a3a3a92fa00e513341154b482e6daa9a05f4074ed431d6"
+      }
+    }
+  }
+]

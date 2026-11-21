@@ -1,0 +1,441 @@
+{
+  "solver": "elmer",
+  "version": "9.0",
+  "chains": [
+    {
+      "id": "outlet_net_vapor",
+      "status": "custom",
+      "scope": "设备过冷流动固定壁温，需出口减入口蒸汽质量流率，包括体相相变与蒸汽库存；本版本未找到现成完整闭合。",
+      "steps": [
+        {
+          "id": "flow",
+          "operation": "获得相分布与蒸汽流场",
+          "equation": "∂(α_vρ_v)/∂t + ∇·(α_vρ_v u_v) = S_v，含壁面产汽及体相源汇；速度须为汽相速度。",
+          "receives": [
+            "入口流量 kg/s、温度 K、压力 Pa 与壁温 K"
+          ],
+          "produces": [
+            "汽相速度 m/s、密度 kg/m³、体积分数和库存 kg"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "manual"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "phase",
+          "operation": "壁面与体相汽液质量交换",
+          "equation": "壁面产汽采用经验证的 RPI 等闭合；体相再冷凝另设源汇；汽液质量源相反，潜热一致耦合。",
+          "receives": [
+            "相态、局部温度 K 和压力 Pa 来自 flow"
+          ],
+          "produces": [
+            "壁面质量通量 kg/(m²·s)、体相源 kg/(m³·s)、潜热源 W/m³"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "native"
+          ],
+          "depends_on": [
+            "flow"
+          ]
+        },
+        {
+          "id": "balance",
+          "operation": "计算净出口汽量并验算守恒",
+          "equation": "F=α_vρ_v u_v·n；m_out,gross=∫out max(F,0)dA，m_out,net=∫out F dA；m_in,net=−∫in F dA；m_net=m_out,net−m_in,net；M_v=∫V α_vρ_v dV；dM_v/dt+m_net=∫wall j_RPI dA−∫V S_cond dV+其他体源，壁源仅计一次。",
+          "receives": [
+            "相流场与体相源来自 flow/phase"
+          ],
+          "produces": [
+            "出口正向毛蒸汽流率 kg/s",
+            "出口有符号净穿越 kg/s、出口减入口净流率 kg/s",
+            "汽相库存 kg 与变化率 kg/s"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "native"
+          ],
+          "depends_on": [
+            "phase"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "汽液相变与再冷凝",
+          "relation": "需定义界面面积、相变驱动力、质量源和相间潜热",
+          "applicability": "过冷流体的壁面及体相；必须独立验证",
+          "implementation": "custom",
+          "evidence": [
+            "native"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "geometry",
+          "meaning": "流域与尺寸 m"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量、压力和相态 kg/s、Pa"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "固定壁温 K"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "汽液密度、黏度、比热与导热率 SI"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "汽化潜热 J/kg"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "饱和温度/压力关系 K、Pa"
+        },
+        {
+          "key": "boiling_closures",
+          "meaning": "壁面 RPI 或其他产汽及体相再冷凝闭合参数"
+        },
+        {
+          "key": "interfacial_heat_transfer",
+          "meaning": "界面换热、相间面积及相变参数"
+        },
+        {
+          "key": "diagnostic_patches",
+          "meaning": "入口出口积分面、外法向及积分区域"
+        }
+      ],
+      "custom_work": [
+        "选择能求自由流汽液质量传递的外部求解器，开发或连接壁面与体相闭合及守恒回读；此处无已验证完整实现。"
+      ],
+      "checks": [
+        "报告时间平均或瞬时定义、进出口方向、各相源汇与蒸汽库存；核对质量和能量守恒。"
+      ],
+      "sources": [
+        {
+          "id": "native",
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver boundary assembly",
+          "claim": "固定版热求解器的热流和热边界组装；不包含本设备冷凝闭合。"
+        },
+        {
+          "id": "manual",
+          "kind": "version_manual",
+          "url": "https://www.nic.funet.fi/pub/org/net/CSC/software/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Elmer Models Manual, 9.0, June 7 2024, Model 1 Heat Equation, boundary conditions; version on p. 3.",
+          "claim": "热流或换热系数与外界温度边界可配置；不是质量转移模型。"
+        }
+      ]
+    },
+    {
+      "id": "unresolved_film",
+      "status": "configured",
+      "scope": "近恒压纯饱和蒸汽、光滑竖直等温冷板、层流重力排膜且膜无网格；平板整体平均估算，只输出热量和在假定全凝且忽略显热时的凝液总量。 已知壁温路线只做关联式后处理。",
+      "steps": [
+        {
+          "id": "estimate",
+          "operation": "计算平板平均传热系数",
+          "equation": "h_bar=0.943 [ρ_l(ρ_l−ρ_v)g h_fg k_l³/(μ_l L(T_sat−T_w))]^(1/4)",
+          "receives": [
+            "液汽密度 kg/m³、黏度 Pa·s、导热率 W/(m·K)、潜热 J/kg、板高 m、温差 K"
+          ],
+          "produces": [
+            "平均 h W/(m²·K)"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "wall",
+          "operation": "已知等温壁温的平均总热量计算",
+          "equation": "Q=h_bar A(T_sat−T_w)；h_bar 为整板平均，等效均匀热通量仅用于总量；已指定壁温时不可同面再施 Robin。",
+          "receives": [
+            "h_bar 来自 estimate，壁温和饱和温度 K"
+          ],
+          "produces": [
+            "整板总热量 W、等效平均热流 W/m²"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "native",
+            "manual"
+          ],
+          "depends_on": [
+            "estimate"
+          ]
+        },
+        {
+          "id": "rate",
+          "operation": "计算理论冷凝总量",
+          "equation": "m_cond=Q/h_fg；仅潜热占主导且无再蒸发",
+          "receives": [
+            "Q W 和 h_fg J/kg"
+          ],
+          "produces": [
+            "凝液估算 kg/s"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ],
+          "depends_on": [
+            "wall"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "Nusselt 竖直板平均膜凝",
+          "relation": "h_bar=0.943[ρ_l(ρ_l−ρ_v)g h_fg k_l³/(μ_l L ΔT)]^(1/4)",
+          "applicability": "纯饱和静止或低剪切蒸汽、等温光滑平板、层流重力排膜；忽略不可凝气及明显显热",
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "光滑竖直等温板高度 L m 和面积 m²"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "均匀壁温 K"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "纯蒸汽饱和温压关系"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "近恒定压力 Pa"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 kg/m³、液体黏度 Pa·s 和导热率 W/(m·K)"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "潜热 J/kg；本近似忽略明显膜显热"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度 m/s²"
+        }
+      ],
+      "custom_work": [
+        "已知壁温直接后处理总热量；若改为求壁体温度，可取消该面的 Dirichlet，再用经物理一致性处理的 Robin 或 *FILM 并迭代，均匀平均系数不能代表局部通量。"
+      ],
+      "checks": [
+        "验证层流、纯蒸汽、饱和状态及等温假设；比较热平衡并说明总量仅理论估算，非出口净汽量。"
+      ],
+      "sources": [
+        {
+          "id": "native",
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver boundary assembly",
+          "claim": "固定版热求解器的热流和热边界组装；不包含本设备冷凝闭合。"
+        },
+        {
+          "id": "manual",
+          "kind": "version_manual",
+          "url": "https://www.nic.funet.fi/pub/org/net/CSC/software/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Elmer Models Manual, 9.0, June 7 2024, Model 1 Heat Equation, boundary conditions; version on p. 3.",
+          "claim": "热流或换热系数与外界温度边界可配置；不是质量转移模型。"
+        },
+        {
+          "id": "nusselt",
+          "kind": "physics_reference",
+          "url": "https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=913033",
+          "locator": "vertical flat plate; coefficient C_f=0.943",
+          "claim": "NIST 讨论传统层流膜状冷凝垂直平板平均系数 0.943；并非软件实现验证。"
+        }
+      ]
+    },
+    {
+      "id": "condensation_with_ncg",
+      "status": "custom",
+      "scope": "空气-水蒸气设备界面冷凝；需气侧传质、分压平衡、液膜和壁能量耦合。OGS 孔隙局部平衡并不代表该自由流壁面闭合。",
+      "steps": [
+        {
+          "id": "gas",
+          "operation": "计算气相速度、温度和组分传输",
+          "equation": "气相连续性、动量、能量及水蒸气组分守恒",
+          "receives": [
+            "入口组成、速度、压力和温度"
+          ],
+          "produces": [
+            "近壁水蒸气摩尔分数、温度和速度"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "native"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "interface",
+          "operation": "求解界面质量传递和相平衡",
+          "equation": "p_vi=p_sat(T_i)，X_vi=p_vi/p；Y_vi=X_vi M_v/[X_vi M_v+(1−X_vi)M_a]；界面空气零穿透。",
+          "receives": [
+            "近壁组分",
+            "p Pa",
+            "温度 K",
+            "气侧传质系数"
+          ],
+          "produces": [
+            "界面温度 K、质量通量 kg/(m²·s)"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "native",
+            "sparrow"
+          ],
+          "depends_on": [
+            "gas"
+          ]
+        },
+        {
+          "id": "thermal",
+          "operation": "耦合膜及固壁热阻与潜热",
+          "equation": "q_l=q_sensible,g+m″h_fg；q_l=(T_i−T_w)/R_l，m″>0 指向液相，按同一符号处理；显热、热流与质量源一致。 q_l 与 q_sensible,g 均定义为指向液侧；h_fg 取同一界面温度，忽略或单独计入液膜显热。",
+          "receives": [
+            "界面质量通量、潜热 J/kg、壁温 K 与膜热阻 m²K/W"
+          ],
+          "produces": [
+            "界面热流 W/m² 和壁温 K"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "manual"
+          ],
+          "depends_on": [
+            "interface"
+          ]
+        },
+        {
+          "id": "iterate",
+          "operation": "迭代并积分",
+          "equation": "热通量、质量通量与界面温度双向迭代",
+          "receives": [
+            "界面状态和热流"
+          ],
+          "produces": [
+            "总冷凝量 kg/s、总热量 W"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "native"
+          ],
+          "depends_on": [
+            "thermal"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "二元气相扩散和 Stefan 流",
+          "relation": "解析气层时：N_a=0，m″=ρ_g D_va/(1−Y_v)·∂Y_v/∂n（n 从界面指向气体，m″ 定义为向界面）；或在未解析气层时选用含 Stefan 流修正的传质系数闭合。",
+          "applicability": "二元水蒸气-空气、无空气渗入液相；解析扩散层不可再叠加 Sh/经验气膜阻力。",
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ]
+        },
+        {
+          "name": "界面饱和与液膜能量",
+          "relation": "p_vi=p_sat(T_i)，X_vi=p_vi/p，X→Y 用分子量换算；q_l=q_sensible,g+m″h_fg，q_l=(T_i−T_w)/R_l。",
+          "applicability": "局部相平衡、明确定义法向及显热；液膜热阻与壁体热传导分别处理。",
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "壁面几何与面积 m²"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 K 或壁体热边界"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流速、温度和流量 m/s、K、kg/s"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "总压 Pa"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "气液密度、黏度、比热、导热率及分子量 SI"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "水蒸气饱和压与温度关系 Pa、K"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "汽化潜热 J/kg"
+        },
+        {
+          "key": "gas_composition",
+          "meaning": "入口蒸汽和空气摩尔或质量分数，注明基准"
+        },
+        {
+          "key": "vapor_diffusivity",
+          "meaning": "水蒸气—空气扩散系数 m²/s"
+        },
+        {
+          "key": "liquid_thermal_resistance",
+          "meaning": "液膜等效热阻 m²K/W 或液膜模型"
+        }
+      ],
+      "custom_work": [
+        "实现或接入组分传质、相平衡、液膜及壁面热量耦合；不能把 Robin 热边界或孔隙 Kelvin 方程当作完整设备冷凝模型。"
+      ],
+      "checks": [
+        "验证局部质量与能量守恒、非凝气富集、时间步与网格，以及适用相关式和实验。",
+        "解析气侧浓度边界层时，不再叠加经验 Sh 气膜阻力；未解析时才选择经验证传质关联式。"
+      ],
+      "sources": [
+        {
+          "id": "native",
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver boundary assembly",
+          "claim": "固定版热求解器的热流和热边界组装；不包含本设备冷凝闭合。"
+        },
+        {
+          "id": "manual",
+          "kind": "version_manual",
+          "url": "https://www.nic.funet.fi/pub/org/net/CSC/software/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Elmer Models Manual, 9.0, June 7 2024, Model 1 Heat Equation, boundary conditions; version on p. 3.",
+          "claim": "热流或换热系数与外界温度边界可配置；不是质量转移模型。"
+        },
+        {
+          "id": "sparrow",
+          "kind": "physics_reference",
+          "url": "https://doi.org/10.1016/0017-9310(66)90035-4",
+          "locator": "Minkowycz and Sparrow (1966), International Journal of Heat and Mass Transfer 9(10), pp. 1125–1144; steam–air condensation on a vertical plate.",
+          "claim": "含不凝气的层流膜凝耦合传热传质研究；不表示软件内置。"
+        }
+      ]
+    }
+  ]
+}

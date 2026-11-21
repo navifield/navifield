@@ -1,0 +1,475 @@
+[
+  {
+    "id": "jadhao2015-steel-cantilever",
+    "doi": null,
+    "title": "Investigation of Stresses in Cantilever Beam by FEM and Its Experimental Verification",
+    "authors": "V. B. Jadhao, R. B. Charde, S. M. Dhengle",
+    "year": 2015,
+    "software": "ANSYS",
+    "software_version": "11",
+    "publication": "International Journal of Technical Research and Applications 3(1), 141–144",
+    "industry": "机械结构 / 静力",
+    "targets": [
+      "displacement",
+      "tip_deflection"
+    ],
+    "keywords": [
+      "cantilever",
+      "mild steel",
+      "static bending",
+      "steel cantilever",
+      "free-end deflection",
+      "钢板",
+      "悬臂梁",
+      "挠度",
+      "CalculiX"
+    ],
+    "source_url": "https://www.ijtra.com/view.php-paper-investigation-of-stresses-in-cantilever-beam-by-fem-and-its-experimental-verification.pdf",
+    "source_locator": "pp.141–144, Figures 1–2, Tables 1, 2 and 5",
+    "conditions": [
+      "低碳钢板，跨长 395 mm、截面宽 25 mm、厚 5 mm；单端夹持，另一端横向载荷。",
+      "五档载荷为总力，包含挂盘和 J 钩；实验末端笔迹与刻度板读数。",
+      "作者 ANSYS 11 采用 SOLID92，给出 E=210 GPa、ν=0.28；单件材料实测参数未报告。"
+    ],
+    "model_chain": [
+      "按给定几何、材料和载荷生成两级 B32R 梁模型；x=0 六自由度固定，自由端沿 −y 加力。",
+      "本地 Windows CalculiX 2.22 通过 navifield run / JobOwner 启动；从 .dat 读自由端有符号 U2 和支座 RF2。",
+      "下挠取 −U2，分别与表 5 的实测和作者 ANSYS 11 结果比较；预先冻结各档实测，不校准夹持或材料。"
+    ],
+    "required_inputs": [
+      "低碳钢跨长和截面、各档总力、E 与泊松比、端部约束和载荷方向。",
+      "实验复建仍需夹具柔度、零点、读数位置与重复性及独立容差。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "tip_deflection",
+        "detail": "表 5 五级总载荷的自由端横向实验挠度，单位 mm。",
+        "locator": "pp.141–143, Tables 1, 2 and 5"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "tip_deflection",
+        "detail": "表 5 另列作者 ANSYS 11 数值；五档均低于实验读数。",
+        "locator": "p.143, Table 5"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "tip_deflection",
+        "detail": "工作站复算与作者 FEM 数值接近，对实验五档均偏低。没有实验容差或通过判定。",
+        "locator": "portable station workbench evidence in reproduction"
+      }
+    ],
+    "limitations": [
+      "工作站模型限定低载线性、小应变、理想固支、端部合力；未加入梁自重、夹具柔度或零点校正。",
+      "独立实测不确定度未建立。网格与反力检查属于数值验核，实验接受状态 NOT_SET。",
+      "本次用事先冻结的参数化基准生成输入，未从客户原话自动建模；没有复算论文应力计读数。"
+    ],
+    "provenance": "原出版物表 5 为实验和作者模型依据；Windows JobOwner 留存记录与独立 CalculiX .dat 为原生复算依据。",
+    "reproduction": {
+      "status": "native_readback_experiment_acceptance_not_set",
+      "experimental_acceptance": "NOT_SET",
+      "scope": "五载荷×两网格的独立原生复算。实验与作者有限元数值分别比较。未签发实验通过。",
+      "routes": [],
+      "solver": "CalculiX",
+      "solver_version": "2.22",
+      "benchmark": {
+        "source_commit": "1751d32ec311abb133901478ac5a2aa6842bba8e",
+        "inputs": {
+          "path": "[internal evidence path withheld]",
+          "sha256": "48b7ebd35a29a8703faa0efbfdfbfc7a649e293288e2b99cd2562c7a484002c8"
+        },
+        "references": {
+          "path": "[internal evidence path withheld]",
+          "sha256": "f1456c952d8eb8ca6c2584f1923d8ef1ccedac6ab05fdeebe38a001423ca9ee4"
+        },
+        "model": {
+          "description": "ideal straight mild-steel cantilever, transverse tip load; mm N MPa",
+          "length_mm": 395,
+          "width_mm": 25,
+          "thickness_mm": 5,
+          "young_MPa": 210000,
+          "poisson": 0.28,
+          "total_load_N": [
+            12.321,
+            22.131,
+            31.941,
+            41.751,
+            51.561
+          ],
+          "load_definition": "total force includes hanger and J bolt; do not add hanger mass",
+          "boundary": "x=0 fixed 6 DOFs; end load negative global y; B32R cross section 25 mm z width, 5 mm y depth",
+          "model": "quadratic 3-node B32R; small-strain linear static; no self-weight; ideal clamp",
+          "mesh_elements": [
+            20,
+            40
+          ],
+          "quantity": "end displacement U2 and fixed support reaction RF2"
+        }
+      },
+      "station_evidence": {
+        "bundle_id": "station-beam-1751d32e-r01",
+        "archive": "results.tar",
+        "archive_sha256": "3eea399e2f9f48ef6721fa4ebfe13ea7e4d0e6f54df3be01db26356bc237aa72",
+        "host": "WIN-7QCGU9LOA3C",
+        "executable_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+        "readback": {
+          "member": "[internal evidence path withheld]",
+          "sha256": "f71c73af6e7c309cb1b3ce0399a80035186cdaf9eacc58346fb70546bcae8504"
+        },
+        "receipt": {
+          "member": "[internal evidence path withheld]",
+          "sha256": "860e7cf6bdbd67efa2a4319e35d226d655f15736e09f13bd67ae3181e66499c3"
+        },
+        "comparison_receipt": {
+          "name": "beam-comparison-r01.json",
+          "sha256": "40e3d491a9bcf200fd36e9b938f8f01cb70cfebd196f18af2f7a5cb7781938ac"
+        },
+        "run_count": 10
+      },
+      "brief_results": [
+        {
+          "quantity": "tip_deflection",
+          "unit": "mm",
+          "mesh_elements": 40,
+          "detail": "所有工作站向下挠度均低于论文实测。工作站数值和作者 ANSYS 分列。"
+        }
+      ],
+      "cases": [
+        {
+          "case_index": 1,
+          "reference_locator": "p.143, Table 5",
+          "force_N": 12.321,
+          "measurements": {
+            "experimental_tip_deflection_mm": 13,
+            "authors_ansys_11_tip_deflection_mm": 4.6,
+            "workstation_calculix_2_22_tip_deflection_mm": 4.591305,
+            "workstation_minus_experiment_mm": -8.408695,
+            "workstation_relative_to_experiment_pct": -64.68226923,
+            "workstation_relative_to_ansys_pct": -0.18902174
+          },
+          "mesh_change_relative": 0.0037248668951420988,
+          "meshes": [
+            {
+              "mesh_elements": 20,
+              "run_id": "r001",
+              "tip_node": 41,
+              "tip_U2_mm": -4.574203,
+              "support_node": 1,
+              "support_RF2_N": 12.321,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "f5c3c548544a3af713a705f5bc6b59654aa9bad8847330e473bc250159e8fa04"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "7195a1dd6cef3fa94d3d4a075a3034027e8ba99f5bdbcdc9c817516c7d1f0c34"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "a6ba5149a570dcb54f4eb85c068db7b276a047cd3af9f873530840700b1647d3"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dc5a7279fd5d2b5e9741eb35b5089a5c94f1dcd5680d3c0a98830c4218e3def8"
+              }
+            },
+            {
+              "mesh_elements": 40,
+              "run_id": "r002",
+              "tip_node": 81,
+              "tip_U2_mm": -4.591305,
+              "support_node": 1,
+              "support_RF2_N": 12.321,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "b89ed6bc492e15a8e50d303e715bee1097e1418b839a6305eb903be5e678b7c5"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "1bb93ad519413d9a004bde73bb6b2d1682c58f0ddf259c0947b737f72627541f"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "e39410c7e8f7efe2f90e211fd85ddafe28c5e4787d37f8155ce361d1d493dd33"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "da0f1a95010a09eb16c3f7ac05db8934a42d42786ad25857855b2b278e71698b"
+              }
+            }
+          ]
+        },
+        {
+          "case_index": 2,
+          "reference_locator": "p.143, Table 5",
+          "force_N": 22.131,
+          "measurements": {
+            "experimental_tip_deflection_mm": 16,
+            "authors_ansys_11_tip_deflection_mm": 8.267,
+            "workstation_calculix_2_22_tip_deflection_mm": 8.24691,
+            "workstation_minus_experiment_mm": -7.75309,
+            "workstation_relative_to_experiment_pct": -48.4568125,
+            "workstation_relative_to_ansys_pct": -0.24301439
+          },
+          "mesh_change_relative": 0.0037249102997364463,
+          "meshes": [
+            {
+              "mesh_elements": 20,
+              "run_id": "r003",
+              "tip_node": 41,
+              "tip_U2_mm": -8.216191,
+              "support_node": 1,
+              "support_RF2_N": 22.131,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "955febb0456062865d4ad33b2446e8286d4fdd8b5b8fd4762867551df8a798a4"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "0bda814e880f2a0188991678c30d92137a45b81512e9f83ed5aeba9a8144837c"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "8558a31c994773eb689bf6ecb1c2a945bb947d26df515bb88c556fc34ebb7359"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dc5a7279fd5d2b5e9741eb35b5089a5c94f1dcd5680d3c0a98830c4218e3def8"
+              }
+            },
+            {
+              "mesh_elements": 40,
+              "run_id": "r004",
+              "tip_node": 81,
+              "tip_U2_mm": -8.24691,
+              "support_node": 1,
+              "support_RF2_N": 22.131,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "b12ffbcb6fb99e3b659eb8d3cf238737a850db26181e8992cf11e339155b3388"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "d73ab413a50b95726d432a4ffff5b227efcfbe1d9ebf1bf4a81c61b4dcb4efda"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "2ec5680d6b1a814ac091fbbf261688fd7c757a4bee5caecf67754d6dfba165f6"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "da0f1a95010a09eb16c3f7ac05db8934a42d42786ad25857855b2b278e71698b"
+              }
+            }
+          ]
+        },
+        {
+          "case_index": 3,
+          "reference_locator": "p.143, Table 5",
+          "force_N": 31.941,
+          "measurements": {
+            "experimental_tip_deflection_mm": 20,
+            "authors_ansys_11_tip_deflection_mm": 11.92,
+            "workstation_calculix_2_22_tip_deflection_mm": 11.90252,
+            "workstation_minus_experiment_mm": -8.09748,
+            "workstation_relative_to_experiment_pct": -40.4874,
+            "workstation_relative_to_ansys_pct": -0.1466443
+          },
+          "mesh_change_relative": 0.0037252615412534523,
+          "meshes": [
+            {
+              "mesh_elements": 20,
+              "run_id": "r005",
+              "tip_node": 41,
+              "tip_U2_mm": -11.85818,
+              "support_node": 1,
+              "support_RF2_N": 31.941,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "ed85e2df6358391bd39132dc450ee5b6ff9f18301694982f5d16e40e7d478512"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "6700f1f9882ea6a12f44c8fc8a2078b41cf67423830564b70a964a115cccf9e5"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "af8412585980add337ce6651785626aba0b762aac5ad4116494c43e681ed3ec2"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dc5a7279fd5d2b5e9741eb35b5089a5c94f1dcd5680d3c0a98830c4218e3def8"
+              }
+            },
+            {
+              "mesh_elements": 40,
+              "run_id": "r006",
+              "tip_node": 81,
+              "tip_U2_mm": -11.90252,
+              "support_node": 1,
+              "support_RF2_N": 31.941,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "4ce90f437d6564b2613b9f6c3e3ab62a52dc14b35dc73667abdfc45f4fda77a8"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "35fa480f1648e90755e30ac9ed02ab064579756f505b2eea9ee1bf125a9e8146"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "964719b2c9b820ba713beb9bca97e3cbddd9dec3ca813b12aedb225f0e9a1303"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "da0f1a95010a09eb16c3f7ac05db8934a42d42786ad25857855b2b278e71698b"
+              }
+            }
+          ]
+        },
+        {
+          "case_index": 4,
+          "reference_locator": "p.143, Table 5",
+          "force_N": 41.751,
+          "measurements": {
+            "experimental_tip_deflection_mm": 24,
+            "authors_ansys_11_tip_deflection_mm": 15.59,
+            "workstation_calculix_2_22_tip_deflection_mm": 15.55812,
+            "workstation_minus_experiment_mm": -8.44188,
+            "workstation_relative_to_experiment_pct": -35.1745,
+            "workstation_relative_to_ansys_pct": -0.20449006
+          },
+          "mesh_change_relative": 0.003724743092353057,
+          "meshes": [
+            {
+              "mesh_elements": 20,
+              "run_id": "r007",
+              "tip_node": 41,
+              "tip_U2_mm": -15.50017,
+              "support_node": 1,
+              "support_RF2_N": 41.751,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "40d89f2ae39035ead73c0670ac994f299b0891bbecff04c08a7ce9a3a7df0c41"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "a107063568a7a5caf92785a8c85b5dd0f7608cac7921657bb976e5210280bbbf"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "96287009ee9e8f0e45489c60226ca99fa0bb8c262b7f10f878326bf556071387"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dc5a7279fd5d2b5e9741eb35b5089a5c94f1dcd5680d3c0a98830c4218e3def8"
+              }
+            },
+            {
+              "mesh_elements": 40,
+              "run_id": "r008",
+              "tip_node": 81,
+              "tip_U2_mm": -15.55812,
+              "support_node": 1,
+              "support_RF2_N": 41.751,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "84238e663d1d9d78dc3b7b09e8004a63a76e7042d7ed06e613d4bd505133040c"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "366ef5f504f278356fd88c941b9560f7b0d5b618317bd7716205c84eb45922a0"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "6360ea768b9864458775bd6baa41069af1f9901ba6b7b5116b4c6844005835cb"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "da0f1a95010a09eb16c3f7ac05db8934a42d42786ad25857855b2b278e71698b"
+              }
+            }
+          ]
+        },
+        {
+          "case_index": 5,
+          "reference_locator": "p.143, Table 5",
+          "force_N": 51.561,
+          "measurements": {
+            "experimental_tip_deflection_mm": 28,
+            "authors_ansys_11_tip_deflection_mm": 19.26,
+            "workstation_calculix_2_22_tip_deflection_mm": 19.21372,
+            "workstation_minus_experiment_mm": -8.786280000000001,
+            "workstation_relative_to_experiment_pct": -31.37957143,
+            "workstation_relative_to_ansys_pct": -0.24029076
+          },
+          "mesh_change_relative": 0.0037249423849206554,
+          "meshes": [
+            {
+              "mesh_elements": 20,
+              "run_id": "r009",
+              "tip_node": 41,
+              "tip_U2_mm": -19.14215,
+              "support_node": 1,
+              "support_RF2_N": 51.561,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "977b3d8b4fba38b15df542a4563503c8765a9625b1f1f2322664c27f61b043b2"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "4509129a16f72caa9ecd0908f068b9b4146557900f59efbb4b3eba8ba9de4520"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "ef532d6e3a8023c175a9cf3c09f91fb55b71532f900b924c7b099fa335031141"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dc5a7279fd5d2b5e9741eb35b5089a5c94f1dcd5680d3c0a98830c4218e3def8"
+              }
+            },
+            {
+              "mesh_elements": 40,
+              "run_id": "r010",
+              "tip_node": 81,
+              "tip_U2_mm": -19.21372,
+              "support_node": 1,
+              "support_RF2_N": 51.561,
+              "relative_force_balance_error": 0.0,
+              "deck": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "5f3ff8c431abd8f189997f5d7d4688f892a24ec8fdb4c010250edb8028f0d9a5"
+              },
+              "dat": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "eda7318c9aeb70a68f15ce8cc7fccbe41212e5e66d198bf45d44a2d752a52d3c"
+              },
+              "job_record": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "9f14dd6f4e88334b6ce23486da0ff592b05ab9e04b1bc3edaf70a5dafc22a9aa"
+              },
+              "native_log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "da0f1a95010a09eb16c3f7ac05db8934a42d42786ad25857855b2b278e71698b"
+              }
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "夹具柔度、测量零点及不确定度未核实。实验验收容差未设定。"
+      ]
+    }
+  }
+]

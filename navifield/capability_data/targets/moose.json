@@ -1,0 +1,544 @@
+[
+  {
+    "solver": "moose",
+    "version": "2024-03-08",
+    "target": "pressure_drop",
+    "role": "configured",
+    "model": "Navier Stokes INSFV 与截面均压；可用 FlowChannel1Phase 进行限域筛算",
+    "applicability": "稳态不可压单相自由流。用 FV 求截面分辨流，内部/边界压力有明确约束；一维模型仅适用有摩阻闭合的轴向流道。",
+    "exclusions": "FlowChannel1Phase 一维截面均化无法预测设备内分离局部损失；复杂几何仍用空间 CFD 并验证。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "wall_treatment",
+      "roughness"
+    ],
+    "exchanges": [
+      {
+        "from": "flow_solution",
+        "to": "pressure_stations",
+        "quantity": "物理静压与速度",
+        "unit": "Pa; m/s",
+        "method": "同控制截面按压力变量和匹配速度权重导出平均值；固定参考消除压力零空间。"
+      },
+      {
+        "from": "pressure_stations",
+        "to": "pressure_drop",
+        "quantity": "上游减下游的静压差或总压损失",
+        "unit": "Pa",
+        "method": "无重力变高时不可压总压 p+ρ|U|²/2；先进测站后按相同声明权重减，标高变化按能量式单列。"
+      }
+    ],
+    "rationale": "固定版有压力约束与连续性、动量部件，可组装压力求解并读回。",
+    "custom_work": "几何测站与加权口径需明确配置；一维备选需独立摩阻/局部损失系数。",
+    "checks": [
+      "统一两测站、压力单位、面积/质量权重以及参考标高；确定是否报告静压差或总压损失。",
+      "检查质量守恒、网格和非稳态统计；规整光滑管可用解析或 Darcy 摩阻，分离几何另验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/src/fvkernels/INSFVMomentumAdvection.C",
+        "locator": "modules/navier_stokes/src/fvkernels/INSFVMomentumAdvection.C；INSFV 动量平流",
+        "claim": "固定版本不可压流动的保守有限体积动量通量部件。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/test/tests/finite_volume/ins/channel-flow/2d-rc-no-slip-average-outlet-pressure-constraint.i",
+        "locator": "modules/navier_stokes/test/tests/finite_volume/ins/channel-flow/2d-rc-no-slip-average-outlet-pressure-constraint.i；压力约束及通道边界",
+        "claim": "固定版不可压通道与出口平均压力约束配置示例。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/components/FlowChannel1Phase.C",
+        "locator": "modules/thermal_hydraulics/src/components/FlowChannel1Phase.C；组件定义",
+        "claim": "截面平均的一维单相流道，作为独立简化路线。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "compressibility": [
+        "incompressible"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ]
+    },
+    "mechanisms": [
+      "flow"
+    ],
+    "related_capabilities": [
+      "moose.incompressible_flow"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "moose",
+        "version": "2024-03-08",
+        "target": "pressure_drop",
+        "role": "configured",
+        "model": "饱和单相 Darcy",
+        "applicability": "饱和固定多孔材料中的单相渗流，已知渗透率与孔隙压力边界。",
+        "exclusions": "孔尺度射流、局部分离和气液两相需其他模型。",
+        "inputs": [
+          "geometry",
+          "flow_rate",
+          "fluid_properties",
+          "pressure_stations",
+          "permeability"
+        ],
+        "exchanges": [
+          {
+            "from": "多孔区动量平衡",
+            "to": "压力读回",
+            "quantity": "压力与表观速度",
+            "unit": "Pa, m/s",
+            "method": "按规定的测点或截面取静压差，注明静水项和使用表观速度的面积。"
+          }
+        ],
+        "rationale": "依据材料阻力与通量的关系选模型，核对面积基准、重力水头及测点压力。",
+        "custom_work": "测定介质渗透参数及各向异性；拟合的工况范围及独立压降数据需要单列。",
+        "checks": [
+          "检查流量质量守恒、测压口位置与静水头，分别核对多个流量点。"
+        ],
+        "evidence": [
+          {
+            "url": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/porous_flow/sqa/porous_flow_srs.html",
+            "locator": "darcy_flow",
+            "claim": "2024-03-08 PorousFlow SRS requirement 13.3.1, fully saturated Darcy velocity."
+          }
+        ],
+        "conditions": {
+          "flow_domain": [
+            "porous"
+          ],
+          "flow_phase": [
+            "single_phase"
+          ],
+          "operation": [
+            "steady"
+          ],
+          "pressure_definition": [
+            "static_difference"
+          ]
+        },
+        "mechanisms": [
+          "flow",
+          "darcy"
+        ],
+        "related_capabilities": [
+          "moose.darcy_flow"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "moose",
+    "version": "2024-03-08",
+    "target": "heat_duty",
+    "role": "configured",
+    "model": "Heat Transfer + ConjugateHeatTransfer 已知 HTC 接口 + SideDiffusiveFluxIntegral",
+    "applicability": "有两侧热域和可用的局部 HTC，能求有热阻共轭总负荷；可用 MOOSE 流模块组合，但全解析流动与界面必须额外核对。",
+    "exclusions": "上游 HTC 回归不是全解析冷侧 NS-CHT。若项目要求双侧解析对流或非共形守恒，须完成独立组装/验证。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition",
+      "heat_transfer_coefficient"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "界面两侧温度和法向热流密度",
+        "unit": "K; W/m²",
+        "method": "以给定 h 耦合温差，成对传递 q=h(T_f−T_s)；对壁扩散通量积分。"
+      },
+      {
+        "from": "wall_or_control_surface",
+        "to": "heat_duty",
+        "quantity": "净换热率",
+        "unit": "W",
+        "method": "积分一侧有符号热流，或对各流面作守恒焓流积分。"
+      }
+    ],
+    "rationale": "有可用 HTC 时，热域和热接口求解可以提供守恒的总负荷。",
+    "custom_work": "组装目标案例的能量输运和对流接口；低维冷侧或既有速度时应标明，不把已知 h 当作预测结果。",
+    "checks": [
+      "壁面积分热率和流体控制体焓流差对照，瞬态加储热，辐射或体热源单列。",
+      "热负荷量纲 W；对时程积分得 J。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/heat_transfer/src/kernels/HeatConduction.C",
+        "locator": "modules/heat_transfer/src/kernels/HeatConduction.C；computeQpResidual",
+        "claim": "从导热率及温度梯度装配固体能量导热。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/heat_transfer/test/tests/conjugate_heat_transfer/conjugate_heat_transfer.i",
+        "locator": "modules/heat_transfer/test/tests/conjugate_heat_transfer/conjugate_heat_transfer.i；[InterfaceKernels] ConjugateHeatTransfer, htc",
+        "claim": "固定版示例验证两个导热域通过给定 HTC 耦合；中心热域测试没有求解流动方程。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/framework/src/postprocessors/SideDiffusiveFluxIntegral.C",
+        "locator": "framework/src/postprocessors/SideDiffusiveFluxIntegral.C；computeQpIntegral",
+        "claim": "对给定面扩散热流积分，适用于匹配的温度和扩散属性。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/src/fvkernels/INSFVEnergyAdvection.C",
+        "locator": "modules/navier_stokes/src/fvkernels/INSFVEnergyAdvection.C；固定版本能量平流",
+        "claim": "不可压 FV 能量平流可组装，但不由导热域 HTC 回归自动证明完整流固验证。"
+      }
+    ],
+    "conditions": {
+      "interface_model": [
+        "prescribed_htc"
+      ],
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "moose.conjugate_heat_transfer"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "moose",
+        "version": "2024-03-08",
+        "target": "heat_duty",
+        "role": "configured",
+        "model": "HeatConduction 固体导热及边界回读",
+        "applicability": "固体内 Fourier 导热，已给温度、热通量或等效外界对流边界；瞬态还需初始温度、储热物性与时间历程。",
+        "exclusions": "若未知流侧膜系数且须解析流体速度/热边界层，应采用共轭传热路线。",
+        "inputs": [
+          "geometry",
+          "solid_properties",
+          "thermal_boundary",
+          "heat_sources"
+        ],
+        "exchanges": [
+          {
+            "from": "固体热方程",
+            "to": "壁面读回",
+            "quantity": "温度场与法向热流密度",
+            "unit": "K, W/m²",
+            "method": "同一固体网格边界提取温度与热流；从面积积分获得 W。"
+          }
+        ],
+        "rationale": "从固体温度梯度和导热率求 q=−k∇T。整面热率按外法向积分；壁温按客户指定的位置和统计方式回读。",
+        "custom_work": "在项目中明确各材料、源项、辐射或对流边界及其适用范围。",
+        "checks": [
+          "核对指定边界法向、热率 W、热流密度 W/m²及瞬态储热项，检查网格与时间步敏感性。"
+        ],
+        "evidence": [
+          {
+            "url": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/heat_transfer/sqa/heat_transfer_srs.html",
+            "locator": "moose.heat_conduction",
+            "claim": "2024-03-08 Heat Transfer SRS, System Scope and functional requirements."
+          }
+        ],
+        "conditions": {
+          "thermal_mode": [
+            "solid_only"
+          ],
+          "operation": [
+            "steady",
+            "transient"
+          ]
+        },
+        "mechanisms": [
+          "conduction"
+        ],
+        "related_capabilities": [
+          "moose.heat_conduction"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "moose",
+    "version": "2024-03-08",
+    "target": "wall_temperature",
+    "role": "configured",
+    "model": "HeatConduction + ConjugateHeatTransfer（已给 h）；固体单域可用 ConvectiveHeatFluxBC",
+    "applicability": "已知界面 HTC，求共轭壁面温度；若冷却侧只提供环境温度和 h，可拆成固体 Robin 模型。",
+    "exclusions": "未知 HTC 或必须求湍流近壁传热时，另配分辨率合适的流体输运和验证；给定 Tw 不能当作输出。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition",
+      "thermal_contact",
+      "heat_transfer_coefficient"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "温度和热通量",
+        "unit": "K; W/m²",
+        "method": "内部两侧法向热量按 q=hΔT 交换，输出指定固侧或流侧温度；Robin 只在固体模型给入已知环境参数。"
+      },
+      {
+        "from": "wall_field",
+        "to": "wall_temperature",
+        "quantity": "所需壁面温度",
+        "unit": "K",
+        "method": "按指定表面与时刻读取局部峰值、面积加权平均及温度分布。"
+      }
+    ],
+    "rationale": "求解结果由冷热热阻和边界共同决定；以界面 HTC 代表未解析接触/对流阻力。",
+    "custom_work": "全场 CFD 与非共形数据需额外配置或耦合；局部温度需要对应网格和外推核验。",
+    "checks": [
+      "网格加密检查壁温峰值、面平均和界面热量闭合；共轭两侧应按同一法向监视。",
+      "完美接触时温度相容；有热阻时温降与热通量一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/heat_transfer/src/kernels/HeatConduction.C",
+        "locator": "modules/heat_transfer/src/kernels/HeatConduction.C；computeQpResidual",
+        "claim": "从导热率及温度梯度装配固体能量导热。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/heat_transfer/test/tests/conjugate_heat_transfer/conjugate_heat_transfer.i",
+        "locator": "modules/heat_transfer/test/tests/conjugate_heat_transfer/conjugate_heat_transfer.i；[InterfaceKernels] ConjugateHeatTransfer, htc",
+        "claim": "固定版示例验证两个导热域通过给定 HTC 耦合；中心热域测试没有求解流动方程。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/heat_transfer/src/bcs/ConvectiveHeatFluxBC.C",
+        "locator": "modules/heat_transfer/src/bcs/ConvectiveHeatFluxBC.C；computeQpResidual",
+        "claim": "原生给定外部温度及 HTC 的对流边界。"
+      }
+    ],
+    "conditions": {
+      "interface_model": [
+        "prescribed_htc"
+      ],
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "moose.conjugate_heat_transfer"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "moose",
+        "version": "2024-03-08",
+        "target": "wall_temperature",
+        "role": "configured",
+        "model": "HeatConduction 固体导热及边界回读",
+        "applicability": "固体内 Fourier 导热，已给温度、热通量或等效外界对流边界；瞬态还需初始温度、储热物性与时间历程。",
+        "exclusions": "若未知流侧膜系数且须解析流体速度/热边界层，应采用共轭传热路线。",
+        "inputs": [
+          "geometry",
+          "solid_properties",
+          "thermal_boundary",
+          "heat_sources"
+        ],
+        "exchanges": [
+          {
+            "from": "固体热方程",
+            "to": "壁面读回",
+            "quantity": "温度场与法向热流密度",
+            "unit": "K, W/m²",
+            "method": "同一固体网格边界提取温度与热流；从面积积分获得 W。"
+          }
+        ],
+        "rationale": "从固体温度梯度和导热率求 q=−k∇T。整面热率按外法向积分；壁温按客户指定的位置和统计方式回读。",
+        "custom_work": "在项目中明确各材料、源项、辐射或对流边界及其适用范围。",
+        "checks": [
+          "核对指定边界法向、热率 W、热流密度 W/m²及瞬态储热项，检查网格与时间步敏感性。"
+        ],
+        "evidence": [
+          {
+            "url": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/heat_transfer/sqa/heat_transfer_srs.html",
+            "locator": "moose.heat_conduction",
+            "claim": "2024-03-08 Heat Transfer SRS, System Scope and functional requirements."
+          }
+        ],
+        "conditions": {
+          "thermal_mode": [
+            "solid_only"
+          ],
+          "operation": [
+            "steady",
+            "transient"
+          ]
+        },
+        "mechanisms": [
+          "conduction"
+        ],
+        "related_capabilities": [
+          "moose.heat_conduction"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "moose",
+    "version": "2024-03-08",
+    "target": "thermal_stress",
+    "role": "configured",
+    "model": "ComputeSmallStrain + ComputeThermalExpansionEigenstrain + ComputeLinearElasticStress",
+    "applicability": "恒定线膨胀系数、小应变线弹性。T 可由同 App 热模型或受控映射导入。",
+    "exclusions": "塑性、蠕变、温度依赖的膨胀系数、热机双向耦合须用相应材料、求解和基准。",
+    "inputs": [
+      "structural_geometry",
+      "temperature_reference",
+      "mechanical_constraints",
+      "elastic_properties",
+      "expansion_coefficient",
+      "thermal_boundary",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "thermal_solution",
+        "to": "solid_mechanics",
+        "quantity": "固体温度与应力自由参考态",
+        "unit": "K",
+        "method": "ComputeThermalExpansionEigenstrain 用 α(T−T_free)；在应变计算中引用 eigenstrain_names 后由线弹性求应力。"
+      },
+      {
+        "from": "solid_mechanics",
+        "to": "stress_report",
+        "quantity": "Cauchy 应力、主应力或 von Mises 按工程判据",
+        "unit": "Pa",
+        "method": "按约定应力不变量、材料和部位回读，附约束反力。"
+      }
+    ],
+    "rationale": "分离热应变与机械应变并显式给出无应力参考温度，可检验不同约束下响应。",
+    "custom_work": "设置结构边界和温度映射、应变名称及应力度量；同一温标且零点一致。",
+    "checks": [
+      "均温自由膨胀：移除刚体模后应力趋零；轴向受限且侧向自由杆按 −EαΔT 检查。",
+      "复核应力自由温度、温标、材料与边界映射，检查反力平衡与网格敏感性；约束角点奇异峰值单独处理。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/solid_mechanics/src/materials/ComputeThermalExpansionEigenstrain.C",
+        "locator": "modules/solid_mechanics/src/materials/ComputeThermalExpansionEigenstrain.C；computeThermalStrain",
+        "claim": "α 乘温度与 stress_free_temperature 的差。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/solid_mechanics/src/materials/ComputeSmallStrain.C",
+        "locator": "modules/solid_mechanics/src/materials/ComputeSmallStrain.C；computeProperties",
+        "claim": "小应变求解并扣除本征应变。"
+      },
+      {
+        "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/solid_mechanics/src/materials/ComputeLinearElasticStress.C",
+        "locator": "modules/solid_mechanics/src/materials/ComputeLinearElasticStress.C；computeQpStress",
+        "claim": "从机械应变与弹性张量得应力。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "moose.solid_mechanics"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

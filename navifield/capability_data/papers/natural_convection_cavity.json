@@ -1,0 +1,2116 @@
+[
+  {
+    "id": "pachera2014-natural-convection-square-cavity",
+    "doi": null,
+    "title": "Comparison between RANS and LES Approaches to the Simulation of Natural Convection in a Differentially Heated Square Cavity",
+    "authors": "Matteo Pachera, Pierfrancesco Brunello, Marco Raciti Castelli",
+    "year": 2014,
+    "software": "Fluent",
+    "software_version": null,
+    "industry": "传热 / 自然对流",
+    "targets": [
+      "interior_temperature",
+      "interior_velocity",
+      "wall_convective_heat_flux"
+    ],
+    "keywords": [
+      "Pachera",
+      "密闭方腔",
+      "自然对流",
+      "square cavity",
+      "RANS"
+    ],
+    "source_url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+    "source_locator": "§§2, 6；表 5–6；图 13–16",
+    "conditions": [
+      "空气腔宽、高各 0.75 m，实物深 1.5 m；常用 2D 中深平面对照。",
+      "冷热竖壁 50 °C 与 10 °C；报告 Rayleigh 数 1.58×10⁹。",
+      "Fluent 用稳态 RANS 标准 k–ε 和标准壁面函数；顶底取实验实测温度曲线；数值对照与 Ampofo & Karayiannis 2003 实验对应。"
+    ],
+    "model_chain": [
+      "用热边界与浮力求空气自然对流，再提取中线温度、竖直速度及冷热壁对流换热。"
+    ],
+    "required_inputs": [
+      "确认 Fluent UDF 对顶底实验曲线的实现、流体密度模型/物性与近壁首层位置。",
+      "独立读图需确定原图坐标、温度与速度归一及读图误差。"
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "interior_temperature",
+        "detail": "图 13 的作者 Fluent 中线温度；本文提供曲线而未给数表。",
+        "locator": "§6, Fig. 13"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "interior_velocity",
+        "detail": "图 14 的中线竖直速度；图 15–16 给冷热壁对流换热。",
+        "locator": "§6, Figs. 14–16"
+      }
+    ],
+    "limitations": [
+      "Fluent 具体版本未报告；表 6 是网格信息。表 2–4 为 FDS 部分，不能作 Fluent 数值或独立验收。",
+      "双网格续算仅 U/T 恢复线性迎风，k/epsilon 仍一阶；图读半宽不作验收容差或软件等价判据。",
+      "本次为冻结参数和映射的基准，不代表普通客户原话已可自动建模或进入原生执行。"
+    ],
+    "provenance": "WSEAS 原出版物，实验来源是其参考文献 [8] Ampofo & Karayiannis 2003。",
+    "related_case_ids": [
+      "ampofo2003-natural-convection-square-cavity"
+    ],
+    "reproduction": {
+      "status": "native_readback_acceptance_not_set",
+      "scope": "同一个 OpenFOAM v2606 冻结、双网格算例；主报告为部分恢复二阶的续算。分别对照独立实验或作者 Fluent 图，实验及 Fluent 等价性容差未设置。",
+      "routes": [
+        {
+          "chain": "enclosed_air_natural_convection",
+          "solver": "openfoam_opencfd",
+          "version": "v2606",
+          "requires_case_reference": true
+        }
+      ],
+      "cases": [
+        {
+          "case": "n040",
+          "run_id": "r002",
+          "exit_code": 0,
+          "iteration": 6000,
+          "parent_run_id": "r003",
+          "parent_log_sha256": "23dd1bd0aaad4a950fd7a6c384c6c00eaf48ad5549b47eb803a907b563ca2f3c",
+          "inherited_files_verified": 36,
+          "final_checkpoint_iterations": [
+            5800.0,
+            5900.0,
+            6000.0
+          ],
+          "residuals": {
+            "all_20_initial_residuals_le_1e_4": false,
+            "maximum_by_field": {
+              "Ux": 0.00991167295601,
+              "Uy": 0.00445644993627,
+              "T": 0.000571097271855,
+              "p_rgh": 0.050367328802,
+              "k": 0.00135443428243,
+              "epsilon": 0.000903966552554
+            },
+            "last_iteration": 6000
+          },
+          "probe_stability": {
+            "terminal_span_threshold_K": 0.1,
+            "passes_numeric_check": true,
+            "largest_terminal_span_K": 0.08165882099996224
+          },
+          "wall_heat": {
+            "sign": "positive wall-to-fluid",
+            "inward_W_per_m": {
+              "hot": 54.67713189130425,
+              "cold": -54.41375869075862,
+              "top": -8.667946178765956,
+              "bottom": 8.895154208192018
+            },
+            "closure_fraction": 0.007716904017009691,
+            "boundary_max_abs_error_K": 4.931166586175095e-10,
+            "postprocessing_receipt": {
+              "name": "wall-f42f261e-n040.json",
+              "sha256": "a11d96e08a03c7742ae082005c6307c3e0dac795e53ca5ed35884cf51dbc14f2"
+            },
+            "reported_iteration": 6000,
+            "closure_le_1_percent": true,
+            "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+            "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+            "original_inflow_normalized_diagnostic_fraction": 0.007716904017009691,
+            "checkpoints": [
+              {
+                "iteration": 5900,
+                "inward_W_per_m": {
+                  "hot": 54.79659342543035,
+                  "cold": -54.65375317635011,
+                  "top": -8.317881797145313,
+                  "bottom": 9.048754342541097
+                },
+                "total_in_W_per_m": 63.84534776797145,
+                "total_out_magnitude_W_per_m": 62.97163497349542,
+                "signed_net_W_per_m": 0.8737127944760275,
+                "registered_denominator_W_per_m": 63.84534776797145,
+                "registered_closure_fraction": 0.013684831002116224,
+                "registered_within_1_percent": false,
+                "inflow_normalized_diagnostic_fraction": 0.013684831002116224,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n040-5900.json",
+                  "sha256": "d3a54160dae82bc2e21e9195dab07209e3448b60354c60abb8bcad9b82578bcd"
+                }
+              },
+              {
+                "iteration": 6000,
+                "inward_W_per_m": {
+                  "hot": 54.67713189130425,
+                  "cold": -54.41375869075862,
+                  "top": -8.667946178765956,
+                  "bottom": 8.895154208192018
+                },
+                "total_in_W_per_m": 63.57228609949627,
+                "total_out_magnitude_W_per_m": 63.08170486952457,
+                "signed_net_W_per_m": 0.49058122997169207,
+                "registered_denominator_W_per_m": 63.57228609949627,
+                "registered_closure_fraction": 0.007716904017009691,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.007716904017009691,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n040.json",
+                  "sha256": "4b92162d4b4f8610b87b54f8db7fc81f01590f0d27a9af903281e7ac804c87f6"
+                }
+              }
+            ],
+            "two_consecutive_saved_checkpoints_within_1_percent": false,
+            "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+          },
+          "yplus": {
+            "min": 0.795648258879,
+            "max": 8.6529451601,
+            "face_fraction_30_300": 0.0,
+            "count": 160,
+            "traditional_wall_function_range_supported": false
+          },
+          "artifacts": {
+            "probe": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "f1227cc1b4a45dac46531d06e645c5a08891ac381f12e00f5b2031257d019aeb"
+            },
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "a62cb4842a2a811845872f9aeebc9ce5f20ef8f13db237fecd9f3904e7297f3a"
+            }
+          },
+          "points": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.855920584000046,
+              "terminal_three_span_K": 0.06719497599999613,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.1559205840000466,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.89111091700005,
+              "terminal_three_span_K": 0.05900531500003581,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.19111091700004934,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.886959708999996,
+              "terminal_three_span_K": 0.08165882099996224,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.18695970899999637,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.882206879000023,
+              "terminal_three_span_K": 0.06927915600005008,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.18220687900002375,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.867568707000032,
+              "terminal_three_span_K": 0.027865839000014603,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.1675687070000329,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            }
+          ]
+        },
+        {
+          "case": "n080",
+          "run_id": "r004",
+          "exit_code": 0,
+          "iteration": 6000,
+          "parent_run_id": "r006",
+          "parent_log_sha256": "3ec518db4a51a7759a2194f4ee789d75ec8e2006901920be6e75ccd4c2390469",
+          "inherited_files_verified": 36,
+          "final_checkpoint_iterations": [
+            5800.0,
+            5900.0,
+            6000.0
+          ],
+          "residuals": {
+            "all_20_initial_residuals_le_1e_4": false,
+            "maximum_by_field": {
+              "Ux": 0.0019586719543,
+              "Uy": 0.00135613288883,
+              "T": 0.000108044880992,
+              "p_rgh": 0.0203587694131,
+              "k": 0.000166628054541,
+              "epsilon": 2.40087084984e-05
+            },
+            "last_iteration": 6000
+          },
+          "probe_stability": {
+            "terminal_span_threshold_K": 0.1,
+            "passes_numeric_check": true,
+            "largest_terminal_span_K": 0.019349099999999453
+          },
+          "wall_heat": {
+            "sign": "positive wall-to-fluid",
+            "inward_W_per_m": {
+              "hot": 75.7842983006642,
+              "cold": -75.1392901061096,
+              "top": -14.823771703601265,
+              "bottom": 13.953819610742455
+            },
+            "closure_fraction": 0.0025004028740151546,
+            "boundary_max_abs_error_K": 7.693188308621757e-10,
+            "postprocessing_receipt": {
+              "name": "wall-f42f261e-n080.json",
+              "sha256": "0c40b3d7c0b64d03aef7ca44e62e0b8bc1262b7a9ef293e9b96e3e0418eace1c"
+            },
+            "reported_iteration": 6000,
+            "closure_le_1_percent": true,
+            "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+            "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+            "original_inflow_normalized_diagnostic_fraction": 0.0025066705602883083,
+            "checkpoints": [
+              {
+                "iteration": 5900,
+                "inward_W_per_m": {
+                  "hot": 75.79711069596297,
+                  "cold": -75.00871531819644,
+                  "top": -14.596262684502143,
+                  "bottom": 14.03021880578081
+                },
+                "total_in_W_per_m": 89.82732950174378,
+                "total_out_magnitude_W_per_m": 89.60497800269857,
+                "signed_net_W_per_m": 0.22235149904520135,
+                "registered_denominator_W_per_m": 89.82732950174378,
+                "registered_closure_fraction": 0.0024753212666851565,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.0024753212666851565,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n080-5900.json",
+                  "sha256": "e582fb28fa7c3b97f78efb1d8ad5f8a5698a53e10d3f1a82d1acb306870aa932"
+                }
+              },
+              {
+                "iteration": 6000,
+                "inward_W_per_m": {
+                  "hot": 75.7842983006642,
+                  "cold": -75.1392901061096,
+                  "top": -14.823771703601265,
+                  "bottom": 13.953819610742455
+                },
+                "total_in_W_per_m": 89.73811791140666,
+                "total_out_magnitude_W_per_m": 89.96306180971087,
+                "signed_net_W_per_m": -0.22494389830420403,
+                "registered_denominator_W_per_m": 89.96306180971087,
+                "registered_closure_fraction": 0.0025004028740151546,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.0025066705602883083,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n080.json",
+                  "sha256": "74132700b5046981a8a03282ae0959439f47ab6f931ae007f96a456a64d8514a"
+                }
+              }
+            ],
+            "two_consecutive_saved_checkpoints_within_1_percent": true,
+            "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+          },
+          "yplus": {
+            "min": 0.167829093744,
+            "max": 4.27649878899,
+            "face_fraction_30_300": 0.0,
+            "count": 320,
+            "traditional_wall_function_range_supported": false
+          },
+          "artifacts": {
+            "probe": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "65b37039bc07f6240e6c364ebc6ba502b9890b27df158e3abef7f553cd09cc41"
+            },
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "79f074738bb4526ec26deeb63a4a32926a99b560dd9eadc435cacac2d3a20b6a"
+            }
+          },
+          "points": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.950904518000016,
+              "terminal_three_span_K": 0.016732370999989143,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.25090451800001645,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.927178147999996,
+              "terminal_three_span_K": 0.016489304000003813,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.22717814799999658,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.932122692000007,
+              "terminal_three_span_K": 0.01024008000001686,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.2321226920000079,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.938447789999998,
+              "terminal_three_span_K": 0.0069960259999675145,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.2384477899999986,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.928310185000043,
+              "terminal_three_span_K": 0.019349099999999453,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.22831018500004419,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            }
+          ]
+        }
+      ],
+      "brief_results": [
+        {
+          "kind": "author_fluent_figure_comparison",
+          "conditions": "80² 续算终态，Y=0.5、中深，X 自热壁。仅 U/T 恢复线性迎风；表 4 上下墙温为输入。",
+          "measurements": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.950904518000016,
+              "terminal_three_span_K": 0.016732370999989143,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.25090451800001645,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.927178147999996,
+              "terminal_three_span_K": 0.016489304000003813,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.22717814799999658,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.932122692000007,
+              "terminal_three_span_K": 0.01024008000001686,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.2321226920000079,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.938447789999998,
+              "terminal_three_span_K": 0.0069960259999675145,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.2384477899999986,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.928310185000043,
+              "terminal_three_span_K": 0.019349099999999453,
+              "value": 29.7,
+              "unit": "°C",
+              "reference_C": 29.7,
+              "model_minus_reference_K": 0.22831018500004419,
+              "figure_reading_halfwidth_K": 0.45,
+              "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；±0.45 K 为图读半宽。"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "作者 Fluent 版本、浮力湍流产项和热壁函数细节未确认；图读半宽不是验收容差，部分恢复二阶续算也未建立两软件等价性。"
+      ],
+      "experimental_acceptance": "NOT_SET",
+      "fluent_equivalence_acceptance": "NOT_SET",
+      "shared_openfoam_study": {
+        "study_id": "pachera-cavity-openfoam-continuation-f42f261e-r01",
+        "source_commit": "f42f261e302a17ba27cba11ee663c3082c419103",
+        "solver": "OpenCFD OpenFOAM",
+        "solver_version": "v2606",
+        "application": "buoyantBoussinesqSimpleFoam",
+        "numerical_model": "2D 中深平面，单流体域，稳态 SIMPLE、Boussinesq 常参考物性、标准 kEpsilon 和选定 OpenFOAM 壁函数。冷热竖壁定温，上下壁采用实验温度曲线作边界。",
+        "scheme": "从一阶 3000 检查点延续至 6000；仅 U/T 恢复 bounded Gauss linearUpwind，k/epsilon 仍一阶 upwind，与作者 Fluent 的完整二阶设置不等价。迭代索引不是物理时间。",
+        "benchmark_inputs": {
+          "continuation_script": {
+            "path": "[internal evidence path withheld]",
+            "sha256": "582bafbd6e76878295c0243e086e84e8161882663cf764202054f6aeadc2bd31"
+          },
+          "input_archive_sha256": "62c173cd577c09c7f2895afc60251b31ec9968fdc876560f5a5ff5b06e20caf4",
+          "parent_result_archive_sha256": "67f46d626997574ac6289432259f489a245d104bad9b4d1b4eee29952d85573b",
+          "verified_inherited_files": 72,
+          "ran_new_block_mesh": false
+        },
+        "station_evidence": {
+          "host": "WIN-7QCGU9LOA3C",
+          "bundle_id": "station-f42f261e-r01",
+          "result_archive": {
+            "name": "results.tar.gz",
+            "sha256": "1c368b9a1fa7a38f19c2edc2e42d16f88c52a6eee303a3859efa168af5de1752"
+          },
+          "receipt": {
+            "member": "[internal evidence path withheld]",
+            "sha256": "adf837f696468c786072df1047cdbbda6af517cc9b9de48401eae16fc4289a4d"
+          },
+          "binary_sha256": "14fefd23e5adfaaabf5445aa2ae8aae95de28a3a5aabe06fea78addbc5d0b856"
+        },
+        "controller_comparison": {
+          "name": "comparison-f42f261e.json",
+          "sha256": "a5735732ee51fea10fa9463cffb86367d84f5ebbd07ad42fc4ab67830cfd466d"
+        },
+        "cross_grid_checks": {
+          "max_midheight_temperature_change_K": 0.09498393399996985,
+          "midheight_temperature_change_within_0p4K": true,
+          "hot_wall_change_relative_to_coarse": 0.38603280163487874,
+          "cold_wall_change_relative_to_coarse": 0.38088770035419195,
+          "wall_heat_grid_independence": "not_demonstrated",
+          "traditional_wall_function_applicability": "not_demonstrated",
+          "residual_criterion": "not_met"
+        },
+        "public_closure_finding": {
+          "receipt": {
+            "name": "public-closure-finding.json",
+            "sha256": "0943600852c47de1541356963b7726164d25b5ad339f152a8c2d7591c421bb11"
+          },
+          "conclusion": "unverified",
+          "summary": "Pachera 第6节给出标准 k–ε、标准壁函数和上下壁温 UDF，未公开 Fluent 版本、k/ε 浮力项开关或热壁函数参数。OpenCFD v2606 动量浮力与可选 buoyancyTurbSource 分属不同方程，目前不能核定两套闭合的逐项等价性。",
+          "sources": [
+            {
+              "url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+              "locator": "Pachera et al. 2014, section 6, pp. 265–267, tables 5 and 6"
+            },
+            {
+              "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/fvOptions/sources/derived/buoyancyTurbSource/buoyancyTurbSource.C",
+              "locator": "OpenCFD tag OpenFOAM-v2606, buoyancyTurbSource::B, addSup and k/epsilon source terms"
+            },
+            {
+              "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/UEqn.H",
+              "locator": "buoyantBoussinesqSimpleFoam/UEqn.H, momentum predictor gravitational term"
+            }
+          ]
+        },
+        "energy_closure_evidence": {
+          "registered_criteria": {
+            "name": "frozen-numerical-criteria.json",
+            "sha256": "dc162326fffae0f1c6ea6939670cad5304e06d8be581bf47629b51b7e01e99b6"
+          },
+          "independent_crosscheck": {
+            "name": "station-f42f261e-independent.json",
+            "sha256": "07ce56acb3d22fcb3a96cc38637d3597979ecf862ae37d724079f53d50bca089"
+          },
+          "normalization": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+          "status": "coarse_penultimate_checkpoint_not_met",
+          "detail": "粗网 5900 约为 1.37%，超过 1%；两网格 6000 的闭合只代表该保存迭代。实验验收另未设置。"
+        }
+      },
+      "independent_figure_readback": {
+        "receipt": {
+          "name": "fluent-fig13-independent.json",
+          "sha256": "b9f24dc4199c27abdda90c48d84c0434f65078d80e23a1d24b0567c1e891a69f"
+        },
+        "publisher_pdf_sha256": "4137cb586209c1b63abb84c31bad24b790d1c5aebd0358d9c45d8fe45d69ee44",
+        "source_location": "p.267, section 6, Fig.13",
+        "reading_method": "Two-pixel conservative graphical half-width, including trace and axis rounding. Solid Fluent Numerical (UDF) trace, black experimental dots excluded. Interior only.",
+        "graphical_halfwidth_K": 0.45,
+        "halfwidth_is_model_tolerance": false
+      },
+      "first_order_recovery": {
+        "shared_openfoam_study": {
+          "study_id": "pachera-cavity-openfoam-upwind-04a94265-r01",
+          "source_commit": "04a94265",
+          "solver": "OpenCFD OpenFOAM",
+          "solver_version": "v2606",
+          "application": "buoyantBoussinesqSimpleFoam",
+          "numerical_model": "2D 中深平面，单流体域，稳态 SIMPLE、Boussinesq 常参考物性、标准 kEpsilon 和选定 OpenFOAM 壁函数。冷热竖壁定温，上下壁采用实验温度曲线作边界。",
+          "scheme": "恢复计算采用 bounded Gauss upwind 一阶 U/T/k/epsilon 对流离散，并降低 SIMPLE 松弛；与作者报告的 Fluent 二阶迎风不是同一离散。迭代索引不是物理时间。",
+          "benchmark_inputs": {
+            "paths": [
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "4551ad580a6433977a56954b35ca9744cd34558d6e4b9fbbb1227dc937e0c249"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "da27939a7a2028679aad0b7fde620e9416e04ead6129f3a3f557c53e52579014"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "b5e38a3a411426d4850b6c4eb1351f981c6a37cfc30bf085e964826813bf75c9"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "e3324bb4835bf078a115041a254760eae33ef60f9fc77f5c4c091bacb98c8dc6"
+              }
+            ],
+            "input_archive_sha256": "1c516dbcc620d6cda0b5bdcd84e05361c7b9e4198a1ccd39bc1c7b8441b935b9"
+          },
+          "station_evidence": {
+            "host": "WIN-7QCGU9LOA3C",
+            "bundle_id": "station-04a94265-r01",
+            "result_archive": {
+              "name": "results.tar.gz",
+              "sha256": "67f46d626997574ac6289432259f489a245d104bad9b4d1b4eee29952d85573b"
+            },
+            "receipt": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "f378835c9e883fe71dac6b46865352821845bcf25d5b92cbcb348789d99fbd30"
+            },
+            "binary_sha256": "14fefd23e5adfaaabf5445aa2ae8aae95de28a3a5aabe06fea78addbc5d0b856"
+          },
+          "controller_comparison": {
+            "name": "comparison-04a94265.json",
+            "sha256": "34d057e3f87d9ec670a3f4f574ac8172fc9e7cb8f6d4bea60b039b3baddcabb8"
+          },
+          "independent_review": {
+            "name": "station-04a94265-independent.json",
+            "sha256": "6f2f3b45d4c8641d817d380cc1a5516f365e6373ce89b6e8ecf8cdfbeb83e4c3"
+          },
+          "previous_attempt": {
+            "source_commit": "9ca2c1d7",
+            "bundle_id": "station-9ca2c1d7-r01",
+            "result_archive": {
+              "name": "results.tar.gz",
+              "sha256": "801ea7bc1790dede15dfa11faf5fbb27e5d1abed3a6638ccd68a87367b128f9f"
+            },
+            "run_id": "r003",
+            "case": "n040",
+            "exit_code": 3,
+            "status": "failed_numerical_divergence",
+            "detail": "保留最初更加高阶的 U/T linearUpwind 尝试；迭代约 24 时连续性和湍流量发散，没有有效对照输出。",
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "d510bce68efc63fe314a8e6bc9e84900296de79ca7126903925eca5623bd0ee4"
+            }
+          },
+          "cross_grid_checks": {
+            "max_midheight_temperature_change_K": 0.05065686700004335,
+            "midheight_temperature_change_within_0p4K": true,
+            "hot_wall_change_relative_to_coarse": 0.3668059978910031,
+            "cold_wall_change_relative_to_coarse": 0.3596367975447476,
+            "wall_heat_grid_independence": "not_demonstrated",
+            "traditional_wall_function_applicability": "not_demonstrated",
+            "residual_criterion": "not_met"
+          },
+          "public_closure_finding": {
+            "receipt": {
+              "name": "public-closure-finding.json",
+              "sha256": "0943600852c47de1541356963b7726164d25b5ad339f152a8c2d7591c421bb11"
+            },
+            "conclusion": "unverified",
+            "summary": "Pachera 第6节给出标准 k–ε、标准壁函数和上下壁温 UDF，未公开 Fluent 版本、k/ε 浮力项开关或热壁函数参数。OpenCFD v2606 动量浮力与可选 buoyancyTurbSource 分属不同方程，目前不能核定两套闭合的逐项等价性。",
+            "sources": [
+              {
+                "url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+                "locator": "Pachera et al. 2014, section 6, pp. 265–267, tables 5 and 6"
+              },
+              {
+                "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/fvOptions/sources/derived/buoyancyTurbSource/buoyancyTurbSource.C",
+                "locator": "OpenCFD tag OpenFOAM-v2606, buoyancyTurbSource::B, addSup and k/epsilon source terms"
+              },
+              {
+                "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/UEqn.H",
+                "locator": "buoyantBoussinesqSimpleFoam/UEqn.H, momentum predictor gravitational term"
+              }
+            ]
+          }
+        },
+        "cases": [
+          {
+            "case": "n040",
+            "run_id": "r003",
+            "exit_code": 0,
+            "iteration": 3000,
+            "final_checkpoint_iterations": [
+              2800.0,
+              2900.0,
+              3000.0
+            ],
+            "residuals": {
+              "all_20_initial_residuals_le_1e_4": false,
+              "maximum_by_field": {
+                "Ux": 0.00708709738265,
+                "Uy": 0.0029691054211,
+                "T": 0.000419776626156,
+                "p_rgh": 0.0341834024372,
+                "k": 0.000633682682199,
+                "epsilon": 0.00029741006585
+              },
+              "last_iteration": 3000
+            },
+            "probe_stability": {
+              "terminal_span_threshold_K": 0.1,
+              "passes_numeric_check": true,
+              "largest_terminal_span_K": 0.009904726999991453
+            },
+            "wall_heat": {
+              "sign": "positive wall-to-fluid",
+              "inward_W_per_m": {
+                "hot": 56.63854415955999,
+                "cold": -56.353187726933804,
+                "top": -7.798362435622739,
+                "bottom": 7.837205786282583
+              },
+              "closure_fraction": 0.005028243697178372,
+              "boundary_max_abs_error_K": 4.931166586175095e-10,
+              "postprocessing_receipt": {
+                "name": "wall-04a94265-n040.json",
+                "sha256": "1f943352cd2564c754459ed8576869023f00489f21ba368e51f5c48c07d9df8d"
+              },
+              "reported_iteration": 3000,
+              "closure_le_1_percent": true,
+              "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+              "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+              "original_inflow_normalized_diagnostic_fraction": 0.005028243697178372,
+              "checkpoints": [
+                {
+                  "iteration": 3000,
+                  "inward_W_per_m": {
+                    "hot": 56.63854415955999,
+                    "cold": -56.353187726933804,
+                    "top": -7.798362435622739,
+                    "bottom": 7.837205786282583
+                  },
+                  "total_in_W_per_m": 64.47574994584258,
+                  "total_out_magnitude_W_per_m": 64.15155016255655,
+                  "signed_net_W_per_m": 0.3241997832860317,
+                  "registered_denominator_W_per_m": 64.47574994584258,
+                  "registered_closure_fraction": 0.005028243697178372,
+                  "registered_within_1_percent": true,
+                  "inflow_normalized_diagnostic_fraction": 0.005028243697178372
+                }
+              ],
+              "two_consecutive_saved_checkpoints_within_1_percent": null,
+              "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+            },
+            "yplus": {
+              "min": 2.02624098016,
+              "max": 8.53135867284,
+              "face_fraction_30_300": 0.0,
+              "count": 160,
+              "traditional_wall_function_range_supported": false
+            },
+            "temperature_domain_K": {
+              "min": 291.771604755,
+              "max": 314.020251566,
+              "count": 1600
+            },
+            "artifacts": {
+              "probe": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "b2fd86fb548391fd727ddb910a840249990755f73c10fe46510ed731484b8610"
+              },
+              "log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "23dd1bd0aaad4a950fd7a6c384c6c00eaf48ad5549b47eb803a907b563ca2f3c"
+              }
+            },
+            "points": [
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.2,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.932503214000008,
+                "terminal_three_span_K": 0.009904726999991453,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.23250321400000828,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.4,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.923007712000015,
+                "terminal_three_span_K": 0.005135236000000987,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.22300771200001535,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.5,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.926448488000005,
+                "terminal_three_span_K": 0.004508987999997771,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.22644848800000617,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.6,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.92671106800003,
+                "terminal_three_span_K": 0.00015440900000385227,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.22671106800003216,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.8,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.924546958000008,
+                "terminal_three_span_K": 0.003309736000005614,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.22454695800000835,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              }
+            ]
+          },
+          {
+            "case": "n080",
+            "run_id": "r006",
+            "exit_code": 0,
+            "iteration": 3000,
+            "final_checkpoint_iterations": [
+              2800.0,
+              2900.0,
+              3000.0
+            ],
+            "residuals": {
+              "all_20_initial_residuals_le_1e_4": false,
+              "maximum_by_field": {
+                "Ux": 0.00036268663167,
+                "Uy": 0.000288177633551,
+                "T": 3.61685388325e-05,
+                "p_rgh": 0.00775018583079,
+                "k": 4.45616882381e-05,
+                "epsilon": 3.79578854637e-06
+              },
+              "last_iteration": 3000
+            },
+            "probe_stability": {
+              "terminal_span_threshold_K": 0.1,
+              "passes_numeric_check": true,
+              "largest_terminal_span_K": 0.010901097999976628
+            },
+            "wall_heat": {
+              "sign": "positive wall-to-fluid",
+              "inward_W_per_m": {
+                "hot": 77.41390186910104,
+                "cold": -76.61986769248625,
+                "top": -13.39097259969519,
+                "bottom": 12.925535566657448
+              },
+              "closure_fraction": 0.0036373609677469512,
+              "boundary_max_abs_error_K": 7.693188308621757e-10,
+              "postprocessing_receipt": {
+                "name": "wall-04a94265-n080.json",
+                "sha256": "f3b5ab19fc9ce4157bfa3caae0ea52529a255beb1cff410c9d411f4731112d97"
+              },
+              "reported_iteration": 3000,
+              "closure_le_1_percent": true,
+              "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+              "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+              "original_inflow_normalized_diagnostic_fraction": 0.0036373609677469512,
+              "checkpoints": [
+                {
+                  "iteration": 3000,
+                  "inward_W_per_m": {
+                    "hot": 77.41390186910104,
+                    "cold": -76.61986769248625,
+                    "top": -13.39097259969519,
+                    "bottom": 12.925535566657448
+                  },
+                  "total_in_W_per_m": 90.33943743575848,
+                  "total_out_magnitude_W_per_m": 90.01084029218144,
+                  "signed_net_W_per_m": 0.3285971435770456,
+                  "registered_denominator_W_per_m": 90.33943743575848,
+                  "registered_closure_fraction": 0.0036373609677469512,
+                  "registered_within_1_percent": true,
+                  "inflow_normalized_diagnostic_fraction": 0.0036373609677469512
+                }
+              ],
+              "two_consecutive_saved_checkpoints_within_1_percent": null,
+              "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+            },
+            "yplus": {
+              "min": 0.311516033345,
+              "max": 4.19611779975,
+              "face_fraction_30_300": 0.0,
+              "count": 320,
+              "traditional_wall_function_range_supported": false
+            },
+            "temperature_domain_K": {
+              "min": 283.956053567,
+              "max": 321.92755081,
+              "count": 6400
+            },
+            "artifacts": {
+              "probe": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dacf5c882eee99c1b15da054cc988b1262b46065c50dc1d81e1500c5ee667e1c"
+              },
+              "log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "3ec518db4a51a7759a2194f4ee789d75ec8e2006901920be6e75ccd4c2390469"
+              }
+            },
+            "points": [
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.2,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.90480470600005,
+                "terminal_three_span_K": 0.007553025000049729,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.20480470600005063,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.4,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.92255493500005,
+                "terminal_three_span_K": 0.006602804999999989,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.2225549350000513,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.5,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.93847527400004,
+                "terminal_three_span_K": 0.008654782999997224,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.23847527400004154,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.6,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.95459378700002,
+                "terminal_three_span_K": 0.010901097999976628,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.25459378700002233,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.8,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.97520382500005,
+                "terminal_three_span_K": 0.00798771500001294,
+                "reference_C": 29.7,
+                "model_minus_reference_K": 0.2752038250000517,
+                "figure_reading_halfwidth_K": 0.45,
+                "value": 29.7,
+                "unit": "°C",
+                "measurement_definition": "Pachera 图 13 的 Fluent 曲线读值；figure_reading_halfwidth_K 为读图半宽。"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "ampofo2003-natural-convection-square-cavity",
+    "doi": "10.1016/S0017-9310(03)00147-9",
+    "title": "Experimental benchmark data for turbulent natural convection in an air filled square cavity",
+    "authors": "F. Ampofo, T. G. Karayiannis",
+    "year": 2003,
+    "software": "Experiment",
+    "software_version": null,
+    "industry": "传热 / 自然对流",
+    "targets": [
+      "interior_temperature",
+      "interior_velocity",
+      "wall_convective_heat_flux"
+    ],
+    "keywords": [
+      "Ampofo",
+      "Karayiannis",
+      "方腔",
+      "自然对流",
+      "square cavity",
+      "turbulent natural convection"
+    ],
+    "source_url": "https://www.sciencedirect.com/science/article/pii/S0017931003001479",
+    "source_locator": "表 2 和表 4；实验布置与坐标定义",
+    "conditions": [
+      "空气腔宽、高各 0.75 m，实物深 1.5 m；常用 2D 中深平面对照。",
+      "冷热竖壁 50 °C 与 10 °C；报告 Rayleigh 数 1.58×10⁹。",
+      "表 2 独立观测是中高、中深面腔内时均温度。表 4 的顶底壁面测温可作为仿真输入。"
+    ],
+    "model_chain": [
+      "实验在各探头位置测空气温度和速度，观测与冷热墙温差及明确的内部坐标归一。"
+    ],
+    "required_inputs": [
+      "确认实际测点坐标、参考方向和温度归一。按表 4 施加壁温时留存原始曲线及插值方案。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "interior_temperature",
+        "detail": "独立内部点 θ=(T−Tc)/(Th−Tc)，X 自热壁、Y=0.5。",
+        "locator": "Table 2"
+      },
+      {
+        "kind": "measured",
+        "quantity": "boundary_temperature",
+        "detail": "上下水平壁温是边界输入，不参与腔内验证。",
+        "locator": "Table 4"
+      }
+    ],
+    "limitations": [
+      "0.1 K 为仪器温度精度，不能作为合并不确定度或模型验收阈值。",
+      "双网格有原生读回；残差、壁函数适用及热量网格无关性仍待解决，实验验收容差未设置。",
+      "本次为冻结参数和映射的基准，不代表普通客户原话已可自动建模或进入原生执行。"
+    ],
+    "provenance": "Elsevier 原实验论文，与后续 Pachera Fluent 数值对照独立。",
+    "related_case_ids": [
+      "pachera2014-natural-convection-square-cavity"
+    ],
+    "reproduction": {
+      "status": "native_readback_acceptance_not_set",
+      "scope": "同一个 OpenFOAM v2606 冻结、双网格算例；主报告为部分恢复二阶的续算。分别对照独立实验或作者 Fluent 图，实验及 Fluent 等价性容差未设置。",
+      "routes": [
+        {
+          "chain": "enclosed_air_natural_convection",
+          "solver": "openfoam_opencfd",
+          "version": "v2606",
+          "requires_case_reference": true
+        }
+      ],
+      "cases": [
+        {
+          "case": "n040",
+          "run_id": "r002",
+          "exit_code": 0,
+          "iteration": 6000,
+          "parent_run_id": "r003",
+          "parent_log_sha256": "23dd1bd0aaad4a950fd7a6c384c6c00eaf48ad5549b47eb803a907b563ca2f3c",
+          "inherited_files_verified": 36,
+          "final_checkpoint_iterations": [
+            5800.0,
+            5900.0,
+            6000.0
+          ],
+          "residuals": {
+            "all_20_initial_residuals_le_1e_4": false,
+            "maximum_by_field": {
+              "Ux": 0.00991167295601,
+              "Uy": 0.00445644993627,
+              "T": 0.000571097271855,
+              "p_rgh": 0.050367328802,
+              "k": 0.00135443428243,
+              "epsilon": 0.000903966552554
+            },
+            "last_iteration": 6000
+          },
+          "probe_stability": {
+            "terminal_span_threshold_K": 0.1,
+            "passes_numeric_check": true,
+            "largest_terminal_span_K": 0.08165882099996224
+          },
+          "wall_heat": {
+            "sign": "positive wall-to-fluid",
+            "inward_W_per_m": {
+              "hot": 54.67713189130425,
+              "cold": -54.41375869075862,
+              "top": -8.667946178765956,
+              "bottom": 8.895154208192018
+            },
+            "closure_fraction": 0.007716904017009691,
+            "boundary_max_abs_error_K": 4.931166586175095e-10,
+            "postprocessing_receipt": {
+              "name": "wall-f42f261e-n040.json",
+              "sha256": "a11d96e08a03c7742ae082005c6307c3e0dac795e53ca5ed35884cf51dbc14f2"
+            },
+            "reported_iteration": 6000,
+            "closure_le_1_percent": true,
+            "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+            "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+            "original_inflow_normalized_diagnostic_fraction": 0.007716904017009691,
+            "checkpoints": [
+              {
+                "iteration": 5900,
+                "inward_W_per_m": {
+                  "hot": 54.79659342543035,
+                  "cold": -54.65375317635011,
+                  "top": -8.317881797145313,
+                  "bottom": 9.048754342541097
+                },
+                "total_in_W_per_m": 63.84534776797145,
+                "total_out_magnitude_W_per_m": 62.97163497349542,
+                "signed_net_W_per_m": 0.8737127944760275,
+                "registered_denominator_W_per_m": 63.84534776797145,
+                "registered_closure_fraction": 0.013684831002116224,
+                "registered_within_1_percent": false,
+                "inflow_normalized_diagnostic_fraction": 0.013684831002116224,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n040-5900.json",
+                  "sha256": "d3a54160dae82bc2e21e9195dab07209e3448b60354c60abb8bcad9b82578bcd"
+                }
+              },
+              {
+                "iteration": 6000,
+                "inward_W_per_m": {
+                  "hot": 54.67713189130425,
+                  "cold": -54.41375869075862,
+                  "top": -8.667946178765956,
+                  "bottom": 8.895154208192018
+                },
+                "total_in_W_per_m": 63.57228609949627,
+                "total_out_magnitude_W_per_m": 63.08170486952457,
+                "signed_net_W_per_m": 0.49058122997169207,
+                "registered_denominator_W_per_m": 63.57228609949627,
+                "registered_closure_fraction": 0.007716904017009691,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.007716904017009691,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n040.json",
+                  "sha256": "4b92162d4b4f8610b87b54f8db7fc81f01590f0d27a9af903281e7ac804c87f6"
+                }
+              }
+            ],
+            "two_consecutive_saved_checkpoints_within_1_percent": false,
+            "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+          },
+          "yplus": {
+            "min": 0.795648258879,
+            "max": 8.6529451601,
+            "face_fraction_30_300": 0.0,
+            "count": 160,
+            "traditional_wall_function_range_supported": false
+          },
+          "artifacts": {
+            "probe": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "f1227cc1b4a45dac46531d06e645c5a08891ac381f12e00f5b2031257d019aeb"
+            },
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "a62cb4842a2a811845872f9aeebc9ce5f20ef8f13db237fecd9f3904e7297f3a"
+            }
+          },
+          "points": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.855920584000046,
+              "terminal_three_span_K": 0.06719497599999613,
+              "value": 0.527,
+              "unit": "1",
+              "reference_C": 31.080000000000002,
+              "model_minus_reference_K": -1.224079415999956,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.89111091700005,
+              "terminal_three_span_K": 0.05900531500003581,
+              "value": 0.5217,
+              "unit": "1",
+              "reference_C": 30.868000000000002,
+              "model_minus_reference_K": -0.9768890829999535,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.886959708999996,
+              "terminal_three_span_K": 0.08165882099996224,
+              "value": 0.5174,
+              "unit": "1",
+              "reference_C": 30.695999999999998,
+              "model_minus_reference_K": -0.8090402910000023,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.882206879000023,
+              "terminal_three_span_K": 0.06927915600005008,
+              "value": 0.5154,
+              "unit": "1",
+              "reference_C": 30.616,
+              "model_minus_reference_K": -0.7337931209999766,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.867568707000032,
+              "terminal_three_span_K": 0.027865839000014603,
+              "value": 0.5135,
+              "unit": "1",
+              "reference_C": 30.54,
+              "model_minus_reference_K": -0.672431292999967,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            }
+          ]
+        },
+        {
+          "case": "n080",
+          "run_id": "r004",
+          "exit_code": 0,
+          "iteration": 6000,
+          "parent_run_id": "r006",
+          "parent_log_sha256": "3ec518db4a51a7759a2194f4ee789d75ec8e2006901920be6e75ccd4c2390469",
+          "inherited_files_verified": 36,
+          "final_checkpoint_iterations": [
+            5800.0,
+            5900.0,
+            6000.0
+          ],
+          "residuals": {
+            "all_20_initial_residuals_le_1e_4": false,
+            "maximum_by_field": {
+              "Ux": 0.0019586719543,
+              "Uy": 0.00135613288883,
+              "T": 0.000108044880992,
+              "p_rgh": 0.0203587694131,
+              "k": 0.000166628054541,
+              "epsilon": 2.40087084984e-05
+            },
+            "last_iteration": 6000
+          },
+          "probe_stability": {
+            "terminal_span_threshold_K": 0.1,
+            "passes_numeric_check": true,
+            "largest_terminal_span_K": 0.019349099999999453
+          },
+          "wall_heat": {
+            "sign": "positive wall-to-fluid",
+            "inward_W_per_m": {
+              "hot": 75.7842983006642,
+              "cold": -75.1392901061096,
+              "top": -14.823771703601265,
+              "bottom": 13.953819610742455
+            },
+            "closure_fraction": 0.0025004028740151546,
+            "boundary_max_abs_error_K": 7.693188308621757e-10,
+            "postprocessing_receipt": {
+              "name": "wall-f42f261e-n080.json",
+              "sha256": "0c40b3d7c0b64d03aef7ca44e62e0b8bc1262b7a9ef293e9b96e3e0418eace1c"
+            },
+            "reported_iteration": 6000,
+            "closure_le_1_percent": true,
+            "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+            "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+            "original_inflow_normalized_diagnostic_fraction": 0.0025066705602883083,
+            "checkpoints": [
+              {
+                "iteration": 5900,
+                "inward_W_per_m": {
+                  "hot": 75.79711069596297,
+                  "cold": -75.00871531819644,
+                  "top": -14.596262684502143,
+                  "bottom": 14.03021880578081
+                },
+                "total_in_W_per_m": 89.82732950174378,
+                "total_out_magnitude_W_per_m": 89.60497800269857,
+                "signed_net_W_per_m": 0.22235149904520135,
+                "registered_denominator_W_per_m": 89.82732950174378,
+                "registered_closure_fraction": 0.0024753212666851565,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.0024753212666851565,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n080-5900.json",
+                  "sha256": "e582fb28fa7c3b97f78efb1d8ad5f8a5698a53e10d3f1a82d1acb306870aa932"
+                }
+              },
+              {
+                "iteration": 6000,
+                "inward_W_per_m": {
+                  "hot": 75.7842983006642,
+                  "cold": -75.1392901061096,
+                  "top": -14.823771703601265,
+                  "bottom": 13.953819610742455
+                },
+                "total_in_W_per_m": 89.73811791140666,
+                "total_out_magnitude_W_per_m": 89.96306180971087,
+                "signed_net_W_per_m": -0.22494389830420403,
+                "registered_denominator_W_per_m": 89.96306180971087,
+                "registered_closure_fraction": 0.0025004028740151546,
+                "registered_within_1_percent": true,
+                "inflow_normalized_diagnostic_fraction": 0.0025066705602883083,
+                "independent_audit_receipt": {
+                  "name": "station-f42f261e-n080.json",
+                  "sha256": "74132700b5046981a8a03282ae0959439f47ab6f931ae007f96a456a64d8514a"
+                }
+              }
+            ],
+            "two_consecutive_saved_checkpoints_within_1_percent": true,
+            "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+          },
+          "yplus": {
+            "min": 0.167829093744,
+            "max": 4.27649878899,
+            "face_fraction_30_300": 0.0,
+            "count": 320,
+            "traditional_wall_function_range_supported": false
+          },
+          "artifacts": {
+            "probe": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "65b37039bc07f6240e6c364ebc6ba502b9890b27df158e3abef7f553cd09cc41"
+            },
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "79f074738bb4526ec26deeb63a4a32926a99b560dd9eadc435cacac2d3a20b6a"
+            }
+          },
+          "points": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.950904518000016,
+              "terminal_three_span_K": 0.016732370999989143,
+              "value": 0.527,
+              "unit": "1",
+              "reference_C": 31.080000000000002,
+              "model_minus_reference_K": -1.129095481999986,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.927178147999996,
+              "terminal_three_span_K": 0.016489304000003813,
+              "value": 0.5217,
+              "unit": "1",
+              "reference_C": 30.868000000000002,
+              "model_minus_reference_K": -0.9408218520000062,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.932122692000007,
+              "terminal_three_span_K": 0.01024008000001686,
+              "value": 0.5174,
+              "unit": "1",
+              "reference_C": 30.695999999999998,
+              "model_minus_reference_K": -0.7638773079999908,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.938447789999998,
+              "terminal_three_span_K": 0.0069960259999675145,
+              "value": 0.5154,
+              "unit": "1",
+              "reference_C": 30.616,
+              "model_minus_reference_K": -0.6775522100000018,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.928310185000043,
+              "terminal_three_span_K": 0.019349099999999453,
+              "value": 0.5135,
+              "unit": "1",
+              "reference_C": 30.54,
+              "model_minus_reference_K": -0.6116898149999557,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            }
+          ]
+        }
+      ],
+      "vertical_velocity_comparison": {
+        "status": "native_readback_provisional_experiment",
+        "source_locator": "Ampofo and Karayiannis (2003), Table 2 and §3.2",
+        "measurement_definition": "向上为正的时间平均竖向速度 v；实验 v/V0 按 V0=1 m/s 转为 m/s。X=x/L 自热壁起算，半高 Y=y/H=0.5，腔深中平面；二维算例 z=0.005 m。",
+        "native_sampling": {
+          "solver_release": "OpenCFD OpenFOAM v2606",
+          "operation": "postProcess probes",
+          "interpolation": "cellPoint",
+          "prior_field_step": 6000,
+          "postProcess_sha256": "de81d5b554b6bec776dfe36ecd5da936bbce970805fd0feade374ade5938dfc9",
+          "stations_sha256": "26c79325816e96d4416e22514615ed08c08de6cf7d42d923959e9eca242e097a",
+          "jobs": [
+            {
+              "mesh": "n040",
+              "run_id": "r001",
+              "exit": 0,
+              "parent_U_sha256": "bbfe71ee57de15d3c9bc72230269614cdfae4df6a8555494f25173669f323fe8",
+              "dict_sha256": "6e7106ad7040e7baea66034f29f6737f2a1ba5371ae925f61bda91d5a424b42a",
+              "result_sha256": "461775217745eb9d5d2a89d9f455c4ef85697ec70d5497406b840966d73e4850",
+              "log_sha256": "8d838cb49d816071a7efaaea9f56fd0412822e139c5e9e192b0bf7505d03bd5d"
+            },
+            {
+              "mesh": "n080",
+              "run_id": "r002",
+              "exit": 0,
+              "parent_U_sha256": "f8774abb00ea9af098887fcdda0712b9c427048229dc623bfac2d7131f0f1db7",
+              "dict_sha256": "6e7106ad7040e7baea66034f29f6737f2a1ba5371ae925f61bda91d5a424b42a",
+              "result_sha256": "83ae4d41a47834ad16c7b9a22472c6e3a5f19a68714fd1dcf54e76528263ba0c",
+              "log_sha256": "34a628453504f4db6bfcdc1c07fac5f8a3369a127169a2adbba7a676513e008c"
+            }
+          ]
+        },
+        "stations": [
+          {
+            "x_over_width": 0.002,
+            "experiment_m_s": 0.1325,
+            "n040_cellPoint_m_s": 0.0236016477622,
+            "n040_minus_experiment_m_s": -0.1088983522378,
+            "n080_cellPoint_m_s": 0.113163627366,
+            "n080_minus_experiment_m_s": -0.01933637263400001,
+            "n080_minus_n040_m_s": 0.0895619796038
+          },
+          {
+            "x_over_width": 0.004,
+            "experiment_m_s": 0.2,
+            "n040_cellPoint_m_s": 0.0472032955243,
+            "n040_minus_experiment_m_s": -0.1527967044757,
+            "n080_cellPoint_m_s": 0.2150656083,
+            "n080_minus_experiment_m_s": 0.015065608299999977,
+            "n080_minus_n040_m_s": 0.1678623127757
+          },
+          {
+            "x_over_width": 0.0066667,
+            "experiment_m_s": 0.2127,
+            "n040_cellPoint_m_s": 0.078672552568,
+            "n040_minus_experiment_m_s": -0.134027447432,
+            "n080_cellPoint_m_s": 0.225815276465,
+            "n080_minus_experiment_m_s": 0.013115276464999992,
+            "n080_minus_n040_m_s": 0.147142723897
+          },
+          {
+            "x_over_width": 0.0093333,
+            "experiment_m_s": 0.2081,
+            "n040_cellPoint_m_s": 0.110140629529,
+            "n040_minus_experiment_m_s": -0.097959370471,
+            "n080_cellPoint_m_s": 0.220117948652,
+            "n080_minus_experiment_m_s": 0.012017948651999982,
+            "n080_minus_n040_m_s": 0.10997731912299999
+          },
+          {
+            "x_over_width": 0.0133,
+            "experiment_m_s": 0.1745,
+            "n040_cellPoint_m_s": 0.156950957618,
+            "n040_minus_experiment_m_s": -0.017549042382000002,
+            "n080_cellPoint_m_s": 0.190536482749,
+            "n080_minus_experiment_m_s": 0.01603648274900002,
+            "n080_minus_n040_m_s": 0.03358552513100002
+          },
+          {
+            "x_over_width": 0.02,
+            "experiment_m_s": 0.1308,
+            "n040_cellPoint_m_s": 0.144927222586,
+            "n040_minus_experiment_m_s": 0.014127222585999993,
+            "n080_cellPoint_m_s": 0.139545346082,
+            "n080_minus_experiment_m_s": 0.008745346082000005,
+            "n080_minus_n040_m_s": -0.005381876503999988
+          }
+        ],
+        "comparison_receipt": {
+          "name": "velocity-comparison.json",
+          "sha256": "71afa4a9a67052e1f1e99ab3a66072eebe05c175577652799eb0cae17460d5bc"
+        },
+        "native_receipt": {
+          "name": "[internal evidence path withheld]",
+          "sha256": "90d0b27d5d947957776078281e4b29c0fe6d8c5c4bc93b56926224f490c44880"
+        },
+        "experiment_transcription": {
+          "name": "velocity-holdout-text-checked.json",
+          "sha256": "65e3ecc5d9c8eae9db892ad2cdac8093730876f25ba3747defaf220fdc9c2a46",
+          "status": "text_cross_checked_visual_table_pending",
+          "note": "章节和表头文字交叉核验；两份镜像将两速度列的表头转录为不同次序，尚待目视核验原表。",
+          "source_text_mirrors": [
+            "https://www.academia.edu/107743109/Experimental_benchmark_data_for_turbulent_natural_convection_in_an_air_filled_square_cavity",
+            "https://electronicsandbooks.com/edt/manual/Magazine/I/International%20Journal%20of%20Heat%20and%20Mass%20Transfer/2003%20Volume%2046/19/01.pdf"
+          ]
+        },
+        "secondary_figure": {
+          "source": "Pachera et al. (2014), Fig. 14",
+          "url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+          "figure_sha256": "1531eb5990c0f14b2280aeb141d09452ee9e34d2d18af0caa715b1448f587670",
+          "role": "Ampofo 实验的二次重绘，作为同一实验的旁证；未提取 Fluent 数值。"
+        },
+        "limitations": "仅对既有第 6000 步场后处理；残差门槛未满足，传统壁函数适用性与速度网格无关性未建立，实验验收容差未设。",
+        "experimental_acceptance": "NOT_SET"
+      },
+      "brief_results": [
+        {
+          "kind": "experimental_same_quantity_comparison",
+          "conditions": "80² 续算终态，Y=0.5、中深，X 自热壁。仅 U/T 恢复线性迎风；表 4 上下墙温为输入。",
+          "measurements": [
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.2,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.950904518000016,
+              "terminal_three_span_K": 0.016732370999989143,
+              "value": 0.527,
+              "unit": "1",
+              "reference_C": 31.080000000000002,
+              "model_minus_reference_K": -1.129095481999986,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.4,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.927178147999996,
+              "terminal_three_span_K": 0.016489304000003813,
+              "value": 0.5217,
+              "unit": "1",
+              "reference_C": 30.868000000000002,
+              "model_minus_reference_K": -0.9408218520000062,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.5,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.932122692000007,
+              "terminal_three_span_K": 0.01024008000001686,
+              "value": 0.5174,
+              "unit": "1",
+              "reference_C": 30.695999999999998,
+              "model_minus_reference_K": -0.7638773079999908,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.6,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.938447789999998,
+              "terminal_three_span_K": 0.0069960259999675145,
+              "value": 0.5154,
+              "unit": "1",
+              "reference_C": 30.616,
+              "model_minus_reference_K": -0.6775522100000018,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            },
+            {
+              "quantity": "interior_temperature",
+              "x_over_width": 0.8,
+              "y_over_height": 0.5,
+              "openfoam_C": 29.928310185000043,
+              "terminal_three_span_K": 0.019349099999999453,
+              "value": 0.5135,
+              "unit": "1",
+              "reference_C": 30.54,
+              "model_minus_reference_K": -0.6116898149999557,
+              "measurement_definition": "Ampofo 表 2 内部平均温度 θ；reference_C 为等价摄氏值。"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "续算两网格残差准则未达到，经典壁函数适用性及四壁热量网格无关性未证实；未设实验容差。"
+      ],
+      "experimental_acceptance": "NOT_SET",
+      "fluent_equivalence_acceptance": "NOT_SET",
+      "shared_openfoam_study": {
+        "study_id": "pachera-cavity-openfoam-continuation-f42f261e-r01",
+        "source_commit": "f42f261e302a17ba27cba11ee663c3082c419103",
+        "solver": "OpenCFD OpenFOAM",
+        "solver_version": "v2606",
+        "application": "buoyantBoussinesqSimpleFoam",
+        "numerical_model": "2D 中深平面，单流体域，稳态 SIMPLE、Boussinesq 常参考物性、标准 kEpsilon 和选定 OpenFOAM 壁函数。冷热竖壁定温，上下壁采用实验温度曲线作边界。",
+        "scheme": "从一阶 3000 检查点延续至 6000；仅 U/T 恢复 bounded Gauss linearUpwind，k/epsilon 仍一阶 upwind，与作者 Fluent 的完整二阶设置不等价。迭代索引不是物理时间。",
+        "benchmark_inputs": {
+          "continuation_script": {
+            "path": "[internal evidence path withheld]",
+            "sha256": "582bafbd6e76878295c0243e086e84e8161882663cf764202054f6aeadc2bd31"
+          },
+          "input_archive_sha256": "62c173cd577c09c7f2895afc60251b31ec9968fdc876560f5a5ff5b06e20caf4",
+          "parent_result_archive_sha256": "67f46d626997574ac6289432259f489a245d104bad9b4d1b4eee29952d85573b",
+          "verified_inherited_files": 72,
+          "ran_new_block_mesh": false
+        },
+        "station_evidence": {
+          "host": "WIN-7QCGU9LOA3C",
+          "bundle_id": "station-f42f261e-r01",
+          "result_archive": {
+            "name": "results.tar.gz",
+            "sha256": "1c368b9a1fa7a38f19c2edc2e42d16f88c52a6eee303a3859efa168af5de1752"
+          },
+          "receipt": {
+            "member": "[internal evidence path withheld]",
+            "sha256": "adf837f696468c786072df1047cdbbda6af517cc9b9de48401eae16fc4289a4d"
+          },
+          "binary_sha256": "14fefd23e5adfaaabf5445aa2ae8aae95de28a3a5aabe06fea78addbc5d0b856"
+        },
+        "controller_comparison": {
+          "name": "comparison-f42f261e.json",
+          "sha256": "a5735732ee51fea10fa9463cffb86367d84f5ebbd07ad42fc4ab67830cfd466d"
+        },
+        "cross_grid_checks": {
+          "max_midheight_temperature_change_K": 0.09498393399996985,
+          "midheight_temperature_change_within_0p4K": true,
+          "hot_wall_change_relative_to_coarse": 0.38603280163487874,
+          "cold_wall_change_relative_to_coarse": 0.38088770035419195,
+          "wall_heat_grid_independence": "not_demonstrated",
+          "traditional_wall_function_applicability": "not_demonstrated",
+          "residual_criterion": "not_met"
+        },
+        "public_closure_finding": {
+          "receipt": {
+            "name": "public-closure-finding.json",
+            "sha256": "0943600852c47de1541356963b7726164d25b5ad339f152a8c2d7591c421bb11"
+          },
+          "conclusion": "unverified",
+          "summary": "Pachera 第6节给出标准 k–ε、标准壁函数和上下壁温 UDF，未公开 Fluent 版本、k/ε 浮力项开关或热壁函数参数。OpenCFD v2606 动量浮力与可选 buoyancyTurbSource 分属不同方程，目前不能核定两套闭合的逐项等价性。",
+          "sources": [
+            {
+              "url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+              "locator": "Pachera et al. 2014, section 6, pp. 265–267, tables 5 and 6"
+            },
+            {
+              "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/fvOptions/sources/derived/buoyancyTurbSource/buoyancyTurbSource.C",
+              "locator": "OpenCFD tag OpenFOAM-v2606, buoyancyTurbSource::B, addSup and k/epsilon source terms"
+            },
+            {
+              "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/UEqn.H",
+              "locator": "buoyantBoussinesqSimpleFoam/UEqn.H, momentum predictor gravitational term"
+            }
+          ]
+        },
+        "energy_closure_evidence": {
+          "registered_criteria": {
+            "name": "frozen-numerical-criteria.json",
+            "sha256": "dc162326fffae0f1c6ea6939670cad5304e06d8be581bf47629b51b7e01e99b6"
+          },
+          "independent_crosscheck": {
+            "name": "station-f42f261e-independent.json",
+            "sha256": "07ce56acb3d22fcb3a96cc38637d3597979ecf862ae37d724079f53d50bca089"
+          },
+          "normalization": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+          "status": "coarse_penultimate_checkpoint_not_met",
+          "detail": "粗网 5900 约为 1.37%，超过 1%；两网格 6000 的闭合只代表该保存迭代。实验验收另未设置。"
+        }
+      },
+      "reference_receipt_sha256": "d1c873bf1a9d79281255a9ddb851d1dd83133f1ec3ded670b75f56aef2764ad4",
+      "first_order_recovery": {
+        "shared_openfoam_study": {
+          "study_id": "pachera-cavity-openfoam-upwind-04a94265-r01",
+          "source_commit": "04a94265",
+          "solver": "OpenCFD OpenFOAM",
+          "solver_version": "v2606",
+          "application": "buoyantBoussinesqSimpleFoam",
+          "numerical_model": "2D 中深平面，单流体域，稳态 SIMPLE、Boussinesq 常参考物性、标准 kEpsilon 和选定 OpenFOAM 壁函数。冷热竖壁定温，上下壁采用实验温度曲线作边界。",
+          "scheme": "恢复计算采用 bounded Gauss upwind 一阶 U/T/k/epsilon 对流离散，并降低 SIMPLE 松弛；与作者报告的 Fluent 二阶迎风不是同一离散。迭代索引不是物理时间。",
+          "benchmark_inputs": {
+            "paths": [
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "4551ad580a6433977a56954b35ca9744cd34558d6e4b9fbbb1227dc937e0c249"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "da27939a7a2028679aad0b7fde620e9416e04ead6129f3a3f557c53e52579014"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "b5e38a3a411426d4850b6c4eb1351f981c6a37cfc30bf085e964826813bf75c9"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "e3324bb4835bf078a115041a254760eae33ef60f9fc77f5c4c091bacb98c8dc6"
+              }
+            ],
+            "input_archive_sha256": "1c516dbcc620d6cda0b5bdcd84e05361c7b9e4198a1ccd39bc1c7b8441b935b9"
+          },
+          "station_evidence": {
+            "host": "WIN-7QCGU9LOA3C",
+            "bundle_id": "station-04a94265-r01",
+            "result_archive": {
+              "name": "results.tar.gz",
+              "sha256": "67f46d626997574ac6289432259f489a245d104bad9b4d1b4eee29952d85573b"
+            },
+            "receipt": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "f378835c9e883fe71dac6b46865352821845bcf25d5b92cbcb348789d99fbd30"
+            },
+            "binary_sha256": "14fefd23e5adfaaabf5445aa2ae8aae95de28a3a5aabe06fea78addbc5d0b856"
+          },
+          "controller_comparison": {
+            "name": "comparison-04a94265.json",
+            "sha256": "34d057e3f87d9ec670a3f4f574ac8172fc9e7cb8f6d4bea60b039b3baddcabb8"
+          },
+          "independent_review": {
+            "name": "station-04a94265-independent.json",
+            "sha256": "6f2f3b45d4c8641d817d380cc1a5516f365e6373ce89b6e8ecf8cdfbeb83e4c3"
+          },
+          "previous_attempt": {
+            "source_commit": "9ca2c1d7",
+            "bundle_id": "station-9ca2c1d7-r01",
+            "result_archive": {
+              "name": "results.tar.gz",
+              "sha256": "801ea7bc1790dede15dfa11faf5fbb27e5d1abed3a6638ccd68a87367b128f9f"
+            },
+            "run_id": "r003",
+            "case": "n040",
+            "exit_code": 3,
+            "status": "failed_numerical_divergence",
+            "detail": "保留最初更加高阶的 U/T linearUpwind 尝试；迭代约 24 时连续性和湍流量发散，没有有效对照输出。",
+            "log": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "d510bce68efc63fe314a8e6bc9e84900296de79ca7126903925eca5623bd0ee4"
+            }
+          },
+          "cross_grid_checks": {
+            "max_midheight_temperature_change_K": 0.05065686700004335,
+            "midheight_temperature_change_within_0p4K": true,
+            "hot_wall_change_relative_to_coarse": 0.3668059978910031,
+            "cold_wall_change_relative_to_coarse": 0.3596367975447476,
+            "wall_heat_grid_independence": "not_demonstrated",
+            "traditional_wall_function_applicability": "not_demonstrated",
+            "residual_criterion": "not_met"
+          },
+          "public_closure_finding": {
+            "receipt": {
+              "name": "public-closure-finding.json",
+              "sha256": "0943600852c47de1541356963b7726164d25b5ad339f152a8c2d7591c421bb11"
+            },
+            "conclusion": "unverified",
+            "summary": "Pachera 第6节给出标准 k–ε、标准壁函数和上下壁温 UDF，未公开 Fluent 版本、k/ε 浮力项开关或热壁函数参数。OpenCFD v2606 动量浮力与可选 buoyancyTurbSource 分属不同方程，目前不能核定两套闭合的逐项等价性。",
+            "sources": [
+              {
+                "url": "https://www.wseas.org/multimedia/journals/heat/2014/a025712-094.pdf",
+                "locator": "Pachera et al. 2014, section 6, pp. 265–267, tables 5 and 6"
+              },
+              {
+                "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/fvOptions/sources/derived/buoyancyTurbSource/buoyancyTurbSource.C",
+                "locator": "OpenCFD tag OpenFOAM-v2606, buoyancyTurbSource::B, addSup and k/epsilon source terms"
+              },
+              {
+                "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/UEqn.H",
+                "locator": "buoyantBoussinesqSimpleFoam/UEqn.H, momentum predictor gravitational term"
+              }
+            ]
+          }
+        },
+        "cases": [
+          {
+            "case": "n040",
+            "run_id": "r003",
+            "exit_code": 0,
+            "iteration": 3000,
+            "final_checkpoint_iterations": [
+              2800.0,
+              2900.0,
+              3000.0
+            ],
+            "residuals": {
+              "all_20_initial_residuals_le_1e_4": false,
+              "maximum_by_field": {
+                "Ux": 0.00708709738265,
+                "Uy": 0.0029691054211,
+                "T": 0.000419776626156,
+                "p_rgh": 0.0341834024372,
+                "k": 0.000633682682199,
+                "epsilon": 0.00029741006585
+              },
+              "last_iteration": 3000
+            },
+            "probe_stability": {
+              "terminal_span_threshold_K": 0.1,
+              "passes_numeric_check": true,
+              "largest_terminal_span_K": 0.009904726999991453
+            },
+            "wall_heat": {
+              "sign": "positive wall-to-fluid",
+              "inward_W_per_m": {
+                "hot": 56.63854415955999,
+                "cold": -56.353187726933804,
+                "top": -7.798362435622739,
+                "bottom": 7.837205786282583
+              },
+              "closure_fraction": 0.005028243697178372,
+              "boundary_max_abs_error_K": 4.931166586175095e-10,
+              "postprocessing_receipt": {
+                "name": "wall-04a94265-n040.json",
+                "sha256": "1f943352cd2564c754459ed8576869023f00489f21ba368e51f5c48c07d9df8d"
+              },
+              "reported_iteration": 3000,
+              "closure_le_1_percent": true,
+              "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+              "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+              "original_inflow_normalized_diagnostic_fraction": 0.005028243697178372,
+              "checkpoints": [
+                {
+                  "iteration": 3000,
+                  "inward_W_per_m": {
+                    "hot": 56.63854415955999,
+                    "cold": -56.353187726933804,
+                    "top": -7.798362435622739,
+                    "bottom": 7.837205786282583
+                  },
+                  "total_in_W_per_m": 64.47574994584258,
+                  "total_out_magnitude_W_per_m": 64.15155016255655,
+                  "signed_net_W_per_m": 0.3241997832860317,
+                  "registered_denominator_W_per_m": 64.47574994584258,
+                  "registered_closure_fraction": 0.005028243697178372,
+                  "registered_within_1_percent": true,
+                  "inflow_normalized_diagnostic_fraction": 0.005028243697178372
+                }
+              ],
+              "two_consecutive_saved_checkpoints_within_1_percent": null,
+              "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+            },
+            "yplus": {
+              "min": 2.02624098016,
+              "max": 8.53135867284,
+              "face_fraction_30_300": 0.0,
+              "count": 160,
+              "traditional_wall_function_range_supported": false
+            },
+            "temperature_domain_K": {
+              "min": 291.771604755,
+              "max": 314.020251566,
+              "count": 1600
+            },
+            "artifacts": {
+              "probe": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "b2fd86fb548391fd727ddb910a840249990755f73c10fe46510ed731484b8610"
+              },
+              "log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "23dd1bd0aaad4a950fd7a6c384c6c00eaf48ad5549b47eb803a907b563ca2f3c"
+              }
+            },
+            "points": [
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.2,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.932503214000008,
+                "terminal_three_span_K": 0.009904726999991453,
+                "reference_C": 31.080000000000002,
+                "model_minus_reference_K": -1.1474967859999943,
+                "value": 0.527,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.4,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.923007712000015,
+                "terminal_three_span_K": 0.005135236000000987,
+                "reference_C": 30.868000000000002,
+                "model_minus_reference_K": -0.9449922879999875,
+                "value": 0.5217,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.5,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.926448488000005,
+                "terminal_three_span_K": 0.004508987999997771,
+                "reference_C": 30.695999999999998,
+                "model_minus_reference_K": -0.7695515119999925,
+                "value": 0.5174,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.6,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.92671106800003,
+                "terminal_three_span_K": 0.00015440900000385227,
+                "reference_C": 30.616,
+                "model_minus_reference_K": -0.6892889319999682,
+                "value": 0.5154,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.8,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.924546958000008,
+                "terminal_three_span_K": 0.003309736000005614,
+                "reference_C": 30.54,
+                "model_minus_reference_K": -0.6154530419999915,
+                "value": 0.5135,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              }
+            ]
+          },
+          {
+            "case": "n080",
+            "run_id": "r006",
+            "exit_code": 0,
+            "iteration": 3000,
+            "final_checkpoint_iterations": [
+              2800.0,
+              2900.0,
+              3000.0
+            ],
+            "residuals": {
+              "all_20_initial_residuals_le_1e_4": false,
+              "maximum_by_field": {
+                "Ux": 0.00036268663167,
+                "Uy": 0.000288177633551,
+                "T": 3.61685388325e-05,
+                "p_rgh": 0.00775018583079,
+                "k": 4.45616882381e-05,
+                "epsilon": 3.79578854637e-06
+              },
+              "last_iteration": 3000
+            },
+            "probe_stability": {
+              "terminal_span_threshold_K": 0.1,
+              "passes_numeric_check": true,
+              "largest_terminal_span_K": 0.010901097999976628
+            },
+            "wall_heat": {
+              "sign": "positive wall-to-fluid",
+              "inward_W_per_m": {
+                "hot": 77.41390186910104,
+                "cold": -76.61986769248625,
+                "top": -13.39097259969519,
+                "bottom": 12.925535566657448
+              },
+              "closure_fraction": 0.0036373609677469512,
+              "boundary_max_abs_error_K": 7.693188308621757e-10,
+              "postprocessing_receipt": {
+                "name": "wall-04a94265-n080.json",
+                "sha256": "f3b5ab19fc9ce4157bfa3caae0ea52529a255beb1cff410c9d411f4731112d97"
+              },
+              "reported_iteration": 3000,
+              "closure_le_1_percent": true,
+              "closure_definition": "abs(sum(q_wall)) / max(sum(q_wall where q_wall > 0), abs(sum(q_wall where q_wall < 0)))",
+              "original_diagnostic_definition": "abs(sum(q_wall)) / sum(q_wall where q_wall > 0)",
+              "original_inflow_normalized_diagnostic_fraction": 0.0036373609677469512,
+              "checkpoints": [
+                {
+                  "iteration": 3000,
+                  "inward_W_per_m": {
+                    "hot": 77.41390186910104,
+                    "cold": -76.61986769248625,
+                    "top": -13.39097259969519,
+                    "bottom": 12.925535566657448
+                  },
+                  "total_in_W_per_m": 90.33943743575848,
+                  "total_out_magnitude_W_per_m": 90.01084029218144,
+                  "signed_net_W_per_m": 0.3285971435770456,
+                  "registered_denominator_W_per_m": 90.33943743575848,
+                  "registered_closure_fraction": 0.0036373609677469512,
+                  "registered_within_1_percent": true,
+                  "inflow_normalized_diagnostic_fraction": 0.0036373609677469512
+                }
+              ],
+              "two_consecutive_saved_checkpoints_within_1_percent": null,
+              "interpretation": "主值为所列末次保存迭代；两次检查针对保存时刻，其间未逐步核验。四壁采用同一含湍流扩散的热流定义；正向流入，按每米深度，2D 薄层 0.01 m。"
+            },
+            "yplus": {
+              "min": 0.311516033345,
+              "max": 4.19611779975,
+              "face_fraction_30_300": 0.0,
+              "count": 320,
+              "traditional_wall_function_range_supported": false
+            },
+            "temperature_domain_K": {
+              "min": 283.956053567,
+              "max": 321.92755081,
+              "count": 6400
+            },
+            "artifacts": {
+              "probe": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "dacf5c882eee99c1b15da054cc988b1262b46065c50dc1d81e1500c5ee667e1c"
+              },
+              "log": {
+                "member": "[internal evidence path withheld]",
+                "sha256": "3ec518db4a51a7759a2194f4ee789d75ec8e2006901920be6e75ccd4c2390469"
+              }
+            },
+            "points": [
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.2,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.90480470600005,
+                "terminal_three_span_K": 0.007553025000049729,
+                "reference_C": 31.080000000000002,
+                "model_minus_reference_K": -1.175195293999952,
+                "value": 0.527,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.4,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.92255493500005,
+                "terminal_three_span_K": 0.006602804999999989,
+                "reference_C": 30.868000000000002,
+                "model_minus_reference_K": -0.9454450649999515,
+                "value": 0.5217,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.5,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.93847527400004,
+                "terminal_three_span_K": 0.008654782999997224,
+                "reference_C": 30.695999999999998,
+                "model_minus_reference_K": -0.7575247259999571,
+                "value": 0.5174,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.6,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.95459378700002,
+                "terminal_three_span_K": 0.010901097999976628,
+                "reference_C": 30.616,
+                "model_minus_reference_K": -0.661406212999978,
+                "value": 0.5154,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              },
+              {
+                "quantity": "interior_temperature",
+                "x_over_width": 0.8,
+                "y_over_height": 0.5,
+                "openfoam_C": 29.97520382500005,
+                "terminal_three_span_K": 0.00798771500001294,
+                "reference_C": 30.54,
+                "model_minus_reference_K": -0.5647961749999482,
+                "value": 0.5135,
+                "unit": "1",
+                "measurement_definition": "Ampofo 表 2 的内部平均温度 θ；reference_C 单列等价摄氏值。"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

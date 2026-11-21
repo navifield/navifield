@@ -1,0 +1,161 @@
+{
+  "domain": "phase_change",
+  "solver": "calculix",
+  "version": "2.22",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "limited_scope",
+      "scope": "可配置温度相关表观比热模拟有限温区潜热，无需编译用户子程序；未核实专用 *LATENT HEAT 关键字。",
+      "custom_work": "用户设计比热曲线并验证；只有使用热用户材料接口才需要自行编程。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§7.120 *SPECIFIC HEAT, PDF p.591; §7.137 *USER MATERIAL",
+          "claim": "固体比热可随温度列表；手册文本检索未找到 *LATENT HEAT，不能由检索缺失断言源码全面不支持；TYPE=THERMAL 用户材料需自写。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://www.dhondt.de/ccx_2.22.src.tar.bz2",
+          "locator": "ccx_2.22/src/calinput.f:1079–1087, src/specificheats.f:19–84; src/readinput.c; src/inputerror.f",
+          "claim": "发布源码中 calinput 将 *SPECIFICHEAT 分派 specificheats；对这四文件检索 LATENT HEAT、LATENTHEAT、BOILING、CONDENSATION 无匹配。只说明所查范围，不能证明其他代码中均不存在。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "insufficient_evidence",
+      "scope": "所核对的固体比热及用户材料接口不证明壁面沸腾模型。",
+      "custom_work": "须另核查气液传质闭合。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§7.120 *SPECIFIC HEAT, PDF p.591; §7.137 *USER MATERIAL",
+          "claim": "固体瞬态比热可随温度列值；TYPE=THERMAL 用户材料接口须另行实现，以上并不等同内置非零潜热模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://www.dhondt.de/ccx_2.22.src.tar.bz2",
+          "locator": "ccx_2.22/src/calinput.f:1079–1087, src/specificheats.f:19–84; src/readinput.c; src/inputerror.f",
+          "claim": "发布源码中 calinput 将 *SPECIFICHEAT 分派 specificheats；对这四文件检索 LATENT HEAT、LATENTHEAT、BOILING、CONDENSATION 无匹配。只说明所查范围，不能证明其他代码中均不存在。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "insufficient_evidence",
+      "scope": "所核对的固体热材料接口不证明冷凝模型。",
+      "custom_work": "须另核查界面冷凝传质及传热。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§7.120 *SPECIFIC HEAT, PDF p.591; §7.137 *USER MATERIAL",
+          "claim": "固体瞬态比热可随温度列值；TYPE=THERMAL 用户材料接口须另行实现，以上并不等同内置非零潜热模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://www.dhondt.de/ccx_2.22.src.tar.bz2",
+          "locator": "ccx_2.22/src/calinput.f:1079–1087, src/specificheats.f:19–84; src/readinput.c; src/inputerror.f",
+          "claim": "发布源码中 calinput 将 *SPECIFICHEAT 分派 specificheats；对这四文件检索 LATENT HEAT、LATENTHEAT、BOILING、CONDENSATION 无匹配。只说明所查范围，不能证明其他代码中均不存在。"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "user_apparent_heat_capacity",
+      "label": "用户构造温度相关表观比热",
+      "capability_ids": [],
+      "mechanisms": [
+        "conduction",
+        "phase_change",
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "time": [
+          "transient"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "heat_capacity",
+          "meaning": "用户构造 c_eff(T) 表 J/(kg·K)，温区积分包含非零潜热"
+        },
+        {
+          "key": "density",
+          "meaning": "密度 kg/m³"
+        },
+        {
+          "key": "conductivity",
+          "meaning": "导热系数 W/(m·K)"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K 或热通量 W/m²"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K"
+        },
+        {
+          "key": "time_step",
+          "meaning": "时间步 s"
+        }
+      ],
+      "outputs": [
+        "温度场 K；相态需自行后处理"
+      ],
+      "assumptions": [
+        "热传导主导、在有限温区将潜热分布于表观比热。"
+      ],
+      "limitations": [
+        "这是用户构造材料近似，并非手册证明存在专用内置相变求解器；未建立相界面、质量传递或流动。",
+        "须自证插值积分、潜热能量守恒、网格和时间步收敛。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度",
+          "to_field": "热容量",
+          "quantity": "c_eff(T) J/(kg·K)",
+          "transfer": "*SPECIFIC HEAT 温度表",
+          "custom_work": "自行设计潜热温区及表格；验证积分与数值解。"
+        }
+      ],
+      "basis": "使用内置温度相关比热表自行配置有限温区潜热近似，无需编写 Fortran；曲线物理性与能量守恒由用户验证。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§7.120 *SPECIFIC HEAT, PDF p.591; §7.137 *USER MATERIAL",
+          "claim": "固体瞬态比热可随温度列值；TYPE=THERMAL 用户材料接口须另行实现，以上并不等同内置非零潜热模型。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://www.dhondt.de/ccx_2.22.src.tar.bz2",
+          "locator": "ccx_2.22/src/calinput.f:1079–1087, src/specificheats.f:19–84; src/readinput.c; src/inputerror.f",
+          "claim": "发布源码中 calinput 将 *SPECIFICHEAT 分派 specificheats；对这四文件检索 LATENT HEAT、LATENTHEAT、BOILING、CONDENSATION 无匹配。只说明所查范围，不能证明其他代码中均不存在。"
+        }
+      ],
+      "correlations": [
+        "构造 c_eff(T)，令相变区额外比热积分等于给定潜热；须用户验证，不是版本内置经验关系。"
+      ],
+      "custom_work": [
+        "配置比热表，使额外比热积分等于潜热并验证收敛；若采用 TYPE=THERMAL 自定义材料则需单独编写子程序。"
+      ],
+      "implementation": "configured"
+    }
+  ]
+}

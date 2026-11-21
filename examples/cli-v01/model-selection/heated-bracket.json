@@ -1,0 +1,14 @@
+{
+  "domain": "solid_mechanics",
+  "mechanisms": ["elasticity", "thermal_expansion"],
+  "goals": ["stress", "displacement", "thermal_strain"],
+  "conditions": {
+    "geometry": "solid",
+    "analysis": "quasistatic",
+    "material_response": "linear_elastic",
+    "deformation": "small",
+    "thermal_feedback": "one_way"
+  },
+  "known_inputs": ["elastic_modulus", "poisson_ratio", "supports", "temperature_field", "initial_temperature", "expansion_coefficient", "reference_temperature"],
+  "description": "Calculate distortion and stress in a steel equipment bracket bolted across two rigid feet. Import the nodal temperatures from the completed heat-transfer calculation. The heating is slow, the expected deformation is small, and the structural response does not feed back into the temperature calculation."
+}

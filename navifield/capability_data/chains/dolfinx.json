@@ -1,0 +1,455 @@
+{
+  "solver": "dolfinx",
+  "version": "0.10.0.post3",
+  "chains": [
+    {
+      "id": "outlet_net_vapor",
+      "status": "custom",
+      "scope": "固定壁温过冷核态沸腾通道。出口目标为有符号蒸汽质量流量，不用壁面产汽量代替；芯部汽泡再冷凝和蒸汽库存均进入控制体平衡。 用 UFL/PETSc 编写和求解两相、组分和热弱式。",
+      "steps": [
+        {
+          "id": "flow",
+          "operation": "建立汽相流动与库存",
+          "equation": "∂(αρ)/∂t+∇·(αρu)=S_v；壁面源作为边界通量或等效体源二选一",
+          "receives": [
+            "进出口相态、压力 Pa 和速度 m/s"
+          ],
+          "produces": [
+            "α_v、ρ_v kg/m³、u_v m/s 和汽相库存 kg"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "boiling_physics",
+            "forms"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "phase_exchange",
+          "operation": "提供壁面产汽和体相再冷凝闭合",
+          "equation": "壁面 RPI 产汽与体相再冷凝分开定义，汽液源符号相反并耦合能量",
+          "receives": [
+            "局部相态、温度 K、压力 Pa 与热边界"
+          ],
+          "produces": [
+            "壁面质量源 kg/(m²·s)、体源 kg/(m³·s)、相变热 W/m³"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "boiling_physics"
+          ],
+          "depends_on": [
+            "flow"
+          ]
+        },
+        {
+          "id": "outlet_balance",
+          "operation": "计算出入口相通量与库存",
+          "equation": "F=α_vρ_v u_v·n；出口毛流=∫out max(F,0)dA，净流=∫out F dA+∫in F dA；d∫V αρdV/dt+净流=∫wall j_RPI dA−∫V S_cond dV+其他源，边界源与体源勿重复计数",
+          "receives": [
+            "相分数、汽相密度 kg/m³、汽相速度 m/s、壁面及体相源"
+          ],
+          "produces": [
+            "出口正向毛流、净流和库存变化 kg/s"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "boiling_physics"
+          ],
+          "depends_on": [
+            "phase_exchange"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "壁面产汽与热流分配",
+          "relation": "j″_w=q″_evap/h_fg；产汽项以分配后的蒸发热流计算，需成核点密度、泡径和脱离频率",
+          "applicability": "固定壁温的过冷核态沸腾，验证标定覆盖流速、压力、过冷度及表面条件。",
+          "implementation": "custom",
+          "evidence": [
+            "boiling_physics"
+          ]
+        },
+        {
+          "name": "芯部再冷凝",
+          "relation": "例如 S_core=a_i h_i max(T_sat−T_l,0)/h_fg；模型需定义 a_i、h_i 与适用泡态",
+          "applicability": "该式为显热受限简化闭合，须核查局部冷凝机制和泡间面积；不能用出口汽率倒推而不独立标定。",
+          "implementation": "custom",
+          "evidence": [
+            "boiling_physics"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "geometry",
+          "meaning": "流域与尺寸 m"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量、压力和相态 kg/s、Pa"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "固定壁温 K"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "汽液密度、黏度、比热与导热率 SI"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "汽化潜热 J/kg"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "饱和温度/压力关系 K、Pa"
+        },
+        {
+          "key": "boiling_closures",
+          "meaning": "壁面 RPI 或其他产汽及体相再冷凝闭合参数"
+        },
+        {
+          "key": "interfacial_heat_transfer",
+          "meaning": "界面换热、相间面积及相变参数"
+        },
+        {
+          "key": "diagnostic_patches",
+          "meaning": "入口出口积分面、外法向及积分区域"
+        }
+      ],
+      "custom_work": [
+        "自行实现质量、动量、能量及界面残差、稳定化、时间离散与耦合求解。上游单相示例只提供接口用法。"
+      ],
+      "checks": [
+        "分别报告壁面产汽、芯部再冷凝、入口/出口有符号蒸汽质量流量及库存变化，所有积分以 kg/s 比较。",
+        "出口面积分和控制体闭合估算相互核对。只有库存变化相对误差预算可忽略时才视为稳态。",
+        "检查入口过冷、壁面核态适用、回流符号和时间/网格收敛，使用出口蒸汽测量或公开可比数据。"
+      ],
+      "sources": [
+        {
+          "id": "forms",
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类及残差/Jacobian 装配",
+          "claim": "接口接收用户给定的 UFL 弱式和 Jacobian，并调用 PETSc SNES。"
+        },
+        {
+          "id": "flow_demo",
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+          "locator": "Problem formulation；Implementation",
+          "claim": "演示单相不可压 Navier–Stokes 的间断 Galerkin 离散，未实现液汽相变闭合。"
+        },
+        {
+          "id": "boiling_physics",
+          "kind": "physics_reference",
+          "url": "https://www.osti.gov/pages/servlets/purl/1357617",
+          "locator": "INL/JOU-16-38275，§1，壁面热流分配与泡径、脱离频率、成核点密度",
+          "claim": "强制流过冷沸腾的实验研究，概述了壁面热流三项分配及子模型。此处只支持壁面产汽物理，不能据此得到出口净流量。"
+        }
+      ]
+    },
+    {
+      "id": "unresolved_film",
+      "status": "custom",
+      "scope": "纯饱和蒸汽在竖直光滑冷壁凝结。采用薄、稳态或准稳态、重力驱动层流液膜的壁面降阶模型。假定蒸汽剪切、膜惯性、不凝气、再夹带和膜波影响可忽略。 用 UFL/PETSc 编写和求解两相、组分和热弱式。",
+      "steps": [
+        {
+          "id": "film_wall",
+          "operation": "计算未解析重力液膜",
+          "equation": "Γ=ρ_l(ρ_l−ρ_v)g_parallel δ³/(3μ_l)；dΓ/dx=j_c；q_w=k_l(T_sat−T_w)/δ；j_c=q_w/h_fg（忽略膜显热）",
+          "receives": [
+            "壁温 K、饱和温度 K、液膜参数及板几何"
+          ],
+          "produces": [
+            "液膜流率 kg/(m·s)、热流 W/m²、凝结通量 kg/(m²·s)"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "film_physics",
+            "forms"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "film_integral",
+          "operation": "积分膜冷凝量",
+          "equation": "m=∫j_c dA，Q=∫q_w dA；固定宽度 b 时 m=b(Γ_bottom−Γ_top)",
+          "receives": [
+            "局部膜冷凝质量通量与热流"
+          ],
+          "produces": [
+            "凝液总量 kg/s、热量 W"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "film_physics"
+          ],
+          "depends_on": [
+            "film_wall"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "Nusselt 竖直重力膜",
+          "relation": "采用 Γ–δ、dΓ/dx=q″_w/h_fg 及 q″_w=k_lΔT/δ。等壁温、恒物性且入口无液膜时可用平均换热系数 0.943[ρ_l(ρ_l−ρ_v)g k_l³ h_fg/(μ_l L ΔT)]^(1/4) 对照。",
+          "applicability": "纯蒸汽，光滑竖直壁，导热控制、重力层流排液、液膜显热可忽略。",
+          "implementation": "custom",
+          "evidence": [
+            "film_physics"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "光滑竖直等温板高度 L m 和面积 m²"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "均匀壁温 K"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "纯蒸汽饱和温压关系"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "近恒定压力 Pa"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 kg/m³、液体黏度 Pa·s 和导热率 W/(m·K)"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "潜热 J/kg；本近似忽略明显膜显热"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度 m/s²"
+        }
+      ],
+      "custom_work": [
+        "自行实现质量、动量、能量及界面残差、稳定化、时间离散与耦合求解。上游单相示例只提供接口用法。"
+      ],
+      "checks": [
+        "用光滑竖直纯蒸汽基准核对局部膜厚、壁面热流和平均换热系数，报告端部奇点的积分处理。",
+        "核查液膜雷诺数 Re_f=4Γ/μ_l 的层流适用性、薄膜厚度相对尺度、蒸汽剪切和排液几何。",
+        "积分热量、凝结质量流率和底端排液相互闭合。壁温分布变化时避免直接套用等温平均式。"
+      ],
+      "sources": [
+        {
+          "id": "forms",
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类及残差/Jacobian 装配",
+          "claim": "接口接收用户给定的 UFL 弱式和 Jacobian，并调用 PETSc SNES。"
+        },
+        {
+          "id": "flow_demo",
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+          "locator": "Problem formulation；Implementation",
+          "claim": "演示单相不可压 Navier–Stokes 的间断 Galerkin 离散，未实现液汽相变闭合。"
+        },
+        {
+          "id": "film_physics",
+          "kind": "physics_reference",
+          "url": "https://engines.egr.uh.edu/sites/engines/files/files/LaminarFilmCondensation.pdf",
+          "locator": "J. H. Lienhard, Laminar Film Condensation on Plane and Axisymmetric Bodies in Nonuniform Gravity，Analysis，式 (5)–(6)",
+          "claim": "给出重力排液薄膜的单位宽度凝液流量及膜导热平衡，适用于构造竖直板纯蒸汽的简化边界模型。"
+        }
+      ]
+    },
+    {
+      "id": "condensation_with_ncg",
+      "status": "custom",
+      "scope": "蒸汽与空气混合流。气侧组分边界层经网格解析，冷壁液膜用薄膜热阻处理。局部界面饱和按蒸汽分压，计算凝结抽吸、潜热和显热。 用 UFL/PETSc 编写和求解两相、组分和热弱式。",
+      "steps": [
+        {
+          "id": "gas_boundary_layer",
+          "operation": "求解二元气体传质",
+          "equation": "F_i=ρuY_i−ρD∇Y_i；∂(ρY_i)/∂t+∇·F_i=0；求解总质量、动量及能量",
+          "receives": [
+            "入口组分、扩散系数 m²/s、速度 m/s、温度 K"
+          ],
+          "produces": [
+            "气相组分、温度和速度场"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "ncg_physics",
+            "forms"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "interface",
+          "operation": "界面分压平衡和空气零穿透",
+          "equation": "p_vi=p_sat(T_i)，X_vi=p_vi/p，Y_vi=X_vi M_v/[X_vi M_v+(1−X_vi)M_a]；N_air=0",
+          "receives": [
+            "近壁气相组成、压力 Pa、界面温度 K"
+          ],
+          "produces": [
+            "界面组分、凝结通量 kg/(m²·s)"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ],
+          "depends_on": [
+            "gas_boundary_layer"
+          ]
+        },
+        {
+          "id": "thermal_balance",
+          "operation": "耦合液膜和热量",
+          "equation": "q_l=q_sensible,g+m″h_fg=(T_i−T_w)/R_l；q_l 和 q_sensible,g 均指向液侧，h_fg 取界面温度；液膜显热忽略或另计",
+          "receives": [
+            "气侧显热 W/m²、质量通量 kg/(m²·s)、潜热 J/kg、膜热阻 m²K/W"
+          ],
+          "produces": [
+            "界面温度 K、热通量 W/m²"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ],
+          "depends_on": [
+            "interface"
+          ]
+        },
+        {
+          "id": "condensation_integral",
+          "operation": "积分冷凝及热量",
+          "equation": "m=∫m″dA，Q=∫q_l dA；检查空气零穿透",
+          "receives": [
+            "界面冷凝通量 kg/(m²·s) 和热流 W/m²"
+          ],
+          "produces": [
+            "冷凝量 kg/s 与热量 W"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ],
+          "depends_on": [
+            "thermal_balance"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "二元气相扩散和 Stefan 流",
+          "relation": "解析气层时：N_a=0，m″=ρ_g D_va/(1−Y_v)·∂Y_v/∂n（n 从界面指向气体，m″ 定义为向界面）；或在未解析气层时选用含 Stefan 流修正的传质系数闭合。",
+          "applicability": "二元水蒸气-空气、无空气渗入液相；解析扩散层不可再叠加 Sh/经验气膜阻力。",
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ]
+        },
+        {
+          "name": "界面饱和与液膜能量",
+          "relation": "p_vi=p_sat(T_i)，X_vi=p_vi/p，X→Y 用分子量换算；q_l=q_sensible,g+m″h_fg，q_l=(T_i−T_w)/R_l。",
+          "applicability": "局部相平衡、明确定义法向及显热；液膜热阻与壁体热传导分别处理。",
+          "implementation": "custom",
+          "evidence": [
+            "sparrow"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "壁面几何与面积 m²"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 K 或壁体热边界"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流速、温度和流量 m/s、K、kg/s"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "总压 Pa"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "气液密度、黏度、比热、导热率及分子量 SI"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "水蒸气饱和压与温度关系 Pa、K"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "汽化潜热 J/kg"
+        },
+        {
+          "key": "gas_composition",
+          "meaning": "入口蒸汽和空气摩尔或质量分数，注明基准"
+        },
+        {
+          "key": "vapor_diffusivity",
+          "meaning": "水蒸气—空气扩散系数 m²/s"
+        },
+        {
+          "key": "liquid_thermal_resistance",
+          "meaning": "液膜等效热阻 m²K/W 或液膜模型"
+        }
+      ],
+      "custom_work": [
+        "自行实现质量、动量、能量及界面残差、稳定化、时间离散与耦合求解。上游单相示例只提供接口用法。"
+      ],
+      "checks": [
+        "确认空气法向净通量接近零，气体总质量和蒸汽组分的边界损失一致，避免边界抽吸加体源重复。",
+        "对照冷侧热量、蒸汽耗减与排液质量，分别报告显热和潜热；校验压力是绝对压力。",
+        "加密气侧组分边界层并核查近壁梯度、界面温度和质量流率；检验膜热阻灵敏度与热平衡残差。",
+        "解析气侧浓度边界层时，不再叠加经验 Sh 气膜阻力；未解析时才选择经验证传质关联式。"
+      ],
+      "sources": [
+        {
+          "id": "forms",
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/FEniCS/dolfinx/v0.10.0.post3/python/dolfinx/fem/petsc.py",
+          "locator": "NonlinearProblem 类及残差/Jacobian 装配",
+          "claim": "接口接收用户给定的 UFL 弱式和 Jacobian，并调用 PETSc SNES。"
+        },
+        {
+          "id": "flow_demo",
+          "kind": "upstream_case",
+          "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+          "locator": "Problem formulation；Implementation",
+          "claim": "演示单相不可压 Navier–Stokes 的间断 Galerkin 离散，未实现液汽相变闭合。"
+        },
+        {
+          "id": "ncg_physics",
+          "kind": "physics_reference",
+          "url": "https://www.sciencedirect.com/science/article/pii/S002954931300040X",
+          "locator": "Dehbi、Janasz、Bell（2013），摘要、界面不凝气零净通量与守恒源项；DOI 10.1016/j.nucengdes.2013.02.002",
+          "claim": "原文实现不凝气不可穿透界面的气相守恒边界。其忽略液膜热阻，此处仅采用气相侧物理，薄膜热阻须另算。"
+        },
+        {
+          "id": "film_physics",
+          "kind": "physics_reference",
+          "url": "https://engines.egr.uh.edu/sites/engines/files/files/LaminarFilmCondensation.pdf",
+          "locator": "J. H. Lienhard, Laminar Film Condensation on Plane and Axisymmetric Bodies in Nonuniform Gravity，Analysis，式 (5)–(6)",
+          "claim": "给出重力排液薄膜的单位宽度凝液流量及膜导热平衡，适用于构造竖直板纯蒸汽的简化边界模型。"
+        },
+        {
+          "id": "sparrow",
+          "kind": "physics_reference",
+          "url": "https://doi.org/10.1016/0017-9310(66)90035-4",
+          "locator": "Minkowycz and Sparrow (1966), International Journal of Heat and Mass Transfer 9(10), pp. 1125–1144; steam–air condensation on a vertical plate.",
+          "claim": "含不凝气的层流膜凝耦合传热传质研究；不表示软件内置。"
+        }
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ def _render_one(
     isometric: bool = False,
     annotation: str | None = None,
     scalar_range: tuple[float, float] | None = None,
+    plane_normal_view: bool = False,
 ) -> None:
     import pyvista as pv
 
@@ -25,12 +26,12 @@ def _render_one(
     plotter = pv.Plotter(off_screen=True, window_size=[1280, 800])
     try:
         _render_one_plotter(plotter, slc, scalar_name, axis_name, out_path, cmap,
-                            bar_title, time_tag, association, isometric, annotation, scalar_range)
+                            bar_title, time_tag, association, isometric, annotation, scalar_range, plane_normal_view)
     finally:
         plotter.close()
 
 def _render_one_plotter(plotter, slc, scalar_name, axis_name, out_path, cmap,
-                        bar_title, time_tag, association, isometric, annotation, scalar_range):
+                        bar_title, time_tag, association, isometric, annotation, scalar_range, plane_normal_view=False):
     plotter.set_background("white")
     plotter.add_mesh(
         slc,
@@ -59,7 +60,9 @@ def _render_one_plotter(plotter, slc, scalar_name, axis_name, out_path, cmap,
         annotation += f"   t = {time_tag}"
     plotter.add_text(annotation, position="upper_left", font_size=14 if isometric else 22, color="black")
 
-    if isometric:
+    if plane_normal_view:
+        {"X": plotter.view_yz, "Y": plotter.view_xz, "Z": plotter.view_xy}[axis_name]()
+    elif isometric:
         plotter.view_isometric()
     elif axis_name == "Y":
         plotter.view_xz()

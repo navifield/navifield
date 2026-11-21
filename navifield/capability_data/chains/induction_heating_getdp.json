@@ -1,0 +1,157 @@
+{
+  "solver": "getdp",
+  "version": "3.5.0",
+  "chains": [
+    {
+      "id": "noncontact_induction_to_steady_temperature",
+      "status": "custom",
+      "scope": "GetDP 3.5.0，正弦非接触激励及磁准静态涡流到固体稳态热候选。工况、线圈励磁、体热源映射及热边界需配置和核验；暂无该设备原生执行接入或数值复现。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "harmonic_induction",
+          "operation": "GetDP 3.5.0：谐波磁准静态涡流",
+          "equation": "忽略位移电流；以 ω=2πf 和 e^{jωt} 约定，∇×E=−jωB，∇×H=J_s+J，导电试件 J=σE。",
+          "receives": [
+            "线圈电流相量 [A]、频率 [Hz]、匝数与绕向、线圈/试件/空气域、σ 和 μ"
+          ],
+          "produces": [
+            "试件复数 E [V/m]、J [A/m²]；如需铜损另导出可归属线圈的损耗"
+          ],
+          "depends_on": [],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "average_eddy_loss",
+          "operation": "GetDP 3.5.0：按导体域计算周期平均损耗",
+          "equation": "峰值相量 q̄=½ Re(J·E*)；RMS 相量 q̄=Re(J·E*)，单位 W/m³；P_试件=∫_试件 q̄ dV [W]。",
+          "receives": [
+            "同一峰值/RMS 定义的复数 J 与 E，域标签，同网格积分或保守跨网格映射"
+          ],
+          "produces": [
+            "试件体热源 [W/m³]、各域积分功率 [W]；与电源总功率、线圈铜损分列"
+          ],
+          "depends_on": [
+            "harmonic_induction"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "steady_conduction",
+          "operation": "GetDP 3.5.0：固体稳态导热与散热",
+          "equation": "−∇·(k∇T)=q̄；按已确认选区施加内外对流、接触传热及所需辐射。",
+          "receives": [
+            "体热源、导热物性、内外侧气体温度及换热、接触/辐射和线圈冷却定义"
+          ],
+          "produces": [
+            "温度场 [K] 及热通量 [W/m²]、分边界积分散热 [W]"
+          ],
+          "depends_on": [
+            "average_eddy_loss"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "temperature_observable",
+          "operation": "按接触式热电偶定义读回测点温度",
+          "equation": "T_probe 根据结点对应位置和测量/接触定义提取。",
+          "receives": [
+            "温度场、定位孔或虚拟测点、探头的接触定义"
+          ],
+          "produces": [
+            "含基准坐标和采样定义的测点温度 [K]"
+          ],
+          "depends_on": [
+            "steady_conduction"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "infrared_observable",
+          "operation": "用外表面辐射响应解释红外仪器读数",
+          "equation": "按仪器频带，对视场的发射/反射和观察窗透射辐亮度积分；由仪器标定关系反解指示温度。",
+          "receives": [
+            "表面温度场、斑点范围、辐射物性、可视路径和仪器标定"
+          ],
+          "produces": [
+            "仪器指示温度 [K 或 °C]，与材料表面峰温分列"
+          ],
+          "depends_on": [
+            "steady_conduction"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "peak_observable",
+          "operation": "在指定试件域提取实体或表面峰温",
+          "equation": "T_max=max_{指定试件域} T。",
+          "receives": [
+            "求解温度场、峰值搜索域或表面"
+          ],
+          "produces": [
+            "指定域峰值 [K] 及位置"
+          ],
+          "depends_on": [
+            "steady_conduction"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "线圈励磁与损耗归属",
+          "relation": "均匀化线圈由总安匝和绕向再现励磁边界；已解试件涡流单独积分，真实导线电流分布和铜损需显式或经核验的等效模型。",
+          "applicability": "规则线圈可用等效励磁；局部匝间不均匀或铜损目标需额外建模及验证。",
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "name": "磁热单向或反馈",
+          "relation": "先由相量计算 q̄，后送热方程。若 σ(T) 或 μ(T) 的反馈不可忽略，另行定义并验证外迭代、稳定性和收敛。",
+          "applicability": "当前单向候选仅在已确认物性或弱反馈的工况内使用。",
+          "implementation": "custom",
+          "evidence": [
+            "getdp_350"
+          ]
+        }
+      ],
+      "custom_work": [
+        "给同轴或三维几何建立域、边界、匝数和励磁映射，确认峰值或 RMS；按积分点设置热源并验证守恒。",
+        "实现适用的内外接触/辐射/换热及测点映射，建立网格、边界和观测量回归。"
+      ],
+      "checks": [
+        "检查皮深网格和外部空气域敏感性，逐域核对平均功率积分；跨网格按源/目标体积分校核。",
+        "用试件耗散与内外、接触和辐射热率核对稳态热平衡。测点温度与峰温按不同目标输出。"
+      ],
+      "sources": [
+        {
+          "id": "getdp_350",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0 §§7.8, 7.9.2, 7.9.5；Frequency、h-phi 与 magnetothermal example",
+          "claim": "支持谐波复数场与定制传热弱式；为后续仪器模型提供输入温度。例件和公式能力不等于线圈配置、热边界或辐射仪器已实现。"
+        }
+      ]
+    }
+  ]
+}

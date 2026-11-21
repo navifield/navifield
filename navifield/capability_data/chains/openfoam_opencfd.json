@@ -1,0 +1,1029 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "chains": [
+    {
+      "id": "outlet_net_vapor",
+      "status": "configured",
+      "scope": "固定壁温过冷核态流道。壁面汽源、体相再凝结和出口气相净流量通过官方 Euler–Euler 物理与运行时诊断接通，教程和公开泡参数实验只证明各自覆盖。",
+      "steps": [
+        {
+          "id": "rpi",
+          "operation": "求受热壁分配及汽源",
+          "equation": "q_w=q_conv+q_quench+q_evap；S_wall=(A/V) q_evap/h_fg",
+          "receives": [
+            "壁温/饱和温度/体相温度 [K]",
+            "liquid/gas 物性，壁面核态子模型"
+          ],
+          "produces": [
+            "壁面蒸发热流 [W/m²]",
+            "邻壁汽源 wDmdt [kg/(m³·s)]"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "case",
+            "wall"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "bulk",
+          "operation": "解相间热-质交换并重算两相流",
+          "equation": "源码按相对顺序求 iDmdtNew=[H1(T_sat−T1)+H2(T_sat−T2)]/L，其中 L 是该相序及传质方向下的焓差。源码给 phase1 +(iDmdt+wDmdt)，给 phase2 相反值；先按实际 pair 查明汽相，再映射为 Γ_v,int 和 Γ_v,wall。汽相守恒为 ∂t(α_vρ_v)+∇·(α_vρ_vU_v)=Γ_v,wall+Γ_v,int，工程约定 Γ_v>0 为产汽、Γ_v<0 为再凝结。",
+          "receives": [
+            "各相温度、流场、操作压力",
+            "壁面源 wDmdt [kg/(m³·s)]",
+            "基于直径/相面积的 K [W/(m³·K)]"
+          ],
+          "produces": [
+            "相场 α、ρ、T、U",
+            "含回凝结的面相质量流率 αRhoPhi.gas [kg/s]"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "case",
+            "thermal",
+            "flux",
+            "flux_assembly"
+          ],
+          "depends_on": [
+            "rpi"
+          ]
+        },
+        {
+          "id": "readback",
+          "operation": "求出口气相累计和控制体净产汽",
+          "equation": "各面 F_v 已含面积，按外法向求和。m_dot_out=Σ_出口 F_v；m_dot_in=−Σ_入口 F_v；m_dot_net=m_dot_out−m_dot_in=∫(Γ_v,wall+Γ_v,int)dV−dM_v/dt，M_v=∫α_vρ_v dV。无穿透的其余边界通量为零。",
+          "receives": [
+            "求解时注册的面 F_v=alphaRhoPhi.gas [kg/s]",
+            "控制面及符号"
+          ],
+          "produces": [
+            "各出口气相质量流率及去除入口后的净气相流出 [kg/s]"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "sum",
+            "flux",
+            "flux_assembly"
+          ],
+          "depends_on": [
+            "bulk"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "RPI 界面热流分配",
+          "relation": "Lemmert–Chawla + Tolubinski–Kostanchuk + Cole + Lavieville",
+          "applicability": "上游预设，仅核态固定壁温工程选型",
+          "implementation": "configured",
+          "evidence": [
+            "wall",
+            "case"
+          ]
+        },
+        {
+          "name": "两侧换热控制的有符号相变",
+          "relation": "源码按有序相对及有符号 L 计算 ΣH_i(T_sat−T_i)/L，再按实际相序映射到汽相。物理上，两侧净热流指入饱和界面时支持蒸发；净热流由界面流出时支持冷凝。",
+          "applicability": "保留体相回凝结；若关掉 phaseChange 会影响净值",
+          "implementation": "configured",
+          "evidence": [
+            "thermal",
+            "case"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "受热段指定壁温 [K] 与其它壁面热边界。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口各相质量流率 [kg/s] 或相速度 [m/s]、分率与温度 [K]，出口压力 [Pa]。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "surface_tension",
+          "meaning": "液汽表面张力 [N/m]。"
+        },
+        {
+          "key": "boiling_closures",
+          "meaning": "明确壁热流分配、成核点、泡脱离直径与频率模型及系数。"
+        },
+        {
+          "key": "interfacial_heat_transfer",
+          "meaning": "指定两侧相际换热闭合、气泡直径与相际面积模型及相体系。"
+        },
+        {
+          "key": "diagnostic_patches",
+          "meaning": "所有进口和出口控制面、法向约定及时间平均窗口 [s]。"
+        }
+      ],
+      "custom_work": [
+        "无须另写相变方程。需配置求解时两个 patch region 的 surfaceFieldValue sum 及后处理净流量；字段不默认写盘。",
+        "外层迭代将 T、α、p 与壁面及体相源互相更新。"
+      ],
+      "checks": [
+        "出口和入口分别在相同离散面通量上读取 alphaRhoPhi.gas 的代数和。若需与速度仪表或分相实测对照，单列后处理和离散面通量差异；汇总时保留有符号回流。",
+        "闭合 d∫αρ dV/dt + Σ各外边界面质量流 − ∫(S_wall+S_int)dV；稳态储存项才可略。",
+        "与匹配壁温、过冷度和压力下的壁热流及出口相分离称量或相通量比较。环隙泡参数实验仅校验部分。",
+        "符号回归：关闭壁面沸腾源，保留初始汽相与相际换热，设置过冷液体和近饱和汽相、无进出口通量。应读得汽相 Γ_v,int<0、液相源等幅反号，并观察汽相库存下降；按相对名称确认 iDmdt 的存储符号。"
+      ],
+      "sources": [
+        {
+          "id": "wall",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C；820–927",
+          "claim": "蒸汽生成、淬冷及壁面蒸发热流换算；AbyV 进入相间体积率。",
+          "kind": "version_source"
+        },
+        {
+          "id": "case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/constant/phaseProperties",
+          "locator": "tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/constant/phaseProperties；17、67–80、100–125；0.orig/alphat.liquid:45–74",
+          "claim": "上游配置 thermalPhaseChangeTwoPhaseSystem，按压力表算 Tsat；气侧常系数/液侧 RanzMarshall；壁面读取分配、成核、脱离直径、频率。",
+          "kind": "upstream_case"
+        },
+        {
+          "id": "thermal",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/PhaseSystems/ThermalPhaseChangePhaseSystem/ThermalPhaseChangePhaseSystem.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/PhaseSystems/ThermalPhaseChangePhaseSystem/ThermalPhaseChangePhaseSystem.C；184–217、375–431、460–543",
+          "claim": "iDmdt 承担相际换热驱动的体积传质；wDmdt 由壁面源装配；两相相反号并反馈能量。",
+          "kind": "version_source"
+        },
+        {
+          "id": "flux",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/phaseModel/MovingPhaseModel/MovingPhaseModel.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/phaseModel/MovingPhaseModel/MovingPhaseModel.C；138–148、205、348–358",
+          "claim": "注册 alphaRhoPhi.<phase>，面质量流率 [kg/s]，未设 AUTO_WRITE；相连续式使用面散度。",
+          "kind": "version_source"
+        },
+        {
+          "id": "sum",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.C",
+          "locator": "src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.C；read()/write() 及 sum 操作",
+          "claim": "可在求解过程中按 patch 对面标量求代数和。储存 alphaRhoPhi 未启用时不要假设离线可读。",
+          "kind": "version_source"
+        },
+        {
+          "id": "bubble_exp",
+          "url": "https://www.sciencedirect.com/science/article/abs/pii/S0017931019305629",
+          "locator": "近常压蒸汽-水竖直环隙实验，摘要与工况表",
+          "claim": "实测空隙率与泡参数供过冷核态局部闭合核对；实验以加热通量控制，不能替代固定壁温设备的出口气相流量验证。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "flux_assembly",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/twoPhaseSystem/twoPhaseSystem.C",
+          "locator": "src/phaseSystemModels/reactingEuler/twoPhaseSystem/twoPhaseSystem.C；318–324",
+          "claim": "相分率方程更新后，alphaRhoPhi = interpolate(rho) × alphaPhi。第二相先完成进出流修正再形成质量流率。"
+        }
+      ]
+    },
+    {
+      "id": "unresolved_film",
+      "status": "configured",
+      "scope": "纯饱和蒸汽与竖直光滑近等温板之间的重力层流膜，总热负荷和冷凝量可由外算 Nusselt 平均系数及面积积分得到。求未知壁温时可给通用 Robin 热边界。局部膜厚演化、瞬态排液及求解汽相质量反馈需另建。",
+      "steps": [
+        {
+          "id": "film",
+          "operation": "求高度依赖的层流膜热阻与平均换热",
+          "equation": "δ(x) 随 x^(1/4)，h_x=k_l/δ(x)；h_bar=0.943[k_l³ ρ_l(ρ_l−ρ_v)g h_fg/(μ_l L ΔT)]^(1/4)；q_bar=h_bar ΔT；m_dot=A q_bar/h_fg",
+          "receives": [
+            "板尺寸 [m]、壁温与饱和温度 [K]、相物性与 g"
+          ],
+          "produces": [
+            "h_x/h_bar [W/(m²·K)]、q [W/m²]、面冷凝通量 j [kg/(m²·s)]"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt",
+            "flatplate_exp"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "wall",
+          "operation": "已知壁温直算热负荷；未知壁温用原生 Robin 热边界求解",
+          "equation": "已知 Tw：q=h_bar(T_sat−Tw)，Q=Aq。未知 Tw：以 h_ext 和参考温度 T_sat 给 Robin，迭代更新 h_ext。固定 Tw 与 Robin 二选一。 externalWallHeatFluxTemperature 的 mode coefficient 需 h 和 Ta。",
+          "receives": [
+            "面积分布 q [W/m²] 或 h 和 T_sat",
+            "冷却侧热边界"
+          ],
+          "produces": [
+            "冷壁温度（仅未知壁温路线）[K]",
+            "热负荷 [W]"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "external_flux"
+          ],
+          "depends_on": [
+            "film"
+          ]
+        },
+        {
+          "id": "drain",
+          "operation": "求总体凝结排液并区分可选的动态反馈",
+          "equation": "等温稳态 m_dot=Q_lat/h_fg；仅需总量用静态代数。若解汽相和动态膜，再添加面质量与焓源、排液及膜库存方程。",
+          "receives": [
+            "j [kg/(m²·s)]、板面积 [m²]"
+          ],
+          "produces": [
+            "排液量与汽相质量下降 [kg/s]"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt",
+            "film",
+            "humidity"
+          ],
+          "depends_on": [
+            "film"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "Nusselt 竖直等温平板",
+          "relation": "h_bar=0.943[k_l³ ρ_l(ρ_l−ρ_v)g h_fg/(μ_l L ΔT)]^(1/4)；q_bar=h_bar ΔT；m_dot=A q_bar/h_fg",
+          "applicability": "纯饱和蒸汽、重力主导层流薄膜、无显著气相剪切、界面温度按 T_sat，忽略液膜惯性与显热",
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ]
+        },
+        {
+          "name": "已给热边界",
+          "relation": "mode coefficient 使用 h、Ta 或 mode flux 输入 q",
+          "applicability": "未知 Tw 可用 Robin；已知 Tw 时直接外算总负荷，不同面设置冲突边界",
+          "implementation": "configured",
+          "evidence": [
+            "external_flux"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "板高、宽和有效换热面积 [m,m²]；标注重力、沿板距离 x 与冷壁几何。"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "冷壁温度 [K]，可指定实测值或由独立固壁/冷却边界求取。平均式的等温条件需复核。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "绝对压力 [Pa]，用于饱和与组分质量/摩尔分率换算。"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        }
+      ],
+      "custom_work": [
+        "等温整板总量可以外算输入 h_bar、热负荷及质量和，无需开发膜求解器。未知壁温使用 Robin；h 依赖 Tw 时外层重算并检查守恒。",
+        "局部膜厚时变、动态排液及汽相质量与动量反馈须另接自定义闭合，静态总量不承诺这些字段。"
+      ],
+      "checks": [
+        "校验 Tw<T_sat，连续层流膜、纯蒸汽和重力排液条件。以液膜流量/单位板宽 Γ [kg/(m·s)] 计算 Re_f=4Γ/μ_l，检查波状和过渡风险。",
+        "比较冷却热量、排液速度/称量及 m_dot L≈Q_lat；若计液膜显热，单列后再做能量闭合。",
+        "贴板 x→0 局部式有奇点。首段用控制面平均，核对板面积和排液工况的敏感性。"
+      ],
+      "sources": [
+        {
+          "id": "nusselt",
+          "url": "https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/mixedconvection-laminar-film-condensation-on-a-semiinfinite-vertical-plate/31C5E09D0B0EE39E476ECA61024479A8",
+          "locator": "Nusselt 极限及气相剪切扩展",
+          "claim": "重力排液静蒸汽层流膜是特定极限。剪切、波动或非等温必须用相应扩展或验证。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "flatplate_exp",
+          "url": "https://khu.elsevierpure.com/en/publications/an-experimental-investigation-of-film-condensation-of-flowing-mix-2/",
+          "locator": "竖直水冷平板纯蒸汽及蒸汽-空气换热实验",
+          "claim": "可在相同来流、壁温与工况内对比热流；有来流剪切的点不能直接当静蒸汽薄膜验证。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "film",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/regionModels/surfaceFilmModels/submodels/thermo/phaseChangeModel/standardPhaseChange/standardPhaseChange.C",
+          "locator": "src/regionModels/surfaceFilmModels/submodels/thermo/phaseChangeModel/standardPhaseChange/standardPhaseChange.C；138–194",
+          "claim": "薄膜蒸发/沸点分支；dMass 裁剪为非负去质量，不能作为气相凝结增长加排液。",
+          "kind": "version_source"
+        },
+        {
+          "id": "external_flux",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/externalWallHeatFluxTemperature/externalWallHeatFluxTemperatureFvPatchScalarField.H",
+          "locator": "src/thermoTools/derivedFvPatchFields/externalWallHeatFluxTemperature/externalWallHeatFluxTemperatureFvPatchScalarField.H；Description/Usage",
+          "claim": "原生边界 coefficient 模式要求 h [W/(m²·K)] 和 Ta [K]，可配合 Tw 迭代；flux 模式可接外算 q。",
+          "kind": "version_source"
+        },
+        {
+          "id": "humidity",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/humidityTemperatureCoupledMixed/humidityTemperatureCoupledMixedFvPatchScalarField.C",
+          "locator": "src/thermoTools/derivedFvPatchFields/humidityTemperatureCoupledMixed/humidityTemperatureCoupledMixedFvPatchScalarField.C；75–94、531–656",
+          "claim": "露点以下用串联 htc 和温差计算 q；j=q/h_fg 后写入受限 H2O 梯度，并累积壁面质量。不依据蒸汽扩散通量反求 j，也未见沿壁重力排液。",
+          "kind": "version_source"
+        }
+      ]
+    },
+    {
+      "id": "condensation_with_ncg",
+      "status": "custom",
+      "scope": "已网格解析蒸汽–空气气相组分边界层，冷壁侧液膜热阻用输入或子闭合。内置湿度、蒸发或弥散相组合提供部件，目标的扩散控制壁边界需配置自研。",
+      "steps": [
+        {
+          "id": "gas",
+          "operation": "解气相速度、能量和蒸汽组分输运",
+          "equation": "∂t(ρY_v)+∇·(ρUY_v)=∇·(ρD_eff∇Y_v)，边界由接口源提供",
+          "receives": [
+            "蒸汽/空气质量分率、流场/热边界",
+            "ρ、D_ab [kg/m³,m²/s]、湍流 Sc_t（适用时）"
+          ],
+          "produces": [
+            "气侧 Y_v、T、p 与法向梯度"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "humidity_case",
+            "humidity"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "interface",
+          "operation": "耦合气侧扩散、界面饱和与液侧热阻",
+          "equation": "j=−ρD_eff (∇Y_v·n)/(1−Y_v,i)，n 指向冷壁，且 p_v,i=p_sat(T_i)；q_l=(T_i−T_w)/R_l=q_sens+j h_fg",
+          "receives": [
+            "气侧组分/温度和法向梯度，p [Pa]",
+            "冷壁 Tw [K]，R_l [m²·K/W]，h_fg [J/kg]"
+          ],
+          "produces": [
+            "局部界面 T_i [K]、j [kg/(m²·s)]、q [W/m²]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "humidity",
+            "diff_evap",
+            "saturated",
+            "phase_comp",
+            "dispersed"
+          ],
+          "depends_on": [
+            "gas"
+          ]
+        },
+        {
+          "id": "balance",
+          "operation": "向气相和冷壁施加一致的耦合通量",
+          "equation": "气相总质量与水蒸气损失均为 j；J_air=0，q 正值指入冷壁",
+          "receives": [
+            "j [kg/(m²·s)]、q [W/m²]、壁面积 [m²]"
+          ],
+          "produces": [
+            "凝结排液量 [kg/s]、壁热负荷 [W]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "steam_air_exp"
+          ],
+          "depends_on": [
+            "interface"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "扩散与不透过空气约束纳入共轭界面",
+          "relation": "j=−ρD_eff (∇Y_v·n)/(1−Y_v,i)，n 指向冷壁，且 p_v,i=p_sat(T_i)；q_l=(T_i−T_w)/R_l=q_sens+j h_fg",
+          "applicability": "气侧层解析；二组分、空气壁面不可透过，界面局部饱和；同一迭代同时解气相组分、壁膜热阻和能量，q_sens 为指向界面的气侧显热。",
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "steam_air_exp"
+          ]
+        },
+        {
+          "name": "内置 Saturated + Frossling/spherical",
+          "relation": "Y_f(p_sat,T_i) 与 K D (Y_f−Y)",
+          "applicability": "弥散相供对照；α_d/d² 不代表解析冷壁扩散",
+          "implementation": "native",
+          "evidence": [
+            "saturated",
+            "phase_comp",
+            "dispersed"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "板高、宽和有效换热面积 [m,m²]；标注重力、沿板距离 x 与冷壁几何。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "冷却侧温度 [K]、冷壁热边界与实物热接触。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "蒸汽/空气入口速度 [m/s]、温度 [K] 与出口压力 [Pa]。"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "绝对压力 [Pa]，用于饱和与组分质量/摩尔分率换算。"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "gas_composition",
+          "meaning": "蒸汽和空气质量分率 [0–1]，定义入口与回流条件。"
+        },
+        {
+          "key": "vapor_diffusivity",
+          "meaning": "水蒸汽在空气中的 D_ab [m²/s]，若湍流再指定湍流 Schmidt 数。"
+        },
+        {
+          "key": "liquid_thermal_resistance",
+          "meaning": "界面到冷壁的液膜/接触热阻 [m²·K/W] 或可重算的膜厚及 k_l。"
+        }
+      ],
+      "custom_work": [
+        "新建/适配蒸汽面及总质量通量边界，避免把仅 H2O 梯度当作气相总质量吸入。",
+        "液膜热阻、饱和组成和 Stefan 修正与气相温度/组分外层迭代直至同一 q 与 j；反复更新气侧边界条件。"
+      ],
+      "checks": [
+        "冷壁正凝结通量、露点门限、干空气壁面净通量零、总气相质量与蒸汽损失等量，壁面排液单列。",
+        "对照蒸汽-空气垂直冷板 Q、局部热流与冷凝称量；网格须分别对组分边界层和温度梯度收敛，避免相同气侧扩散热阻重复计入。",
+        "收敛检查 p_v、T_i、R_l、q、j 的残差和全局能量/组分收支。气相近纯时 Stefan 分母病态，应切换核实的纯蒸汽路径。"
+      ],
+      "sources": [
+        {
+          "id": "humidity",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/humidityTemperatureCoupledMixed/humidityTemperatureCoupledMixedFvPatchScalarField.C",
+          "locator": "src/thermoTools/derivedFvPatchFields/humidityTemperatureCoupledMixed/humidityTemperatureCoupledMixedFvPatchScalarField.C；75–94、531–656",
+          "claim": "露点以下用串联 htc 和温差计算 q；j=q/h_fg 后写入受限 H2O 梯度，并累积壁面质量。不依据蒸汽扩散通量反求 j，也未见沿壁重力排液。",
+          "kind": "version_source"
+        },
+        {
+          "id": "humidity_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/chtMultiRegionFoam/windshieldCondensation/0.orig/cabin/T",
+          "locator": "tutorials/heatTransfer/chtMultiRegionFoam/windshieldCondensation/0.orig/cabin/T；56–68；同算例 cabin/H2O:31",
+          "claim": "上游温度与水蒸汽梯度联动证据，模式 condensationAndEvaporation。适用于该露点模型示例。",
+          "kind": "upstream_case"
+        },
+        {
+          "id": "diff_evap",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/diffusionGasEvaporation/diffusionGasEvaporation.C",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/diffusionGasEvaporation/diffusionGasEvaporation.C；131–193",
+          "claim": "读有序 to 相饱和组成与气侧梯度，pos(T−Tactivate) 约束其蒸发入口，不能简单替换相序得到此冷壁模型。",
+          "kind": "version_source"
+        },
+        {
+          "id": "saturated",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/interfacialCompositionModels/interfaceCompositionModels/Saturated/Saturated.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/interfacialCompositionModels/interfaceCompositionModels/Saturated/Saturated.C；44、72–76、103–136",
+          "claim": "单一饱和组分在界面用 p_sat(T_f) 配组成；可给弥散相传质饱和端。",
+          "kind": "version_source"
+        },
+        {
+          "id": "dispersed",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/interfacialCompositionModels/massTransferModels/Frossling/Frossling.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/interfacialCompositionModels/massTransferModels/Frossling/Frossling.C；66–70；同树 sphericalMassTransfer.C:71–73",
+          "claim": "Frossling K∝α_d Sh/d²、spherical K=60α_d/d²，依赖弥散相直径，不能作为已解析气相冷壁上的面扩散。",
+          "kind": "version_source"
+        },
+        {
+          "id": "phase_comp",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/PhaseSystems/InterfaceCompositionPhaseChangePhaseSystem/InterfaceCompositionPhaseChangePhaseSystem.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/PhaseSystems/InterfaceCompositionPhaseChangePhaseSystem/InterfaceCompositionPhaseChangePhaseSystem.C；317–364、401–454",
+          "claim": "以 K×D、Y_f−Y 组装组分源，迭代潜热界面温度；说明原生弥散相组合可正/反传质，但本链仍缺气侧边界梯度与冷壁膜热阻。",
+          "kind": "version_source"
+        },
+        {
+          "id": "diffusion_physics",
+          "url": "https://www.sciencedirect.com/science/article/pii/002954939390107K",
+          "locator": "Kageyama 等的扩散层与液膜闭合，摘要",
+          "claim": "指出局部凝结需要同时考虑气侧质扩散与凝结液膜阻力。原文竖直管试验结果仅用于相应几何。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "steam_air_exp",
+          "url": "https://da.lib.kobe-u.ac.jp/da/kernel/0100502555/0100502555.pdf",
+          "locator": "竖直矩形通道冷板实验，装置与测点",
+          "claim": "沿板对照局部热流与温度；不能反向推定所有工况的直接质量通量精度。",
+          "kind": "physics_reference"
+        }
+      ]
+    },
+    {
+      "id": "internally_heated_forced_cht",
+      "status": "custom",
+      "scope": "OpenFOAM OpenCFD v2606 单相强迫气流与内部发热固体 CHT 候选，按稳态或瞬态选择求解器；可选薄接触热阻、方向性导热与表面辐射。需要实际几何、热源、边界和观测定义；整条链未原生验证。",
+      "steps": [
+        {
+          "id": "heat_source",
+          "operation": "辨识固体发热源项",
+          "equation": "P_heat=∫_V q''' dV；均匀源才可用 q'''=P_heat/V。以耗散热量为功率口径。",
+          "receives": [
+            "发热域、热功率及体积分布、时序"
+          ],
+          "produces": [
+            "固体能量源项 W/m³ 与积分 W"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "solid",
+            "sources"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "air_and_interfaces",
+          "operation": "闭合空气驱动和热界面",
+          "equation": "实测流量边界用 Q 或 ṁ=∫ρu·n dA；风机曲线时求 Δp_fan(Q)=Δp_system(Q)。固体按 q=−K∇T；薄层热阻 R'' 与温降满足 ΔT=q_n R''。",
+          "receives": [
+            "实际安装态流量或风机压流曲线、出口压力和流体物性；固体导热率、接触配对及热阻"
+          ],
+          "produces": [
+            "空气边界与固体/流体热传递定义"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flow",
+            "fan",
+            "directional",
+            "interface"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "coupled_energy",
+          "operation": "联立流固能量",
+          "equation": "固体 ρcp∂T/∂t=∇·(K∇T)+q'''；气侧解流动与能量，连续热通量由配对界面交换。若计表面辐射，额外闭合可见面长波辐射热流。",
+          "receives": [
+            "流固域网格、界面、热源、空气与外壁热边界；适用时辐射数据"
+          ],
+          "produces": [
+            "每区域温度场 K、热收支 W"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "solid",
+            "interface",
+            "radiation"
+          ],
+          "depends_on": [
+            "heat_source",
+            "air_and_interfaces"
+          ]
+        },
+        {
+          "id": "probe_readback",
+          "operation": "读取测点温度",
+          "equation": "在已指定区域和时刻按选定插值或测量体积平均取 T。跨接触界面分别取两侧。",
+          "receives": [
+            "区域、点位/测区、时间和插值口径"
+          ],
+          "produces": [
+            "测点温度"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flow"
+          ],
+          "depends_on": [
+            "coupled_energy"
+          ]
+        },
+        {
+          "id": "peak_readback",
+          "operation": "读取峰值温度",
+          "equation": "在指定固体范围和时刻取 max(T)，并给峰值位置。检查局部网格敏感性。",
+          "receives": [
+            "峰值区域、输出时刻/时间窗及网格统计口径"
+          ],
+          "produces": [
+            "峰温和位置"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flow"
+          ],
+          "depends_on": [
+            "coupled_energy"
+          ]
+        },
+        {
+          "id": "difference_readback",
+          "operation": "读取温差",
+          "equation": "在同一时刻和一致空间取值口径下计算 T_A−T_B；峰谷温差只取指定范围。",
+          "receives": [
+            "两观测位置与顺序，或峰谷范围和时刻"
+          ],
+          "produces": [
+            "温差 K"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "flow"
+          ],
+          "depends_on": [
+            "coupled_energy"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "热源与边界可辨识性",
+          "relation": "单个温度或温差无法同时唯一确定发热功率、风量、接触热阻及发射率；需独立已知边界或多工况可辨识数据。",
+          "applicability": "逆推热源或界面参数时先确认已知量、观测数与灵敏度；前向选型当前不执行反演。",
+          "implementation": "custom",
+          "evidence": [
+            "solid",
+            "interface"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "构建分区网格、源项分区与接口，按实际运行工况配置空气驱动及适用热边界并验算观测口径。"
+      ],
+      "checks": [
+        "检查空气流量及风机工作点、发热积分、流固/接触界面热通量配对、外壁总热平衡，以及探针温度和峰值的网格/时间敏感性；验证前不承诺整链结果。"
+      ],
+      "sources": [
+        {
+          "id": "solid",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/solid/solveSolid.H",
+          "locator": "solid/solveSolid.H, fvOptions and anisotropic solid energy assembly",
+          "claim": "固定 v2606 的分区固体焓方程。固体体积源项进入所选固体区域；以热源积分和边界能量收支确认实际输入。"
+        },
+        {
+          "id": "sources",
+          "kind": "version_manual",
+          "url": "https://doc.openfoam.com/2606/tools/processing/numerics/fvoptions/",
+          "locator": "fvOptions, cellZone selection and source registration",
+          "claim": "在选定网格单元集合上添加源项；区分总功率和每体积功率。"
+        },
+        {
+          "id": "directional",
+          "kind": "version_source",
+          "url": "https://api.openfoam.com/2606/classFoam_1_1temperatureCoupledBase.html",
+          "locator": "temperatureCoupledBase directionalSolidThermo",
+          "claim": "方向性导热接口读取方向性热扩散率；使用主轴导热率时须映射到材料方向并检查跨界面法向热流。"
+        },
+        {
+          "id": "interface",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C",
+          "locator": "kappa(), updateCoeffs(), thicknessLayers/kappaLayers",
+          "claim": "配对映射邻区温度与有效导热权重；薄层热阻叠加需核对两侧配置及重复计入问题。"
+        },
+        {
+          "id": "flow",
+          "kind": "version_source",
+          "url": "https://api.openfoam.com/2606/files.html",
+          "locator": "flowRateInletVelocityFvPatchVectorField and chtMultiRegionSimpleFoam",
+          "claim": "定风量边界候选。质量流量和体积流量分别定义，采用实际入口工况给出体积流量。"
+        },
+        {
+          "id": "fan",
+          "kind": "version_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1fv.html",
+          "locator": "fv::fanMomentumSource",
+          "claim": "OpenCFD v2606 源代码索引包含风机动量源类。输入为选定风机区和压流特性，工作点由系统阻力联立确定。"
+        },
+        {
+          "id": "radiation",
+          "kind": "version_source",
+          "url": "https://api.openfoam.com/2606/files.html",
+          "locator": "viewFactor radiation model and viewFactorsGen",
+          "claim": "将表面长波灰体交换与流固换热分开核算；设置表面有效发射率和视角因子。"
+        }
+      ]
+    },
+    {
+      "id": "reacting_bed_thermal_transport",
+      "scope": "OpenFOAM OpenCFD v2606 反应组分与热源组件的定制候选。颗粒床可在依据充分时用有效一维塞流，否则需多孔流动、组分与能量耦合；尚无已验收的通用颗粒床模板。",
+      "status": "custom",
+      "steps": [
+        {
+          "id": "species_rate",
+          "operation": "确定组分转化与反应热源",
+          "equation": "组分源为化学计量数乘床体积反应速率 r。若 ΔH 为带符号反应焓，q'''=−ΔH r；若给放热量正值则直接乘 r。按催化剂质量或固相体积给速率时换算到床总体积。",
+          "receives": [
+            "组分、流量、化学计量、温度依赖速率、摩尔反应焓、床基准"
+          ],
+          "produces": [
+            "组分和反应速率场、体积放热 W/m³"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "species",
+            "qdot"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "bed_energy",
+          "operation": "联立温度与流动、反应速率",
+          "equation": "物料运输和热输运共用 r(T,Y)。可先核对局部热平衡；不足时分别解固体、流体温度。夹套体温经夹套侧与床侧传热和壁内导热进入热平衡。",
+          "receives": [
+            "床内物性、孔隙率、已知速度或压力与阻力、管壁及夹套条件"
+          ],
+          "produces": [
+            "床内温度、组分转化及热平衡"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "species",
+            "qdot",
+            "porous"
+          ],
+          "depends_on": [
+            "species_rate"
+          ]
+        },
+        {
+          "id": "readback",
+          "operation": "读取床内热点位置和温度",
+          "equation": "取指定床域和相的稳态最高温及位置；其他测点在给定侧或相上读回。",
+          "receives": [
+            "床域、温度所属相、取样定义"
+          ],
+          "produces": [
+            "峰温与热点位置或测点量"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "qdot"
+          ],
+          "depends_on": [
+            "bed_energy"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "反应焓与速率辨识",
+          "relation": "只有摩尔反应热与夹套体温时，体积热源和峰温均不唯一。流量、初始/入口组分、动力学与传热边界须独立确定。",
+          "applicability": "强温度反馈时核对稳态分支和能量收支。",
+          "implementation": "custom",
+          "evidence": [
+            "species",
+            "qdot"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "按实际工况建立区域、系数、边界、守恒验证和观测回读。"
+      ],
+      "checks": [
+        "磅秤式核对组分及反应程度、积分热释放与显热/壁热收支、网格敏感热点；条件不闭合时不给数值。"
+      ],
+      "sources": [
+        {
+          "id": "species",
+          "url": "https://doc.openfoam.com/2606/tools/processing/models/thermophysical/mixture/rtm/reactingMixture/",
+          "locator": "reactingMixture",
+          "claim": "v2606 支持单相反应组分输入；需实际化学和物性。",
+          "kind": "version_manual"
+        },
+        {
+          "id": "qdot",
+          "url": "https://api.openfoam.com/2606/classFoam_1_1basicChemistryModel.html",
+          "locator": "Qdot()",
+          "claim": "化学热释放率以 W/m³ 表示。颗粒床反应速率及面积或体积换算须独立闭合。",
+          "kind": "version_source"
+        },
+        {
+          "id": "porous",
+          "url": "https://doc.openfoam.com/2606/tools/processing/numerics/fvoptions/",
+          "locator": "fvOptions, cellZone selection",
+          "claim": "区域源项支持按网格分配；颗粒床压损、化学和界面换热仍需项目定义。",
+          "kind": "version_manual"
+        }
+      ]
+    },
+    {
+      "id": "steady_heated_internal_flow",
+      "status": "custom",
+      "scope": "openfoam_opencfd v2606 单相稳态受热内流候选；稳态不能代替充分发展判据，未验收任意几何的完整自动建模。",
+      "steps": [
+        {
+          "id": "flow",
+          "operation": "用截面平均量建稳态内流",
+          "equation": "A 为实际流通面积，Pw 为全湿周，Dh=4A/Pw；矩形 Dh=2ab/(a+b)，圆管 Dh=D。Ub=Q/A，Re_Dh=ρUbDh/μ（同物性基准）；已给质量流量时 Re_Dh=ṁDh/(μA)。",
+          "receives": [
+            "截面、流量/入口剖面、物性、出口条件"
+          ],
+          "produces": [
+            "U/p、流量、Dh 与断面雷诺数"
+          ],
+          "depends_on": [],
+          "evidence": [
+            "flow"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "energy",
+          "operation": "施加热边界并求流体能量",
+          "equation": "分别设 Tw 给定或 q'' 给定，非加热壁按其实际条件。Q_wall=∫_Aheated q'' dA；恒流定截面 q'' 均匀时 Aheated=Ph L，Ph 为受热周长。恒壁温下热流是解出的场。",
+          "receives": [
+            "U/流量、流体物性和入口温度、热壁及其边界、热入口长度"
+          ],
+          "produces": [
+            "流体温度和焓、壁温、对流热量"
+          ],
+          "depends_on": [
+            "flow"
+          ],
+          "evidence": [
+            "energy",
+            "wall"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "bulk_readback",
+          "capability_ids": [
+            "openfoam_opencfd.mass_weighted_thermal_readback"
+          ],
+          "operation": "按质量或热容流取混合杯温度",
+          "equation": "单向、定比热 Tb=Σ(ṁ_f T_f)/Σṁ_f，每面的质量通量已含面积；变比热用净焓流除净质量流得到混合焓，再按同压或所定状态反解 T。回流须声明净流、单向或绝对权重，不能混为同一测量。",
+          "receives": [
+            "选定截面 T/焓、带方向的面质量流和截面法向"
+          ],
+          "produces": [
+            "同口径 Tb、站位及净焓流"
+          ],
+          "depends_on": [
+            "energy"
+          ],
+          "evidence": [
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "wall_readback",
+          "operation": "匹配局部壁温与流体温度及 Nu",
+          "equation": "同轴向位置 ∆T=Tw−Tb，局部 h=q''/∆T、Nu_Dh=hDh/k。平均 h 的定义需同时给受热面积与采用的驱动温差；局部或轴向平均不能互换。",
+          "receives": [
+            "受热壁 q''/Tw、同站混合杯 Tb、物性参考及几何"
+          ],
+          "produces": [
+            "壁流温差、换热系数或 Nu"
+          ],
+          "depends_on": [
+            "bulk_readback"
+          ],
+          "evidence": [
+            "wall",
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "pressure_readback",
+          "operation": "聚合两测站静压或全压",
+          "equation": "静压孔取局部静压；截面用先约定的面积或流量权重。记录上游减下游、标高、p 或 p_rgh 还原以及量纲。单一恒截面时可用达西 f L/Dh ρUb²/2 作直段核对，局部 ΣK 另按真实构件与参考速度；不重复计入已解析局部损失。",
+          "receives": [
+            "确切测站、压力类型及权重、标高、构件和各段参考速度"
+          ],
+          "produces": [
+            "指定测压段 Δp、局部损失口径"
+          ],
+          "depends_on": [
+            "energy"
+          ],
+          "evidence": [
+            "flow",
+            "readback"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "external_probe_readback",
+          "operation": "解固体热路径并在外贴探头位置取样",
+          "equation": "流体温升由实际传入流体的热量决定。电功率须分到流体、基底与环境各热路径；外贴探头读数须解固体导热/界面条件，或使用独立标定的热阻。需要时配置流固 CHT。",
+          "receives": [
+            "电热源覆盖和热转换、基底几何与物性、外部散热、接触/粘接及探头位置"
+          ],
+          "produces": [
+            "外贴探头温度候选；热边界不足时保留待定"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "energy",
+            "wall"
+          ],
+          "depends_on": [
+            "energy"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "经验或解析对照的适用性",
+          "relation": "先匹配断面/宽高比、各壁边界、Re/Pr、相对粗糙度、流动/热发展长度和 Nu 归一口径。圆管常物性层流双充分发展全周等温或均匀热通量的 Nu 极限约为 3.66 或 4.36；矩形值需按宽高比和受热边重求。湍流公式须核对其 Re/Pr/粗糙度及入口范围。",
+          "applicability": "仅作可比模型的交叉检查，未闭合输入时不代替 CFD 或宣称实际温差。",
+          "implementation": "custom",
+          "evidence": [
+            "correlations"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "flow",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/buoyantSimpleFoam.C",
+          "locator": "v2606 steady fluid flow and energy; p and p_rgh",
+          "claim": "稳态单区流动和流体能量定义；显著温度密度变化时不可把 kinematic p 或 p_rgh 当绝对静压。",
+          "kind": "version_source"
+        },
+        {
+          "id": "energy",
+          "url": "https://api.openfoam.com/2606/files.html",
+          "locator": "buoyantSimpleFoam/EEqn.H; buoyantBoussinesqSimpleFoam/TEqn.H",
+          "claim": "按物性和低速适用性选择压缩焓方程或 Boussinesq 温度方程。",
+          "kind": "version_source"
+        },
+        {
+          "id": "wall",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/externalWallHeatFluxTemperature/externalWallHeatFluxTemperatureFvPatchScalarField.C",
+          "locator": "externalWallHeatFluxTemperature source lines 40–42, 104–112, 289–320",
+          "claim": "字典 mode 用 flux、power 或 coefficient；fixedHeatFlux 是内部枚举。flux 给 q，power 给 Q，规定壁温另用 fixedValue；核对热流法向及 qr。",
+          "kind": "version_source"
+        },
+        {
+          "id": "readback",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValueTemplates.C",
+          "locator": "surfaceFieldValueTemplates.C 203–241; surfaceFieldValue.C 939–990, 994–1062",
+          "claim": "能力 openfoam_opencfd.mass_weighted_thermal_readback：带面积质量 phi 用 weightedAverage；按方向区分净流与只出流；变物性焓反算和面筛选需自研验证。",
+          "kind": "version_source"
+        },
+        {
+          "id": "correlations",
+          "url": "https://books.google.com/books/about/Laminar_Flow_Forced_Convection_in_Ducts.html?id=FtNFAQAAIAAJ",
+          "locator": "Shah & London, Laminar Flow Forced Convection in Ducts (1978), sections by geometry, development and boundary",
+          "claim": "原始解析数据汇集按截面、热与流动入口、等温或均匀热流分别处理；圆管关联式不能仅换 Dh 就套用到部分受热矩形管。",
+          "kind": "physics_reference"
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "配置流、热域、真实热边界与测站，校核面法向、单位、点位和源项积分。"
+      ],
+      "checks": [
+        "质量守恒；热壁积分与出口减入口焓流守恒；测站和靠壁/入口网格敏感性，分开检查沿程摩擦与局部损失；用与实际热边界和发展条件匹配的解析或实验核对。"
+      ]
+    }
+  ]
+}

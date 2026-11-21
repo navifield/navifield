@@ -1,0 +1,247 @@
+[
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "pressure_drop",
+    "role": "custom",
+    "model": "用户定义有限元弱形式及后处理",
+    "applicability": "自行编制流体方程与边界、提取压差。",
+    "exclusions": "通用形式语言不等于已有可直接运行的设备级模型；湍流、接触、材料非线性须具体实现。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "wall_treatment"
+    ],
+    "exchanges": [
+      {
+        "from": "边界及材料",
+        "to": "用户求解形式",
+        "quantity": "压差",
+        "unit": "Pa",
+        "method": "用户编写方程、传量及积分"
+      }
+    ],
+    "rationale": "GetDP 提供通用弱形式与后处理，不是针对该目标的预置闭合。",
+    "custom_work": "编写和验证方程、边界、场映射与输出；确认目标问题解的存在性。",
+    "checks": [
+      "对比解析或实验基准，核查单位、守恒和网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+        "locator": "3.5.0 固定版源码 tutorials、formulation / postoperation",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "§5.7 Formulation；§5.8 Resolution",
+        "claim": "Galerkin 与系统求解支持自编 Stokes/Navier–Stokes 与混合边界；这些是弱式设施，不能认作自带设备压降模型。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ]
+    },
+    "mechanisms": [
+      "flow"
+    ],
+    "related_capabilities": [
+      "getdp.physical_tag_group_selection"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "heat_duty",
+    "role": "custom",
+    "model": "用户定义有限元弱形式及后处理",
+    "applicability": "自行编制热传导或热弹性方程，并配置输入、求解和输出。",
+    "exclusions": "通用形式语言不等于已有可直接运行的设备级模型；湍流、接触、材料非线性须具体实现。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "边界及材料",
+        "to": "用户求解形式",
+        "quantity": "热流",
+        "unit": "W",
+        "method": "用户编写方程、传量及积分"
+      }
+    ],
+    "rationale": "GetDP 提供通用弱形式与后处理，不是针对该目标的预置闭合。",
+    "custom_work": "编写和验证方程、边界、场映射与输出；确认目标问题解的存在性。",
+    "checks": [
+      "对比解析或实验基准，核查单位、守恒和网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+        "locator": "3.5.0 固定版源码 tutorials、formulation / postoperation",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "§5.7 Formulation；§5.9–5.10 PostProcessing、PostOperation；§6.9",
+        "claim": "可建立热输运弱式并在指定面取热流积分，需自建方程及单位。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "getdp.transient_solid_conduction"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "wall_temperature",
+    "role": "custom",
+    "model": "用户定义有限元弱形式及后处理",
+    "applicability": "自行编制热传导或热弹性方程，并配置输入、求解和输出。",
+    "exclusions": "通用形式语言不等于已有可直接运行的设备级模型；湍流、接触、材料非线性须具体实现。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "边界及材料",
+        "to": "用户求解形式",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "用户编写方程、传量及积分"
+      }
+    ],
+    "rationale": "GetDP 提供通用弱形式与后处理，不是针对该目标的预置闭合。",
+    "custom_work": "编写和验证方程、边界、场映射与输出；确认目标问题解的存在性。",
+    "checks": [
+      "对比解析或实验基准，核查单位、守恒和网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+        "locator": "3.5.0 固定版源码 tutorials、formulation / postoperation",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "§5.4 Constraint；§5.6 FunctionSpace；§5.7 Formulation",
+        "claim": "提供选择温度边界及构建热输运和界面弱式的输入设施，壁温读取由问题定义。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "getdp.transient_solid_conduction"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "thermal_stress",
+    "role": "custom",
+    "model": "用户定义有限元弱形式及后处理",
+    "applicability": "自行编制热传导或热弹性方程，并配置输入、求解和输出。",
+    "exclusions": "通用形式语言不等于已有可直接运行的设备级模型；湍流、接触、材料非线性须具体实现。",
+    "inputs": [
+      "structural_geometry",
+      "elastic_properties",
+      "expansion_coefficient",
+      "mechanical_constraints",
+      "stress_measure",
+      "temperature_reference",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "温度场",
+        "to": "结构弱形式",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "用户编写方程、传量及积分"
+      }
+    ],
+    "rationale": "GetDP 提供通用弱形式与后处理，不是针对该目标的预置闭合。",
+    "custom_work": "编写和验证方程、边界、场映射与输出；确认目标问题解的存在性。",
+    "checks": [
+      "对比解析或实验基准，核查单位、守恒和网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+        "locator": "3.5.0 固定版源码 tutorials、formulation / postoperation",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+        "locator": "固定发布包 templates/Lib_Elasticity_u.pro 与 Interactive_Elasticity.pro",
+        "claim": "固定版带位移弹性模板。用自定义热本征应变、应力自由温度、温度到结构传递和结构约束扩展模板。"
+      }
+    ],
+    "conditions": {
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "getdp.linear_elastic_fe"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

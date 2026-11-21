@@ -213,6 +213,7 @@ def _record(root, run, terminal):
                if location != 'local' else {})},
         'stopping': state.get('stopping'), 'termination_reason': state.get('termination_reason'),
         'input_snapshot': run.get('input_snapshot'),
+        'monitor_tables': run.get('monitor_tables'),
         'decided_by': metadata.get('decided_by'), 'producer': run.get('producer'),
         'products': products}
 
@@ -223,6 +224,17 @@ def finalize_run_record(root, run_id, *, terminal=None):
         root = Path(root).resolve()
         run = project.read_run(root, run_id)
         record = _record(root, run, terminal)
+        warnings = []
+        if record['quality']['completed'] and run.get('status') == 'completed':
+            from .strip_results import index_run
+            try:
+                indexed = index_run(root, run)
+                if indexed is not None:
+                    record['numeric_result'] = indexed
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                record['numeric_result'] = {'status': 'rejected', 'reason': str(error)}
+                warnings.append({'code': 'NUMERIC_RESULT_REJECTED', 'severity': 'warn',
+                                 'message': str(error), 'measured': None, 'limit': None, 'location': None})
         folder = project.resolve_path(root, '.navifield/records')
         folder.mkdir(parents=True, exist_ok=True)
         destination = project.resolve_path(root, '.navifield/records/' + run_id + '.json')
@@ -231,7 +243,7 @@ def finalize_run_record(root, run_id, *, terminal=None):
             json.dump(record, stream, ensure_ascii=False, indent=2, allow_nan=False)
             stream.write('\n')
         os.replace(temporary, destination)
-        return []
+        return warnings
     except Exception:
         return [_warning()]
 

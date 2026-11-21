@@ -1,0 +1,423 @@
+[
+  {
+    "solver": "openfoam_opencfd",
+    "version": "v2606",
+    "target": "pressure_drop",
+    "role": "configured",
+    "model": "simpleFoam 层流或 RANS 内流 + surfaceFieldValue 测站",
+    "applicability": "稳态不可压单相内流。充分发展且目标为沿程损失可先核查 Darcy；显著分离可用 SST 并按壁解析分离要求给网格。",
+    "exclusions": "不可直接套至相变、多孔替代几何、跨声速或显著非稳态。粗糙管需实测等效粗糙度与相容壁函数。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "wall_treatment",
+      "roughness"
+    ],
+    "exchanges": [
+      {
+        "from": "flow_solution",
+        "to": "pressure_stations",
+        "quantity": "物理静压与速度",
+        "unit": "Pa; m/s",
+        "method": "按 simpleFoam 的运动学压力乘常密度换算 Pa；沿截面取和工程测量一致的压力平均。"
+      },
+      {
+        "from": "pressure_stations",
+        "to": "pressure_drop",
+        "quantity": "上游减下游的静压差或总压损失",
+        "unit": "Pa",
+        "method": "无重力变高时不可压总压 p+ρ|U|²/2；先进测站后按相同声明权重减，标高变化按能量式单列。"
+      }
+    ],
+    "rationale": "从求解器压力基准到工程 Δp 明确同一截面、基准与动压权重。",
+    "custom_work": "用原生测站平均与后处理构造总压，无需修改 CFD 方程。",
+    "checks": [
+      "统一两测站、压力单位、面积/质量权重以及参考标高；确定是否报告静压差或总压损失。",
+      "检查质量守恒、网格和非稳态统计；规整光滑管可用解析或 Darcy 摩阻，分离几何另验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/simpleFoam.C",
+        "locator": "applications/solvers/incompressible/simpleFoam/simpleFoam.C；Description 与 createFields",
+        "claim": "稳态不可压内流入口。"
+      },
+      {
+        "url": "https://api.openfoam.com/2606/classFoam_1_1functionObjects_1_1fieldValues_1_1surfaceFieldValue.html",
+        "locator": "Area operations and weighting",
+        "claim": "可面积加权平均、积分和面对面通量代数和。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "compressibility": [
+        "incompressible"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ]
+    },
+    "mechanisms": [
+      "flow"
+    ],
+    "related_capabilities": [
+      "openfoam_opencfd.steady_incompressible"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "openfoam_opencfd",
+        "version": "v2606",
+        "target": "pressure_drop",
+        "role": "configured",
+        "model": "porousSimpleFoam Darcy–Forchheimer 阻力",
+        "applicability": "固定网格阻力区，已标定黏性、惯性阻力和方向，可预测区域宏观压损。",
+        "exclusions": "孔尺度射流、局部分离和气液两相需其他模型。",
+        "inputs": [
+          "geometry",
+          "flow_rate",
+          "fluid_properties",
+          "pressure_stations",
+          "porous_resistance"
+        ],
+        "exchanges": [
+          {
+            "from": "多孔区动量平衡",
+            "to": "压力读回",
+            "quantity": "压力与表观速度",
+            "unit": "Pa, m/s",
+            "method": "按规定的测点或截面取静压差，注明静水项和使用表观速度的面积。"
+          }
+        ],
+        "rationale": "依据材料阻力与通量的关系选模型，核对面积基准、重力水头及测点压力。",
+        "custom_work": "测定介质渗透参数及各向异性；拟合的工况范围及独立压降数据需要单列。",
+        "checks": [
+          "检查流量质量守恒、测压口位置与静水头，分别核对多个流量点。"
+        ],
+        "evidence": [
+          {
+            "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/porousSimpleFoam/porousSimpleFoam.C",
+            "locator": "steady_incompressible_porous_pressure_loss",
+            "claim": "Fixed v2606 application description and solver loop. createPorousZones is invoked by the solver. UEqn/pEqn incorporate porous momentum resistance."
+          },
+          {
+            "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/porousSimpleFoam/UEqn.H",
+            "locator": "steady_incompressible_porous_pressure_loss",
+            "claim": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "conditions": {
+          "flow_domain": [
+            "porous"
+          ],
+          "flow_phase": [
+            "single_phase"
+          ],
+          "operation": [
+            "steady"
+          ],
+          "pressure_definition": [
+            "static_difference"
+          ]
+        },
+        "mechanisms": [
+          "flow",
+          "darcy"
+        ],
+        "related_capabilities": [
+          "openfoam_opencfd.steady_incompressible_porous_pressure_loss"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "openfoam_opencfd",
+    "version": "v2606",
+    "target": "heat_duty",
+    "role": "configured",
+    "model": "chtMultiRegionSimpleFoam / chtMultiRegionFoam + wallHeatFlux",
+    "applicability": "单相流固共轭换热；热边界平衡稳态用 SIMPLE，负荷或热容时变用瞬态。",
+    "exclusions": "相变、未施加接触热阻及未知非凝气闭合另评估；热侧与冷侧的同一能流不应双计。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "界面两侧温度和法向热流密度",
+        "unit": "K; W/m²",
+        "method": "多区域温度和导热/对流迭代，wallHeatFlux 后对选定面做 areaIntegrate；另算 m_dot Δh。"
+      },
+      {
+        "from": "wall_or_control_surface",
+        "to": "heat_duty",
+        "quantity": "净换热率",
+        "unit": "W",
+        "method": "积分一侧有符号热流，或对各流面作守恒焓流积分。"
+      }
+    ],
+    "rationale": "换热能力依据热流或焓收支，其单位为 W。",
+    "custom_work": "设定流固配对与守恒读回面。若界面有层热阻必须提供 thermal_contact 参数。",
+    "checks": [
+      "壁面积分热率和流体控制体焓流差对照，瞬态加储热，辐射或体热源单列。",
+      "热负荷量纲 W；对时程积分得 J。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C",
+        "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C；Description；fluid/EEqn.H、solid/solveSolid.H",
+        "claim": "热流体与固体区域共轭传热；该路径为瞬态。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C",
+        "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C；Description",
+        "claim": "稳态多区域流固换热。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H",
+        "locator": "src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H；31–56",
+        "claim": "按邻域温度与 KΔ 配重，支持显式指定薄层厚度与热导率。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/wallHeatFlux/wallHeatFlux.cxx",
+        "locator": "src/functionObjects/field/wallHeatFlux/wallHeatFlux.cxx；calculate()/write()",
+        "claim": "根据能量输运或指定模型回读壁面热流。"
+      },
+      {
+        "url": "https://api.openfoam.com/2606/classFoam_1_1functionObjects_1_1fieldValues_1_1surfaceFieldValue.html",
+        "locator": "Area operations and weighting",
+        "claim": "可面积加权平均、积分和面对面通量代数和。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "openfoam_opencfd.wall_heat_flux_readback"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "openfoam_opencfd",
+    "version": "v2606",
+    "target": "wall_temperature",
+    "role": "configured",
+    "model": "多区域共轭传热 + 映射温度界面 BC",
+    "applicability": "液体冷却板、换热器壁等壁温由两侧热通量共同决定。单固体边界已知时可另用适配的导热入口。",
+    "exclusions": "固定温度边界是输入，本卡预测的是未直接定值的壁面。接触温差与相变需显式模型。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition",
+      "thermal_contact"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "温度和热通量",
+        "unit": "K; W/m²",
+        "method": "热接触完美时求温度连续；可选薄层热阻时两侧温度分开报告。"
+      },
+      {
+        "from": "wall_field",
+        "to": "wall_temperature",
+        "quantity": "所需壁面温度",
+        "unit": "K",
+        "method": "按指定表面与时刻读取局部峰值、面积加权平均及温度分布。"
+      }
+    ],
+    "rationale": "冷却侧流动与壁内导热均会影响局部峰温，需界面成对耦合。",
+    "custom_work": "源项或映射前先确认热斑位置与界面面组。thermal_contact 可声明理想接触或给定热阻。",
+    "checks": [
+      "网格加密检查壁温峰值、面平均和界面热量闭合；共轭两侧应按同一法向监视。",
+      "完美接触时温度相容；有热阻时温降与热通量一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C",
+        "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C；Description；fluid/EEqn.H、solid/solveSolid.H",
+        "claim": "热流体与固体区域共轭传热；该路径为瞬态。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C",
+        "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C；Description",
+        "claim": "稳态多区域流固换热。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H",
+        "locator": "src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H；31–56",
+        "claim": "按邻域温度与 KΔ 配重，支持显式指定薄层厚度与热导率。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "openfoam_opencfd.wall_heat_flux_readback"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "openfoam_opencfd",
+    "version": "v2606",
+    "target": "thermal_stress",
+    "role": "configured",
+    "model": "solidDisplacementFoam / solidEquilibriumDisplacementFoam 小应变热弹性",
+    "applicability": "已知温度历史或热边界，线弹性小应变，采用共同常量应力自由参考温度及与温标平移相容的扩散材料。可做 CHT→固体单向。",
+    "exclusions": "不得把绝对温度直接视作应力自由温差；不同部件独立参考场、非线性材料与依赖绝对温度的辐射不在此简化映射范围。",
+    "inputs": [
+      "structural_geometry",
+      "temperature_reference",
+      "mechanical_constraints",
+      "elastic_properties",
+      "expansion_coefficient",
+      "thermal_boundary",
+      "solid_properties",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "thermal_solution",
+        "to": "solid_mechanics",
+        "quantity": "固体温度与应力自由参考态",
+        "unit": "K",
+        "method": "预处理使输入、初始场和温度边界一致采用 θ=T−T_ref；原生耦合热扩散在求结构时继续演进。独立 CHT 结果需校对映射和目标时刻。"
+      },
+      {
+        "from": "solid_mechanics",
+        "to": "stress_report",
+        "quantity": "Cauchy 应力、主应力或 von Mises 按工程判据",
+        "unit": "Pa",
+        "method": "按约定应力不变量、材料和部位回读，附约束反力。"
+      }
+    ],
+    "rationale": "热应力由热膨胀受限和温度梯度共同形成。源码采用零点温度项，必须先对齐参考态。",
+    "custom_work": "依温差字段运行，确认固体热解不会覆盖 CHT 的目标工况；若需强耦合接触、任意外部温度时序回放或温度依赖材料，需另选实现/验证。",
+    "checks": [
+      "均温自由膨胀：移除刚体模后应力趋零；轴向受限且侧向自由杆按 −EαΔT 检查。",
+      "复核应力自由温度、温标、材料与边界映射，检查反力平衡与网格敏感性；约束角点奇异峰值单独处理。",
+      "若采用 steady solver，确认力残差与热解均已达到稳态；若温度/荷载瞬变，检查热/力时间步。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/stressAnalysis/solidDisplacementFoam/calculateStress.H",
+        "locator": "applications/solvers/stressAnalysis/solidDisplacementFoam/calculateStress.H；1–35；readThermalProperties.H、solidDisplacementFoam.C:80–103",
+        "claim": "直接扣 Iρ·threeKalpha·T，输出 sigma 与 von Mises，读热物性未见内置 T_ref。"
+      },
+      {
+        "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/solidEquilibriumDisplacementFoam.C",
+        "locator": "applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/solidEquilibriumDisplacementFoam.C；Description",
+        "claim": "稳态有限体积小应变线弹性，支持热扩散和热应力。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "conduction",
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "openfoam_opencfd.small_strain_thermoelastic"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

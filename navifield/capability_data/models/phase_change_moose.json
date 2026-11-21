@@ -1,0 +1,264 @@
+{
+  "domain": "phase_change",
+  "solver": "moose",
+  "version": "2024-03-08",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "native",
+      "scope": "固定版存在原生固液有限体积潜热核，工程求解需组合能量与材料对象。",
+      "custom_work": "通过温区、ρ、cp、k、潜热和边界构建热方程；按需组合熔体流动。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/src/fvkernels/NSFVPhaseChangeSource.C",
+          "locator": "modules/navier_stokes/src/fvkernels/NSFVPhaseChangeSource.C；12–49",
+          "claim": "2024-03-08 标签中有 NSFVPhaseChangeSource。源项按温区归一化 r、正值截断的 6r(1−r) 提供表观热容量，乘局部 ρL/(T_liq−T_sol) 与 Tdot。该标签中液相率 functor 是声明输入，源项形状由 T 计算。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/test/tests/finite_volume/ins/solidification/solidification_no_advection.i",
+          "locator": "modules/navier_stokes/test/tests/finite_volume/ins/solidification/solidification_no_advection.i；[AuxKernels][compute_fl]、[FVKernels][energy_source]",
+          "claim": "固定版上游回归展示有限体积温度方程、潜热项和 NSLiquidFractionAux。仅说明配置与回归覆盖。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "limited_scope",
+      "scope": "固定版 PorousFlowWaterVapor 提供孔隙内纯水局部热平衡闪蒸/凝结的相态与孔隙饱和度。热工水力 FlowChannel1Phase 是单相，工业流道过冷壁面核态沸腾的分配、成核、脱离速率没有已核实的原生路径。",
+      "custom_work": "自研/接入两相质量能量、壁热流分配及相间传质，并验证独立实验；单相换热系数不可当作产汽。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C",
+          "locator": "modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C；thermophysicalProperties()，液相、气相及 TWOPHASE 分支",
+          "claim": "固定版原生纯水局部平衡流体状态对象。由压力、比焓及水物性得到 T_sat、h_l、h_v；两相区计算质量干度、液汽饱和度和毛细压差。未求有限速率界面传质。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/components/FlowChannel1Phase.C",
+          "locator": "modules/thermal_hydraulics/src/components/FlowChannel1Phase.C；FlowChannel1Phase 组件",
+          "claim": "基础热工水力流道为截面平均单相组件，不能直接给壁面核态产汽或解析液汽界面传质。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C",
+          "locator": "modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C；StiffenedGasTwoPhaseFluidProperties 类",
+          "claim": "提供两相状态和饱和热物性接口，不能替代质量与能量传递闭合。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "limited_scope",
+      "scope": "固定版 PorousFlowWaterVapor 提供孔隙内纯水局部热平衡闪蒸/凝结的相态与孔隙饱和度。与设备冷壁膜或解析液汽界面的局部凝结质量通量不同，未确认后者的原生闭合。",
+      "custom_work": "按目标配置/开发界面跟踪、与饱和关系一致的闭合、等量反向质量源与潜热通量；用可解析冷凝基准验证。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C",
+          "locator": "modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C；thermophysicalProperties()，液相、气相及 TWOPHASE 分支",
+          "claim": "固定版原生纯水局部平衡流体状态对象。由压力、比焓及水物性得到 T_sat、h_l、h_v；两相区计算质量干度、液汽饱和度和毛细压差。未求有限速率界面传质。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C",
+          "locator": "modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C；StiffenedGasTwoPhaseFluidProperties 类",
+          "claim": "提供两相状态和饱和热物性接口，不能替代质量与能量传递闭合。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/components/FlowChannel1Phase.C",
+          "locator": "modules/thermal_hydraulics/src/components/FlowChannel1Phase.C；FlowChannel1Phase 组件",
+          "claim": "基础热工水力流道为截面平均单相组件，不能直接给壁面核态产汽或解析液汽界面传质。"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "NSFVPhaseChangeSource",
+      "label": "有限体积固液相变潜热源",
+      "implementation": "configured",
+      "capability_ids": [],
+      "mechanisms": [
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature",
+        "liquid_fraction"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ],
+        "time": [
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固相和液相热导率 [W/(m·K)]，必要时随温度给出。"
+        },
+        {
+          "key": "density",
+          "meaning": "材料密度 [kg/m³]，按闭合使用常值或相依属性。"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "固相和液相比热容 [J/(kg·K)]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "solidus_temperature",
+          "meaning": "固相线温度 [K]。"
+        },
+        {
+          "key": "liquidus_temperature",
+          "meaning": "液相线温度 [K]，数值上高于固相线，纯物质可用经敏感性复核的窄平滑带。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 [K] 或指定热流 [W/m²]，含绝热/冷却边界与材料接触设置。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]。"
+        }
+      ],
+      "outputs": [
+        "温度 [K]",
+        "由 NSLiquidFractionAux 回读的液相率 [0–1]"
+      ],
+      "assumptions": [
+        "需组装热传导、温度时间项、温度边界与有限体积潜热核。",
+        "固液温区必须非零；显热与潜热物性各用一次。"
+      ],
+      "limitations": [
+        "此核只为固液温度方程提供潜热显式建模部件。需要熔体自然对流时，要连接上游示例中的流动和动量阻尼。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "energy",
+          "quantity": "潜热贡献 [W/m³]",
+          "transfer": "表观热容量乘 Tdot",
+          "custom_work": "按案例设定有限体积能量方程及输入 functor。"
+        }
+      ],
+      "basis": "用于有可测潜热及熔化/固化温区的瞬态固液问题。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/src/fvkernels/NSFVPhaseChangeSource.C",
+          "locator": "modules/navier_stokes/src/fvkernels/NSFVPhaseChangeSource.C；12–49",
+          "claim": "2024-03-08 标签中有 NSFVPhaseChangeSource。源项按温区归一化 r、正值截断的 6r(1−r) 提供表观热容量，乘局部 ρL/(T_liq−T_sol) 与 Tdot。该标签中液相率 functor 是声明输入，源项形状由 T 计算。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/test/tests/finite_volume/ins/solidification/solidification_no_advection.i",
+          "locator": "modules/navier_stokes/test/tests/finite_volume/ins/solidification/solidification_no_advection.i；[AuxKernels][compute_fl]、[FVKernels][energy_source]",
+          "claim": "固定版上游回归展示有限体积温度方程、潜热项和 NSLiquidFractionAux。仅说明配置与回归覆盖。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/examples/solidification/galium_melting.i",
+          "locator": "modules/navier_stokes/examples/solidification/galium_melting.i；文件头与各热、动量核",
+          "claim": "固定版上游二维镓熔化样例把潜热、Boussinesq 浮力与 Darcy/Forchheimer 阻尼组合；未在本次复算。"
+        }
+      ],
+      "correlations": [
+        "归一化 r=(T−T_sol)/(T_liq−T_sol)，使用截断的 6r(1−r) 热容平滑，使区间内潜热积分保持归一；平滑宽度由用户定义并检查网格、时步敏感性。"
+      ],
+      "custom_work": [
+        "从已有 FV 核、AuxKernel 与物性组装输入；仅熔体对流另接浮力和动量阻尼。"
+      ]
+    },
+    {
+      "id": "PorousFlowWaterVapor",
+      "label": "孔隙介质纯水局部平衡闪蒸与凝结",
+      "implementation": "configured",
+      "capability_ids": [],
+      "mechanisms": [
+        "boiling",
+        "condensation"
+      ],
+      "goals": [
+        "temperature",
+        "liquid_fraction"
+      ],
+      "conditions": {
+        "geometry": [
+          "porous_medium"
+        ],
+        "regime": [
+          "local_equilibrium"
+        ],
+        "direction": [
+          "liquid_to_vapor",
+          "vapor_to_liquid"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "pressure",
+          "meaning": "孔隙液相压力场 [Pa]。"
+        },
+        {
+          "key": "specific_enthalpy",
+          "meaning": "纯水混合物比焓场 [J/kg]。"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "支持水的饱和条件及液汽密度、焓、黏度的 water_fp 对象。"
+        },
+        {
+          "key": "capillary_pressure",
+          "meaning": "孔隙毛细压力闭合 p_c(S_l) [Pa]，视介质提供。"
+        }
+      ],
+      "outputs": [
+        "局部温度 [K]、质量干度和液汽孔隙饱和度 [0–1]。"
+      ],
+      "assumptions": [
+        "纯水；相态按局部热力学平衡，液汽两相同用饱和温度。"
+      ],
+      "limitations": [
+        "孔隙饱和度是孔隙体积分数。未计算分子动力学、成核、壁面蒸汽生成或有限速率的界面质量通量。"
+      ],
+      "couplings": [
+        {
+          "from_field": "pressure_enthalpy",
+          "to_field": "phase_saturation",
+          "quantity": "温度及孔隙液汽饱和度",
+          "transfer": "热力学状态计算与质量干度到体积分数的密度换算",
+          "custom_work": "接入 PorousFlow 守恒方程；独立校核毛细压力、热力学性质和相区过渡。"
+        }
+      ],
+      "basis": "只在多孔介质中判断局部相态和储量时选用。设备级受热壁产汽或冷凝器界面通量需要其它模型。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C",
+          "locator": "modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C；thermophysicalProperties()，液相、气相及 TWOPHASE 分支",
+          "claim": "固定版原生纯水局部平衡流体状态对象。由压力、比焓及水物性得到 T_sat、h_l、h_v；两相区计算质量干度、液汽饱和度和毛细压差。未求有限速率界面传质。"
+        }
+      ],
+      "correlations": [
+        "两相区 X=(h−h_l)/(h_v−h_l)，饱和度由质量干度与液汽密度换算。潜热为饱和汽液焓差，无独立经验产汽常数。"
+      ],
+      "custom_work": [
+        "组装压力与焓的孔隙守恒方程，给出水物性和毛细闭合。有限速率传质另开发。"
+      ]
+    }
+  ]
+}

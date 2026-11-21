@@ -1,0 +1,111 @@
+{
+  "solver": "getdp",
+  "version": "3.5.0",
+  "chains": [
+    {
+      "id": "joule_heated_thermal_actuator",
+      "status": "custom",
+      "scope": "自焦耳加热造成冷热臂差动膨胀的稳态候选。GetDP 3.5.0 → CalculiX 2.22。小变形、无结构反馈为待确认近似；器件原生求解及实验对照待完成。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "dc_joule_source",
+          "operation": "GetDP 3.5.0：求端子电场及导体焦耳耗散",
+          "equation": "∇·(σ∇φ)=0；E=−∇φ，J=σE，q=J·E [W/m³]，P=∫器件 q dΩ [W]。",
+          "receives": [
+            "端电压 ΔV [V] 或目标器件耗散功率 [W]；端子标签及薄膜 ρ(T)"
+          ],
+          "produces": [
+            "导体体热源 q [W/m³]、端电流 [A]、器件功率 [W]"
+          ],
+          "depends_on": [],
+          "implementation": "configured",
+          "evidence": [
+            "getdp_manual"
+          ]
+        },
+        {
+          "id": "electrothermal_equilibrium",
+          "operation": "GetDP 3.5.0：求导热与电阻率反馈，按激励闭合",
+          "equation": "−∇·(k∇T)=q；σ(T)=1/ρ(T)。给定电压保持端电压；给定功率则外层调端电压直至 ∫q dΩ=P目标。",
+          "receives": [
+            "导体 q [W/m³] 与热边界；ρ(T) 及温度范围"
+          ],
+          "produces": [
+            "收敛温度场 [K]、按选区提取的表面最高温度、功率与热平衡残差"
+          ],
+          "depends_on": [
+            "dc_joule_source"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp_manual"
+          ]
+        },
+        {
+          "id": "thermal_expansion",
+          "operation": "CalculiX 2.22：映射温度并求热膨胀静力",
+          "equation": "∇·σ_mech=0；ε_th=[α(T)(T−T_ref)−α(T₀)(T₀−T_ref)] I，常数 α 时为 α(T−T₀) I；σ_mech=C:(ε−ε_th)。",
+          "receives": [
+            "同网格结构节点温度 [K]、初始节点温度 T₀ 与热膨胀参考温度 T_ref、弹性和膨胀参数、锚区结构约束"
+          ],
+          "produces": [
+            "指定端部测点的面内横向位移分量 [m]"
+          ],
+          "depends_on": [
+            "electrothermal_equilibrium"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "ccx_manual"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "电热双向闭合",
+          "relation": "在导体域用 T 更新 ρ(T) 及 J·E；按指定电压或目标功率检查收敛。",
+          "applicability": "只有明确且验证可忽略 ρ 的温度变化时，才可采用常电阻率的单向近似。",
+          "implementation": "custom",
+          "evidence": [
+            "getdp_manual"
+          ]
+        },
+        {
+          "name": "热到结构单向传量",
+          "relation": "将收敛绝对温度映射至结构节点。用 *INITIAL CONDITIONS, TYPE=TEMPERATURE 写入 T₀，并核对 *EXPANSION 的参考温度 T_ref；若按无应力均匀参考态初始化，明确取 T₀=T_ref。",
+          "applicability": "小变形且位移不显著改变传热、电流或锚接触时。",
+          "implementation": "configured",
+          "evidence": [
+            "ccx_manual"
+          ]
+        }
+      ],
+      "custom_work": [
+        "复用母线板的同网格温度传递思路。为实际器件验证端子、导体、锚区、温度节点及测量选区映射，核对单位和薄膜厚度离散。",
+        "配置并检查 ρ(T) 内迭代及定功率时的外层电压搜索；局部 q 的分布由电场解得到。"
+      ],
+      "checks": [
+        "核对两端电流通量符号和守恒、ΔV·I 与 ∫q dΩ 一致、锚区与自由面总散热平衡，以及温度/功率迭代收敛。",
+        "若求位移，核对同网格温度的节点覆盖、锚区约束、初始节点温度和热膨胀参考温度；对所选的表面峰值温度或端点横向位移分别检查网格收敛。",
+        "论文图 3b 是热臂表面最高温度随功率（激光反射测温）；图 4a 是端部横向位移随功率（光学显微测量）。正文在 20 mW 报告 13.2 µm 的实测位移。先冻结映射与材料，再独立对比同功率、同测量定义的数值。"
+      ],
+      "sources": [
+        {
+          "id": "getdp_manual",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0, Formulation, IterativeLoop and magnetothermal example",
+          "claim": "可配置电势和热方程；温变直流反馈及定功率搜索需实现。"
+        },
+        {
+          "id": "ccx_manual",
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "CalculiX 2.22, section 7.56 Eq. 871, *INITIAL CONDITIONS, *TEMPERATURE, *EXPANSION and *STATIC",
+          "claim": "可按结构节点温度和参考状态求热膨胀。"
+        }
+      ]
+    }
+  ]
+}

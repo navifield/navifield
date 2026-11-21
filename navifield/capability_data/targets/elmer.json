@@ -1,0 +1,484 @@
+[
+  {
+    "solver": "elmer",
+    "version": "9.0",
+    "target": "pressure_drop",
+    "role": "configured",
+    "model": "FlowSolver + 测站截面压力积分",
+    "applicability": "以黏性不可压稳态内流求 Δp，优先规则层流和已验证湍流闭合。",
+    "exclusions": "仅从压力值不能获得变截面不可逆损失；压缩性、分离/湍流误差另校验。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "wall_treatment",
+      "roughness"
+    ],
+    "exchanges": [
+      {
+        "from": "flow_solution",
+        "to": "pressure_stations",
+        "quantity": "物理静压与速度",
+        "unit": "Pa; m/s",
+        "method": "原生压力变量按 SIF 的一致物理单位解读，取规范压力参考；可对边界/内部测站采样再加权。"
+      },
+      {
+        "from": "pressure_stations",
+        "to": "pressure_drop",
+        "quantity": "上游减下游的静压差或总压损失",
+        "unit": "Pa",
+        "method": "无重力变高时不可压总压 p+ρ|U|²/2；先进测站后按相同声明权重减，标高变化按能量式单列。"
+      }
+    ],
+    "rationale": "适用于 FEM 的单相黏性动量解与后处理。",
+    "custom_work": "内部截面可生成标记面或采样，复杂湍流条件确认该版本所用闭合和壁面兼容性。",
+    "checks": [
+      "统一两测站、压力单位、面积/质量权重以及参考标高；确定是否报告静压差或总压损失。",
+      "检查质量守恒、网格和非稳态统计；规整光滑管可用解析或 Darcy 摩阻，分离几何另验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/FlowSolve.F90",
+        "locator": "fem/src/modules/FlowSolve.F90；FlowSolver",
+        "claim": "固定 9.0 tag 下有 Navier–Stokes 流求解入口。"
+      },
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/SaveData/SaveScalars.F90",
+        "locator": "fem/src/modules/SaveData/SaveScalars.F90；定向边界与 scalar integration",
+        "claim": "通过边界物理量积分或导出后自定义一致积分。"
+      },
+      {
+        "url": "https://ftp.csc.fi/pub/files/index/elmer/doc/ElmerModelsManual.pdf",
+        "locator": "Navier–Stokes equation",
+        "claim": "压力与速度的物理量、流动边界和近壁设置。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "compressibility": [
+        "incompressible"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ]
+    },
+    "mechanisms": [
+      "flow"
+    ],
+    "related_capabilities": [
+      "elmer.navier_stokes"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "elmer",
+    "version": "9.0",
+    "target": "heat_duty",
+    "role": "configured",
+    "model": "FlowSolver + HeatSolver + FluxSolver / SaveScalars",
+    "applicability": "单相多区域 CHT，共形连续接口；热流层或热接触用明确的热阻模型。",
+    "exclusions": "扩散通量积分与开口焓流积分是不同路径。流动相变、热辐射和接触非线性需要明确启用与验证。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "界面两侧温度和法向热流密度",
+        "unit": "K; W/m²",
+        "method": "流区读取速度作为 HeatSolver 对流项，固体无对流，共形温度自由度或显式界面通量；采集有方向壁面热流。"
+      },
+      {
+        "from": "wall_or_control_surface",
+        "to": "heat_duty",
+        "quantity": "净换热率",
+        "unit": "W",
+        "method": "积分一侧有符号热流，或对各流面作守恒焓流积分。"
+      }
+    ],
+    "rationale": "共形界面和物性状态清楚时，用热方程得到局部输运并提供总热率。",
+    "custom_work": "生成流体/固体区域、绑定材料和界面；计算截面焓流时配置匹配面积权重和流入流出符号。",
+    "checks": [
+      "壁面积分热率和流体控制体焓流差对照，瞬态加储热，辐射或体热源单列。",
+      "热负荷量纲 W；对时程积分得 J。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/FlowSolve.F90",
+        "locator": "fem/src/modules/FlowSolve.F90；FlowSolver",
+        "claim": "固定 9.0 tag 下有 Navier–Stokes 流求解入口。"
+      },
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/HeatSolve.F90",
+        "locator": "fem/src/modules/HeatSolve.F90；HeatSolver：热扩散、Convection 和材料热边界",
+        "claim": "固体导热及流体能量方程热输运。"
+      },
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/FluxSolver.F90",
+        "locator": "fem/src/modules/FluxSolver.F90；FluxSolver 与 Target Variable/Flux Coefficient",
+        "claim": "求温度扩散通量，边界积分时核对物理法向。"
+      },
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/SaveData/SaveScalars.F90",
+        "locator": "fem/src/modules/SaveData/SaveScalars.F90；定向边界与 scalar integration",
+        "claim": "通过边界物理量积分或导出后自定义一致积分。"
+      },
+      {
+        "url": "https://ftp.csc.fi/pub/files/index/elmer/doc/ElmerModelsManual.pdf",
+        "locator": "Heat Equation；FluxSolver 相关章节",
+        "claim": "能量守恒形式含对流、导热和热源。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "elmer.conjugate_heat_transfer",
+      "elmer.boundary_flux_evaluation"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "elmer",
+        "version": "9.0",
+        "target": "heat_duty",
+        "role": "configured",
+        "model": "HeatSolver 固体导热及边界回读",
+        "applicability": "固体内 Fourier 导热，已给温度、热通量或等效外界对流边界；瞬态还需初始温度、储热物性与时间历程。",
+        "exclusions": "若未知流侧膜系数且须解析流体速度/热边界层，应采用共轭传热路线。",
+        "inputs": [
+          "geometry",
+          "solid_properties",
+          "thermal_boundary",
+          "heat_sources"
+        ],
+        "exchanges": [
+          {
+            "from": "固体热方程",
+            "to": "壁面读回",
+            "quantity": "温度场与法向热流密度",
+            "unit": "K, W/m²",
+            "method": "同一固体网格边界提取温度与热流；从面积积分获得 W。"
+          }
+        ],
+        "rationale": "从固体温度梯度和导热率求 q=−k∇T。整面热率按外法向积分；壁温按客户指定的位置和统计方式回读。",
+        "custom_work": "在项目中明确各材料、源项、辐射或对流边界及其适用范围。",
+        "checks": [
+          "核对指定边界法向、热率 W、热流密度 W/m²及瞬态储热项，检查网格与时间步敏感性。"
+        ],
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/ElmerCSC/elmerfem/release-9.0/fem/src/modules/HeatSolve.F90",
+            "locator": "elmer.heat_conduction",
+            "claim": "Elmer release-9.0 source: HeatSolver and Heat Conductivity material"
+          },
+          {
+            "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/FluxSolver.F90",
+            "locator": "elmer.boundary_flux_evaluation",
+            "claim": "Elmer release-9.0 FluxSolver.F90。文档目录主题对应 Model 47. Flux Computation；只登记固定版可确认的模型范围。"
+          }
+        ],
+        "conditions": {
+          "thermal_mode": [
+            "solid_only"
+          ],
+          "operation": [
+            "steady",
+            "transient"
+          ]
+        },
+        "mechanisms": [
+          "conduction"
+        ],
+        "related_capabilities": [
+          "elmer.heat_conduction",
+          "elmer.boundary_flux_evaluation"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "elmer",
+    "version": "9.0",
+    "target": "wall_temperature",
+    "role": "configured",
+    "model": "HeatSolver + 流体对流（FlowSolver）",
+    "applicability": "共形流固区域共享温度，或以经证实的界面交换条件求壁温。可配置稳态或时变热源。",
+    "exclusions": "热阻未建时共形连续仅支持理想接触；温度强制给定面不算预测壁温。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "inlet_temperature",
+      "thermal_boundary",
+      "solid_properties",
+      "interface_definition",
+      "thermal_contact"
+    ],
+    "exchanges": [
+      {
+        "from": "fluid_energy",
+        "to": "solid_energy",
+        "quantity": "温度和热通量",
+        "unit": "K; W/m²",
+        "method": "流场传热速度从 FlowSolver 到流区能量方程；固体导热与流体能量在共同界面交换。"
+      },
+      {
+        "from": "wall_field",
+        "to": "wall_temperature",
+        "quantity": "所需壁面温度",
+        "unit": "K",
+        "method": "按指定表面与时刻读取局部峰值、面积加权平均及温度分布。"
+      }
+    ],
+    "rationale": "壁温需同时考虑流体携热、壁内热扩散和界面温降。",
+    "custom_work": "对非共形或非理想接触另验证，并从指定一侧回读峰温。",
+    "checks": [
+      "网格加密检查壁温峰值、面平均和界面热量闭合；共轭两侧应按同一法向监视。",
+      "完美接触时温度相容；有热阻时温降与热通量一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/FlowSolve.F90",
+        "locator": "fem/src/modules/FlowSolve.F90；FlowSolver",
+        "claim": "固定 9.0 tag 下有 Navier–Stokes 流求解入口。"
+      },
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/HeatSolve.F90",
+        "locator": "fem/src/modules/HeatSolve.F90；HeatSolver：热扩散、Convection 和材料热边界",
+        "claim": "固体导热及流体能量方程热输运。"
+      },
+      {
+        "url": "https://ftp.csc.fi/pub/files/index/elmer/doc/ElmerModelsManual.pdf",
+        "locator": "Heat Equation 及边界条件",
+        "claim": "流体对流、固体 u=0 和分布热边界来自能量方程。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "thermal_mode": [
+        "conjugate"
+      ],
+      "phase_change": [
+        "none"
+      ],
+      "coupling": [
+        "two_way"
+      ]
+    },
+    "mechanisms": [
+      "convection",
+      "conduction"
+    ],
+    "related_capabilities": [
+      "elmer.conjugate_heat_transfer"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    },
+    "variants": [
+      {
+        "solver": "elmer",
+        "version": "9.0",
+        "target": "wall_temperature",
+        "role": "configured",
+        "model": "HeatSolver 固体导热及边界回读",
+        "applicability": "固体内 Fourier 导热，已给温度、热通量或等效外界对流边界；瞬态还需初始温度、储热物性与时间历程。",
+        "exclusions": "若未知流侧膜系数且须解析流体速度/热边界层，应采用共轭传热路线。",
+        "inputs": [
+          "geometry",
+          "solid_properties",
+          "thermal_boundary",
+          "heat_sources"
+        ],
+        "exchanges": [
+          {
+            "from": "固体热方程",
+            "to": "壁面读回",
+            "quantity": "温度场与法向热流密度",
+            "unit": "K, W/m²",
+            "method": "同一固体网格边界提取温度与热流；从面积积分获得 W。"
+          }
+        ],
+        "rationale": "从固体温度梯度和导热率求 q=−k∇T。整面热率按外法向积分；壁温按客户指定的位置和统计方式回读。",
+        "custom_work": "在项目中明确各材料、源项、辐射或对流边界及其适用范围。",
+        "checks": [
+          "核对指定边界法向、热率 W、热流密度 W/m²及瞬态储热项，检查网格与时间步敏感性。"
+        ],
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/ElmerCSC/elmerfem/release-9.0/fem/src/modules/HeatSolve.F90",
+            "locator": "elmer.heat_conduction",
+            "claim": "Elmer release-9.0 source: HeatSolver and Heat Conductivity material"
+          },
+          {
+            "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/FluxSolver.F90",
+            "locator": "elmer.boundary_flux_evaluation",
+            "claim": "Elmer release-9.0 FluxSolver.F90。文档目录主题对应 Model 47. Flux Computation；只登记固定版可确认的模型范围。"
+          }
+        ],
+        "conditions": {
+          "thermal_mode": [
+            "solid_only"
+          ],
+          "operation": [
+            "steady",
+            "transient"
+          ]
+        },
+        "mechanisms": [
+          "conduction"
+        ],
+        "related_capabilities": [
+          "elmer.heat_conduction",
+          "elmer.boundary_flux_evaluation"
+        ],
+        "extra_inputs": {
+          "operation=transient": [
+            "time_history"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "solver": "elmer",
+    "version": "9.0",
+    "target": "thermal_stress",
+    "role": "configured",
+    "model": "HeatSolver → StressSolver / StressSolve",
+    "applicability": "线弹性、小应变、温度到结构的单向热载荷。可读入既有 T 或按 HeatSolver 求。",
+    "exclusions": "若发生屈服、大挠度或热/力接触反馈，改用相应的非线性材料/力学模型。",
+    "inputs": [
+      "structural_geometry",
+      "temperature_reference",
+      "mechanical_constraints",
+      "elastic_properties",
+      "expansion_coefficient",
+      "thermal_boundary",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "thermal_solution",
+        "to": "solid_mechanics",
+        "quantity": "固体温度与应力自由参考态",
+        "unit": "K",
+        "method": "同网格共享 Temperature 时直接传递；跨网格插值并显式指定 Reference Temperature、热膨胀参数和应力输出。"
+      },
+      {
+        "from": "solid_mechanics",
+        "to": "stress_report",
+        "quantity": "Cauchy 应力、主应力或 von Mises 按工程判据",
+        "unit": "Pa",
+        "method": "按约定应力不变量、材料和部位回读，附约束反力。"
+      }
+    ],
+    "rationale": "线性热应变与弹性张量、几何、机械约束共同决定应力。",
+    "custom_work": "核对参数是线膨胀 α 还是手册本构中的应力–温度张量 β；C:α 关系由材料和实现处理，避免把两者混传。",
+    "checks": [
+      "均温自由膨胀：移除刚体模后应力趋零；轴向受限且侧向自由杆按 −EαΔT 检查。",
+      "复核应力自由温度、温标、材料与边界映射，检查反力平衡与网格敏感性；约束角点奇异峰值单独处理。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ElmerCSC/elmerfem/blob/release-9.0/fem/src/modules/StressSolve.F90",
+        "locator": "fem/src/modules/StressSolve.F90；StressSolver 热载荷装配",
+        "claim": "固定版线弹性位移与热载荷装配。"
+      },
+      {
+        "url": "https://ftp.csc.fi/pub/files/index/elmer/doc/ElmerModelsManual.pdf",
+        "locator": "Linear Elasticity §6.2",
+        "claim": "参考温度 T0 处定义零热应力，温度场可来自 HeatSolver。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "steady",
+        "transient"
+      ],
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "elmer.linear_elasticity"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

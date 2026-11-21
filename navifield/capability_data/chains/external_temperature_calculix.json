@@ -1,0 +1,74 @@
+{
+  "solver": "calculix",
+  "version": "2.22",
+  "chains": [
+    {
+      "id": "external_temperature_to_static_structure",
+      "status": "custom",
+      "scope": "CalculiX 2.22 的独立小变形静力候选。用户已提供温度场；目标节点映射与物理约束须在本地核验。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "map_nodal_temperature",
+          "operation": "校验温度来源与目标节点映射",
+          "equation": "T_target(x_i)=T_source(x_i) 或经已验证的空间插值。",
+          "receives": [
+            "外部温度 [K 或明确温标]、源和目标节点 ID/坐标及单位"
+          ],
+          "produces": [
+            "完整的目标节点温度表及未匹配/外推审计"
+          ],
+          "depends_on": [],
+          "implementation": "custom",
+          "evidence": [
+            "ccx_222"
+          ]
+        },
+        {
+          "id": "prescribed_thermal_static",
+          "operation": "CalculiX 2.22：按节点温度施加热膨胀静力",
+          "equation": "ε_th=α(T)(T−T_ref)−α(T₀)(T₀−T_ref)；常 α 时为 α(T−T₀)。",
+          "receives": [
+            "目标节点温度、T₀、热膨胀参考 T_ref、弹性参数及结构约束"
+          ],
+          "produces": [
+            "限定区域的热应力 [Pa 或一致单位]、位移 [m 或一致单位]"
+          ],
+          "depends_on": [
+            "map_nodal_temperature"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "ccx_222"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "结构节点温度与热膨胀初始态",
+          "relation": "在模型定义给初始节点温度，静力步给当前节点温度；以材料膨胀参考和一致温标计算应变。",
+          "applicability": "三维实体小变形；没有经过验证的源和目标映射时，不能假定相同节点号代表相同点。",
+          "implementation": "configured",
+          "evidence": [
+            "ccx_222"
+          ]
+        }
+      ],
+      "custom_work": [
+        "核验源场、单位、节点覆盖、坐标系和无应力参考；异网格需要单独实现或核验插值/外推。"
+      ],
+      "checks": [
+        "用一维自由膨胀和固定端约束算例分别交叉核对位移与应力；检查指定实物映射覆盖和输出位置。"
+      ],
+      "sources": [
+        {
+          "id": "ccx_222",
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "CalculiX 2.22 §7.56 Eq. 871, *INITIAL CONDITIONS, §7.131 *TEMPERATURE, *STATIC",
+          "claim": "支持以模型节点或节点集给定温度并用温差计算热应变，外部网格映射由项目核验。"
+        }
+      ]
+    }
+  ]
+}

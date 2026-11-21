@@ -1,0 +1,68 @@
+{
+  "domain": "phase_change",
+  "solver": "gmsh",
+  "version": "4.15.2",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "not_applicable",
+      "scope": "作为 CAD、网格和结果显示工具，可标记初始固液区域，细化预期前沿附近网格，或按外部求解结果重网格。",
+      "custom_work": "导出带区域和边界标签的网格；外部求解器负责材料焓、潜热、相分数与前沿演化。重网格时由外部流程传递场量并核查能量守恒。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://gmsh.info/doc/texinfo/gmsh.html",
+          "locator": "Gmsh 4.15.2 §§1.2 Mesh module、1.3 Solver module、1.4 Post-processing module",
+          "claim": "官方手册将物理组和网格定义在网格模块中。ONELAB 把参数传给外部求解器，物理问题的设置和求解由该客户端负责。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/api/gmsh.h",
+          "locator": "gmsh_4_15_2 官方 Git 源码镜像，gmsh::model::addPhysicalGroup、gmsh::model::mesh::generate、gmsh::model::mesh::field::setAsBoundaryLayer",
+          "claim": "固定版本接口提供区域标记、网格生成和边界层尺寸控制；这些接口不定义相变方程。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "not_applicable",
+      "scope": "可为加热壁面、流道和外部求解器使用的两相边界生成与标记网格。ONELAB 调用外部客户端不改变物理方程的归属。",
+      "custom_work": "设置壁面细化、入口和出口标签并检验网格质量。外部两相求解器提供饱和物性、相间质量和能量源项以及适用的沸腾闭合。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://gmsh.info/doc/texinfo/gmsh.html",
+          "locator": "Gmsh 4.15.2 §§1.2 Mesh module、1.3 Solver module、1.4 Post-processing module",
+          "claim": "官方手册将物理组和网格定义在网格模块中。ONELAB 把参数传给外部求解器，物理问题的设置和求解由该客户端负责。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/api/gmsh.h",
+          "locator": "gmsh_4_15_2 官方 Git 源码镜像，gmsh::model::addPhysicalGroup、gmsh::model::mesh::generate、gmsh::model::mesh::field::setAsBoundaryLayer",
+          "claim": "固定版本接口提供区域标记、网格生成和边界层尺寸控制；这些接口不定义相变方程。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "not_applicable",
+      "scope": "可构造冷凝壁及液膜区域的网格、物理组和局部尺寸场，或显示外部导入的数据。",
+      "custom_work": "明确冷壁、气侧和排液边界标签，并按外部求解器网格要求细化。液膜或气侧传质、凝结率及潜热由所选求解器计算。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://gmsh.info/doc/texinfo/gmsh.html",
+          "locator": "Gmsh 4.15.2 §§1.2 Mesh module、1.3 Solver module、1.4 Post-processing module",
+          "claim": "官方手册将物理组和网格定义在网格模块中。ONELAB 把参数传给外部求解器，物理问题的设置和求解由该客户端负责。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/api/gmsh.h",
+          "locator": "gmsh_4_15_2 官方 Git 源码镜像，gmsh::model::addPhysicalGroup、gmsh::model::mesh::generate、gmsh::model::mesh::field::setAsBoundaryLayer",
+          "claim": "固定版本接口提供区域标记、网格生成和边界层尺寸控制；这些接口不定义相变方程。"
+        }
+      ]
+    }
+  ],
+  "models": []
+}

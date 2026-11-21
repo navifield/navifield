@@ -1,0 +1,1179 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "domain": "heat_transfer",
+  "models": [
+    {
+      "id": "laplacianFoam",
+      "label": "固体热扩散 laplacianFoam",
+      "capability_ids": [],
+      "mechanisms": [
+        "conduction"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "motion": [
+          "none"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "热导率 k [W/(m·K)]，用于物理热流换算。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度边界 [K] 或相容梯度 [K/m]；物理热流边界用 k 换算。"
+        },
+        {
+          "key": "thermal_diffusivity",
+          "derived_from": [
+            "conductivity",
+            "density",
+            "heat_capacity"
+          ],
+          "meaning": "瞬态扩散系数 DT [m²/s]，可直接给出或用 k/(ρc_p) 换算。",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "瞬态初始温度场 [K]。",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        "温度 T [K]",
+        "由几何法向温度梯度和热导率计算 qₙ [W/m²]"
+      ],
+      "assumptions": [
+        "单计算域求单标量 T。DT 可读为 0/DT 标量场，或由 constant/transportProperties 给统一常数。",
+        "稳态非零常 DT 的纯温度边值问题只需温度边界，DT 的具体数值不改变解。热流回读取 k；瞬态可直接给 DT，仅由物性换算时才同时需要 k、ρ 和 c_p。"
+      ],
+      "limitations": [
+        "单标量扩散的温度方程不是多材料能量守恒入口。将各材料的 k/(ρc_p) 直接映到同一 DT 场，可能得到不守恒的界面物理热流；材料差异显著时须显式处理能量方程与接口。"
+      ],
+      "couplings": [
+        {
+          "from_field": "solid_temperature",
+          "to_field": "wall_heat_flux",
+          "quantity": "法向热流密度 [W/m²]",
+          "transfer": "按 −k∂T/∂n 后处理",
+          "custom_work": "指定导热率和向外法向、积分目标面。"
+        }
+      ],
+      "basis": "仅固体内的传热由温度梯度驱动时，基础热扩散即可。用一维平板解析解核对稳态温度和热流，用瞬态温升曲线核对热容量。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/basic/laplacianFoam/laplacianFoam.C",
+          "locator": "applications/solvers/basic/laplacianFoam/laplacianFoam.C；33–52，温度方程",
+          "claim": "发布源码列出 ∂T/∂t=∇·(D_T∇T)，适用于固体热扩散。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/basic/laplacianFoam/flange",
+          "locator": "tutorials/basic/laplacianFoam/flange",
+          "claim": "上游法兰热扩散设置示例，非对实测精度的承诺。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/basic/laplacianFoam/createFields.H",
+          "locator": "applications/solvers/basic/laplacianFoam/createFields.H；17–46",
+          "claim": "优先读 DT 标量场；否则从 transportProperties 读统一常数 DT。应用不读取各区域 k、ρ 或 c_p。"
+        }
+      ]
+    },
+    {
+      "id": "chtMultiRegionSimpleFoam",
+      "label": "稳态多区域共轭传热",
+      "capability_ids": [
+        "openfoam_opencfd.steady_cht",
+        "openfoam_opencfd.mapped_baffle_thermal_layers",
+        "openfoam_opencfd.wall_heat_flux_readback"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "interface_temperature",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid_solid"
+        ],
+        "motion": [
+          "forced",
+          "buoyant"
+        ],
+        "time": [
+          "steady"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固体热导率 k [W/(m·K)]，可按各区域给出。"
+        },
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "等压比热 [J/(kg·K)]。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "interface_mapping",
+          "meaning": "流固配对区域及 patch 映射，可附薄层厚度 [m] 与热导率 [W/(m·K)]。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "浮力显著时给重力加速度矢量 [m/s²]。",
+          "when": {
+            "motion": [
+              "buoyant"
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        "各流体与固体区域温度 [K]",
+        "界面两侧壁温 [K]、法向热流密度 [W/m²] 及界面净热流 [W]"
+      ],
+      "assumptions": [
+        "完美接触界面两侧壁温连续、法向热流等值反向；显式薄层热阻允许温差。",
+        "选多区域传热时检查区域数、流固配对、近壁网格、能量收支。浮力显著时另补重力和有效密度模型。"
+      ],
+      "limitations": [
+        "仅有固定壁温或换热系数时可用单域边界；需要流固温度和热流相互反馈才用此多区域求解。",
+        "上游案例证明设置路径，交付精度需按接口守恒及测量或参考模型复核。"
+      ],
+      "couplings": [
+        {
+          "from_field": "fluid_temperature",
+          "to_field": "solid_temperature",
+          "quantity": "界面热流密度 [W/m²] 与邻区温度 [K]",
+          "transfer": "配对 mapped 界面双侧热传递",
+          "custom_work": "生成配对 patch，检查两侧法向、映射守恒及可选热阻。"
+        },
+        {
+          "from_field": "solid_temperature",
+          "to_field": "fluid_temperature",
+          "quantity": "反向热流密度 [W/m²] 与邻区温度 [K]",
+          "transfer": "同一耦合边界反向反馈",
+          "custom_work": "检查界面通量守恒和全域能量闭合。"
+        }
+      ],
+      "basis": "流体对流与固体导热共同决定界面温度和热流。适合寻找定常稳定热平衡。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C",
+          "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C；33–38；同目录 fluid/EEqn.H、solid/solveSolid.H",
+          "claim": "本版联立流体能量与固体导热。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H",
+          "locator": "src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H；31–56",
+          "claim": "支持邻区温度、按 kδ 配重和可选薄层热阻。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
+          "locator": "tutorials/heatTransfer/chtMultiRegionSimpleFoam/cpuCabinet",
+          "claim": "原包上游配对设置例；未将教程当成量化精度验证。"
+        }
+      ]
+    },
+    {
+      "id": "chtMultiRegionFoam",
+      "label": "瞬态多区域共轭传热",
+      "capability_ids": [
+        "openfoam_opencfd.transient_cht",
+        "openfoam_opencfd.mapped_baffle_thermal_layers",
+        "openfoam_opencfd.wall_heat_flux_readback"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "interface_temperature",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid_solid"
+        ],
+        "motion": [
+          "forced",
+          "buoyant"
+        ],
+        "time": [
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固体热导率 k [W/(m·K)]，可按各区域给出。"
+        },
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "等压比热 [J/(kg·K)]。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "interface_mapping",
+          "meaning": "流固配对区域及 patch 映射，可附薄层厚度 [m] 与热导率 [W/(m·K)]。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]，瞬态需给出。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "浮力显著时给重力加速度矢量 [m/s²]。",
+          "when": {
+            "motion": [
+              "buoyant"
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        "各流体与固体区域温度 [K]",
+        "界面两侧壁温 [K]、法向热流密度 [W/m²] 及界面净热流 [W]"
+      ],
+      "assumptions": [
+        "完美接触界面两侧壁温连续、法向热流等值反向；显式薄层热阻允许温差。",
+        "选多区域传热时检查区域数、流固配对、近壁网格、能量收支。浮力显著时另补重力和有效密度模型。"
+      ],
+      "limitations": [
+        "仅有固定壁温或换热系数时可用单域边界；需要流固温度和热流相互反馈才用此多区域求解。",
+        "上游案例证明设置路径，交付精度需按接口守恒及测量或参考模型复核。"
+      ],
+      "couplings": [
+        {
+          "from_field": "fluid_temperature",
+          "to_field": "solid_temperature",
+          "quantity": "界面热流密度 [W/m²] 与邻区温度 [K]",
+          "transfer": "配对 mapped 界面双侧热传递",
+          "custom_work": "生成配对 patch，检查两侧法向、映射守恒及可选热阻。"
+        },
+        {
+          "from_field": "solid_temperature",
+          "to_field": "fluid_temperature",
+          "quantity": "反向热流密度 [W/m²] 与邻区温度 [K]",
+          "transfer": "同一耦合边界反向反馈",
+          "custom_work": "检查界面通量守恒和全域能量闭合。"
+        }
+      ],
+      "basis": "流体对流与固体导热共同决定界面温度和热流。保留固体储热及流量或热负荷随时间变化。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C",
+          "locator": "applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C；33–38；同目录 fluid/EEqn.H、solid/solveSolid.H",
+          "claim": "本版联立流体能量与固体导热。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H",
+          "locator": "src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H；31–56",
+          "claim": "支持邻区温度、按 kδ 配重和可选薄层热阻。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/chtMultiRegionFoam/multiRegionHeater",
+          "locator": "tutorials/heatTransfer/chtMultiRegionFoam/multiRegionHeater",
+          "claim": "原包上游配对设置例；未将教程当成量化精度验证。"
+        }
+      ]
+    },
+    {
+      "id": "buoyantBoussinesqSimpleFoam",
+      "label": "稳态 Boussinesq 小密度变化自然对流",
+      "capability_ids": [
+        "openfoam_opencfd.steady_boussinesq_convection"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "buoyancy"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "motion": [
+          "buoyant"
+        ],
+        "density": [
+          "small_variation"
+        ],
+        "time": [
+          "steady"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "expansion_coefficient",
+          "meaning": "体膨胀系数 β [K⁻¹]。"
+        },
+        {
+          "key": "reference_temperature",
+          "meaning": "线性化或物性评估参考温度 [K]。"
+        }
+      ],
+      "outputs": [
+        "温度、速度与压力场",
+        "壁热流密度 [W/m²]；按指定参考温差与长度推算 Nu"
+      ],
+      "assumptions": [
+        "相对密度变化远小于 1，使用 |β(T−T_ref)|≪1 检查；密度线性变化仅进入浮力。",
+        "Ra=gβ|ΔT|L³/(να)；L 对方腔取腔高。高 Ra 时评估是否需要湍流或非定常求解。"
+      ],
+      "limitations": [
+        "基准只校验指定几何和参数。边界热流精度依赖近壁网格、湍流方案、边界与物性。",
+        "强温差或相变、组分变化超出闭合时应换模型。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "momentum",
+          "quantity": "重力相关浮力项",
+          "transfer": "rhok=1−β(T−T_ref)",
+          "custom_work": "提供重力、物性及温度或压力参考。"
+        },
+        {
+          "from_field": "velocity",
+          "to_field": "temperature",
+          "quantity": "对流能量输运",
+          "transfer": "流场求解与温度/能量方程迭代",
+          "custom_work": "用壁热流或 Nu、质量和能量收支检查。"
+        }
+      ],
+      "basis": "小密度变化、浮力驱动、其余物性可在参考态近似时使用。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/buoyantBoussinesqSimpleFoam.C",
+          "locator": "applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/buoyantBoussinesqSimpleFoam.C；Description；同目录 TEqn.H/rhok（Boussinesq）或 createFields.H/rhoThermo（变密度）",
+          "claim": "本版对应时间推进与热浮力路径。"
+        },
+        {
+          "kind": "family_reference",
+          "url": "https://onlinelibrary.wiley.com/doi/10.1002/fld.1650030305",
+          "locator": "de Vahl Davis 1983，差温方腔，表 V",
+          "claim": "二维 Boussinesq、空气 Pr≈0.71，Ra=10³、10⁴、10⁵、10⁶ 的网格外推数值基准，对比平均 Nu 和速度。覆盖范围仅限该数值基准。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantBoussinesqSimpleFoam/hotRoom",
+          "locator": "tutorials/heatTransfer/buoyantBoussinesqSimpleFoam/hotRoom",
+          "claim": "本版上游设置示例，未在本次复算。"
+        }
+      ]
+    },
+    {
+      "id": "buoyantBoussinesqPimpleFoam",
+      "label": "瞬态 Boussinesq 小密度变化自然对流",
+      "capability_ids": [
+        "openfoam_opencfd.transient_boussinesq_convection"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "buoyancy"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "motion": [
+          "buoyant"
+        ],
+        "density": [
+          "small_variation"
+        ],
+        "time": [
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "expansion_coefficient",
+          "meaning": "体膨胀系数 β [K⁻¹]。"
+        },
+        {
+          "key": "reference_temperature",
+          "meaning": "线性化或物性评估参考温度 [K]。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]，瞬态需给出。"
+        }
+      ],
+      "outputs": [
+        "温度、速度与压力场",
+        "壁热流密度 [W/m²]；按指定参考温差与长度推算 Nu"
+      ],
+      "assumptions": [
+        "相对密度变化远小于 1，使用 |β(T−T_ref)|≪1 检查；密度线性变化仅进入浮力。",
+        "Ra=gβ|ΔT|L³/(να)；L 对方腔取腔高。高 Ra 时评估是否需要湍流或非定常求解。"
+      ],
+      "limitations": [
+        "基准只校验指定几何和参数。边界热流精度依赖近壁网格、湍流方案、边界与物性。",
+        "强温差或相变、组分变化超出闭合时应换模型。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "momentum",
+          "quantity": "重力相关浮力项",
+          "transfer": "rhok=1−β(T−T_ref)",
+          "custom_work": "提供重力、物性及温度或压力参考。"
+        },
+        {
+          "from_field": "velocity",
+          "to_field": "temperature",
+          "quantity": "对流能量输运",
+          "transfer": "流场求解与温度/能量方程迭代",
+          "custom_work": "用壁热流或 Nu、质量和能量收支检查。"
+        }
+      ],
+      "basis": "小密度变化、浮力驱动、其余物性可在参考态近似时使用。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/buoyantBoussinesqPimpleFoam.C",
+          "locator": "applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/buoyantBoussinesqPimpleFoam.C；Description；同目录 TEqn.H/rhok（Boussinesq）或 createFields.H/rhoThermo（变密度）",
+          "claim": "本版对应时间推进与热浮力路径。"
+        },
+        {
+          "kind": "family_reference",
+          "url": "https://onlinelibrary.wiley.com/doi/10.1002/fld.1650030305",
+          "locator": "de Vahl Davis 1983，差温方腔，表 V",
+          "claim": "二维 Boussinesq、空气 Pr≈0.71，Ra=10³、10⁴、10⁵、10⁶ 的网格外推数值基准，对比平均 Nu 和速度。覆盖范围仅限该数值基准。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantBoussinesqPimpleFoam/hotRoom",
+          "locator": "tutorials/heatTransfer/buoyantBoussinesqPimpleFoam/hotRoom",
+          "claim": "本版上游设置示例，未在本次复算。"
+        }
+      ]
+    },
+    {
+      "id": "buoyantSimpleFoam",
+      "label": "稳态 变密度自然对流",
+      "capability_ids": [
+        "openfoam_opencfd.steady_compressible_buoyant_heat_transfer"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "buoyancy"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "motion": [
+          "buoyant"
+        ],
+        "density": [
+          "variable"
+        ],
+        "time": [
+          "steady"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "equation_of_state",
+          "meaning": "采用可用的热物性状态方程及有效范围，例如理想气体使用 ρ=p/(RT)；气体比气体常数 R [J/(kg·K)]。"
+        }
+      ],
+      "outputs": [
+        "温度、速度与压力场",
+        "壁热流密度 [W/m²]；按指定参考温差与长度推算 Nu"
+      ],
+      "assumptions": [
+        "密度由所选热物性/状态方程重算，可处理低马赫数但温升导致有限密度变化。",
+        "随温度明显变化的 μ、k、c_p 要明确给定；封闭腔需与质量/参考压力处理一致。"
+      ],
+      "limitations": [
+        "基准只校验指定几何和参数。边界热流精度依赖近壁网格、湍流方案、边界与物性。",
+        "低马赫数稳态、瞬态选择取决于物理和时间尺度；求解器名中的可压缩不意味着任何马赫数或区域均有同等精度。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "momentum",
+          "quantity": "重力相关浮力项",
+          "transfer": "rhoThermo/EOS 配合重力项",
+          "custom_work": "提供重力、物性及温度或压力参考。"
+        },
+        {
+          "from_field": "velocity",
+          "to_field": "temperature",
+          "quantity": "对流能量输运",
+          "transfer": "流场求解与温度/能量方程迭代",
+          "custom_work": "用壁热流或 Nu、质量和能量收支检查。"
+        }
+      ],
+      "basis": "压力或温度导致的有限密度变化会影响流动或热流时，采用温度、压力、密度相互耦合的热物性求解。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/buoyantSimpleFoam.C",
+          "locator": "applications/solvers/heatTransfer/buoyantSimpleFoam/buoyantSimpleFoam.C；Description；同目录 TEqn.H/rhok（Boussinesq）或 createFields.H/rhoThermo（变密度）",
+          "claim": "本版对应时间推进与热浮力路径。"
+        },
+        {
+          "kind": "family_reference",
+          "url": "https://www.numdam.org/item/10.1051/m2an%3A2005027.pdf",
+          "locator": "Le Quéré 等 2005，Part 1，方腔和参考值表",
+          "claim": "低马赫数非 Boussinesq 方腔，ε=(Th−Tc)/(Th+Tc)=0.6；Ra=10⁶ 比较变物性/常物性，Ra=10⁷ 比较变物性，属于原始数值基准范围。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantSimpleFoam/buoyantCavity",
+          "locator": "tutorials/heatTransfer/buoyantSimpleFoam/buoyantCavity",
+          "claim": "本版上游设置示例，未在本次复算。"
+        }
+      ]
+    },
+    {
+      "id": "buoyantPimpleFoam",
+      "label": "瞬态 变密度自然对流",
+      "capability_ids": [
+        "openfoam_opencfd.transient_buoyant_heat_transfer"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "buoyancy"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "motion": [
+          "buoyant"
+        ],
+        "density": [
+          "variable"
+        ],
+        "time": [
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "density",
+          "meaning": "参考或固体密度 [kg/m³]。"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "equation_of_state",
+          "meaning": "采用可用的热物性状态方程及有效范围，例如理想气体使用 ρ=p/(RT)；气体比气体常数 R [J/(kg·K)]。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]，瞬态需给出。"
+        }
+      ],
+      "outputs": [
+        "温度、速度与压力场",
+        "壁热流密度 [W/m²]；按指定参考温差与长度推算 Nu"
+      ],
+      "assumptions": [
+        "密度由所选热物性/状态方程重算，可处理低马赫数但温升导致有限密度变化。",
+        "随温度明显变化的 μ、k、c_p 要明确给定；封闭腔需与质量/参考压力处理一致。"
+      ],
+      "limitations": [
+        "基准只校验指定几何和参数。边界热流精度依赖近壁网格、湍流方案、边界与物性。",
+        "低马赫数稳态、瞬态选择取决于物理和时间尺度；求解器名中的可压缩不意味着任何马赫数或区域均有同等精度。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "momentum",
+          "quantity": "重力相关浮力项",
+          "transfer": "rhoThermo/EOS 配合重力项",
+          "custom_work": "提供重力、物性及温度或压力参考。"
+        },
+        {
+          "from_field": "velocity",
+          "to_field": "temperature",
+          "quantity": "对流能量输运",
+          "transfer": "流场求解与温度/能量方程迭代",
+          "custom_work": "用壁热流或 Nu、质量和能量收支检查。"
+        }
+      ],
+      "basis": "压力或温度导致的有限密度变化会影响流动或热流时，采用温度、压力、密度相互耦合的热物性求解。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantPimpleFoam/buoyantPimpleFoam.C",
+          "locator": "applications/solvers/heatTransfer/buoyantPimpleFoam/buoyantPimpleFoam.C；Description；同目录 TEqn.H/rhok（Boussinesq）或 createFields.H/rhoThermo（变密度）",
+          "claim": "本版对应时间推进与热浮力路径。"
+        },
+        {
+          "kind": "family_reference",
+          "url": "https://www.numdam.org/item/10.1051/m2an%3A2005027.pdf",
+          "locator": "Le Quéré 等 2005，Part 1，方腔和参考值表",
+          "claim": "低马赫数非 Boussinesq 方腔，ε=(Th−Tc)/(Th+Tc)=0.6；Ra=10⁶ 比较变物性/常物性，Ra=10⁷ 比较变物性，属于原始数值基准范围。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantPimpleFoam/hotRoom",
+          "locator": "tutorials/heatTransfer/buoyantPimpleFoam/hotRoom",
+          "claim": "本版上游设置示例，未在本次复算。"
+        }
+      ]
+    },
+    {
+      "id": "thermoFoam",
+      "label": "冻结流场的热输运 thermoFoam",
+      "capability_ids": [
+        "openfoam_opencfd.frozen_flow_thermal_transport"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection"
+      ],
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid"
+        ],
+        "motion": [
+          "forced"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "fluid_properties",
+          "meaning": "流体热物性，至少提供黏度 [Pa·s] 或运动黏度 [m²/s]、导热率 [W/(m·K)] 和比热 [J/(kg·K)]，或相应扩散系数。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "速度 [m/s]、压力（物理压力 Pa 或求解器运动学压力 m²/s²）、流量及闭腔参考信息。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 [K]、热流密度 [W/m²]、绝热等热边界，按 patch 定义。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]，瞬态需给出。",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        },
+        {
+          "key": "frozen_velocity",
+          "meaning": "已收敛且适用于热工况的速度场 [m/s] 和对应通量场。"
+        }
+      ],
+      "outputs": [
+        "固定流场下温度/焓分布和后处理壁热流"
+      ],
+      "assumptions": [
+        "能量输运可以使用已取得的流场；温度反馈对速度和质量流量可忽略。",
+        "SIMPLE 稳态模式配合 steadyState 时间离散；PIMPLE 瞬态选择有效 ddt 离散。"
+      ],
+      "limitations": [
+        "加热改变密度、黏度、浮力并足以反馈流动时，改用耦合对流求解器。"
+      ],
+      "couplings": [
+        {
+          "from_field": "velocity",
+          "to_field": "temperature",
+          "quantity": "对流能量输运",
+          "transfer": "读取冻结流场用于热方程",
+          "custom_work": "保留流场版本及流量一致性。"
+        }
+      ],
+      "basis": "已有同工况流动解，求加热或冷却后的温度且流动反馈可忽略时，冻结流场能节省流场迭代。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/thermoFoam/thermoFoam.C",
+          "locator": "applications/solvers/heatTransfer/thermoFoam/thermoFoam.C；33、52及求解循环；68–104 分支；同目录 EEqn.H:2–37",
+          "claim": "本版在冻结流场上求能量输运，有 SIMPLE 稳态迭代和 PIMPLE 时间推进分支；时间离散由 fvSchemes 指定。"
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "label": "P1 参与介质辐射",
+      "capability_ids": [],
+      "mechanisms": [
+        "radiation"
+      ],
+      "goals": [
+        "radiative_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "radiation": [
+          "participating_medium"
+        ],
+        "optical": [
+          "thick"
+        ],
+        "motion": [
+          "none",
+          "forced",
+          "buoyant"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "absorption_coefficient",
+          "meaning": "参与介质吸收系数 a [m⁻¹]，可按谱带或温度给出。"
+        },
+        {
+          "key": "emissivity",
+          "meaning": "壁面半球发射率 ε [无量纲，0–1]，可按谱带给出。"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "参与交换表面的已知壁温 [K]，或来自耦合热方程的当前壁温。"
+        },
+        {
+          "key": "medium_temperature",
+          "meaning": "参与介质的已知体温度场 [K]，或来自耦合能量方程的当前温度场。"
+        }
+      ],
+      "outputs": [
+        "入射辐射 G [W/m²]",
+        "壁面净辐射热流密度 [W/m²] 和耦合体积源"
+      ],
+      "assumptions": [
+        "近似各向扩散的辐射场、漫射壁面；均匀介质按 τ=aL，原包头文件的工程提示为 τ>3。吸收系数沿程变化时判断光程积分 ∫a ds。",
+        "辐射按准稳态求解，适用于静止介质与稳态流场。瞬态中通过 solverFreq 更新辐射，前提是辐射传播时间相对于热变化时间可忽略。"
+      ],
+      "limitations": [
+        "方向性强、薄介质、局部源附近或遮挡敏感时优先核对 fvDOM。τ>3 是本版头文件经验提示，与误差上限无等价关系。"
+      ],
+      "couplings": [
+        {
+          "from_field": "radiative_intensity",
+          "to_field": "energy",
+          "quantity": "体积辐射源 [W/m³]",
+          "transfer": "radiationModel::Sh/ST 与热方程耦合",
+          "custom_work": "同时核对温度反馈及边界辐射热流，防止额外源重复。"
+        }
+      ],
+      "basis": "方向细节所需较少，参与介质光学较厚时，P1 用扩散型辐射方程提供热源与热流。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/P1/P1.H",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/P1/P1.H；33–39；P1.C 注册及 calculate",
+          "claim": "v2606 头文件列 τ=aL>3 的典型条件、漫射壁面及源附近的热流偏差风险。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantSimpleFoam/hotRadiationRoom/constant/radiationProperties",
+          "locator": "tutorials/heatTransfer/buoyantSimpleFoam/hotRadiationRoom/constant/radiationProperties",
+          "claim": "v2606 P1 配置示例。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C；228–239",
+          "claim": "correct() 在首次及达到 solverFreq 时间索引时执行 calculate()，实现稳态迭代或瞬态热场中的准稳态更新。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/P1/P1.C",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/P1/P1.C；208–238",
+          "claim": "G 方程包含扩散和吸收发射项，无流体速度或辐射时间导数。"
+        }
+      ]
+    },
+    {
+      "id": "fvDOM",
+      "label": "离散坐标 fvDOM 参与介质辐射",
+      "capability_ids": [],
+      "mechanisms": [
+        "radiation"
+      ],
+      "goals": [
+        "radiative_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid",
+          "enclosure"
+        ],
+        "radiation": [
+          "participating_medium"
+        ],
+        "optical": [
+          "thin",
+          "thick",
+          "general"
+        ],
+        "motion": [
+          "none",
+          "forced",
+          "buoyant"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "absorption_coefficient",
+          "meaning": "参与介质吸收系数 a [m⁻¹]，可按谱带或温度给出。"
+        },
+        {
+          "key": "emissivity",
+          "meaning": "壁面半球发射率 ε [无量纲，0–1]，可按谱带给出。"
+        },
+        {
+          "key": "angular_resolution",
+          "meaning": "方位/极角方向数 nPhi、nTheta [无量纲]，按几何维数和方向解析设置。"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "参与交换表面的已知壁温 [K]，或来自耦合热方程的当前壁温。"
+        },
+        {
+          "key": "medium_temperature",
+          "meaning": "参与介质的已知体温度场 [K]，或来自耦合能量方程的当前温度场。"
+        }
+      ],
+      "outputs": [
+        "各角向辐射强度 [W/(m²·sr)]",
+        "壁面净辐射热流 [W/m²] 及体积能量源"
+      ],
+      "assumptions": [
+        "吸收与发射介质，以方向离散传输；灰或非灰使用配套吸收和射线边界。",
+        "评估空间与角度分辨率，尤其在狭窄通道、远距方向源及尖锐遮挡。",
+        "辐射按准稳态求解，适用于静止介质与稳态流场。瞬态中通过 solverFreq 更新辐射，前提是辐射传播时间相对于热变化时间可忽略。"
+      ],
+      "limitations": [
+        "核心 fvDOM 不包含介质散射或镜面反射；配套灰漫射边界源码含 (1−ε) 入射漫反射项。",
+        "角度离散可能产生 ray effects，角向收敛和辐射能量守恒须独立核对。"
+      ],
+      "couplings": [
+        {
+          "from_field": "radiative_intensity",
+          "to_field": "energy",
+          "quantity": "体积辐射源 [W/m³]",
+          "transfer": "radiationModel::Sh/ST 与热方程耦合",
+          "custom_work": "同时核对温度反馈及边界辐射热流，防止额外源重复。"
+        }
+      ],
+      "basis": "需要参与介质吸收发射并分辨输运方向时使用；各光学厚度下均需按工况核对角向和空间网格。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/fvDOM/fvDOM/fvDOM.H",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/fvDOM/fvDOM/fvDOM.H；33–60；fvDOM.C 注册",
+          "claim": "本版 RTE 方向离散、吸收模型和灰/非灰配置。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/derivedFvPatchFields/greyDiffusiveRadiation/greyDiffusiveRadiationMixedFvPatchScalarField.C",
+          "locator": "src/thermophysicalModels/radiation/derivedFvPatchFields/greyDiffusiveRadiation/greyDiffusiveRadiationMixedFvPatchScalarField.C；323–328",
+          "claim": "灰漫射射线边界组合入射漫反射和黑体发射项。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/buoyantSimpleFoam/hotRadiationRoomFvDOM/constant/radiationProperties",
+          "locator": "tutorials/heatTransfer/buoyantSimpleFoam/hotRadiationRoomFvDOM/constant/radiationProperties",
+          "claim": "v2606 室内 fvDOM 配置示例；不证明稀薄或浓厚介质的通用精度。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C；228–239",
+          "claim": "correct() 在首次及达到 solverFreq 时间索引时执行 calculate()，实现稳态迭代或瞬态热场中的准稳态更新。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/fvDOM/radiativeIntensityRay/radiativeIntensityRay.C",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/fvDOM/radiativeIntensityRay/radiativeIntensityRay.C；265–285",
+          "claim": "射线方程仅含空间传播和吸收发射项，无流体速度或辐射时间导数。"
+        }
+      ]
+    },
+    {
+      "id": "viewFactor",
+      "label": "灰漫表面视角系数辐射",
+      "capability_ids": [],
+      "mechanisms": [
+        "radiation"
+      ],
+      "goals": [
+        "radiative_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "enclosure",
+          "fluid_solid"
+        ],
+        "radiation": [
+          "surface_exchange"
+        ],
+        "motion": [
+          "none",
+          "forced",
+          "buoyant"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ],
+        "optical": [
+          "transparent"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "emissivity",
+          "meaning": "壁面半球发射率 ε [无量纲，0–1]，可按谱带给出。"
+        },
+        {
+          "key": "view_factors",
+          "meaning": "表面间视角系数 F_ij [无量纲]，按几何、遮挡与面分组选取或生成。",
+          "alternatives": [
+            "radiation_geometry"
+          ]
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "参与交换表面的已知壁温 [K]，或来自耦合热方程的当前壁温。"
+        }
+      ],
+      "outputs": [
+        "表面净辐射热流密度 [W/m²] 与积分辐射热流 [W]"
+      ],
+      "assumptions": [
+        "介质吸收、发射和散射可忽略。采用灰漫表面、固定几何视线关系；封闭腔核对 ΣF_ij≈1 和 A_iF_ij≈A_jF_ji。",
+        "辐射按准稳态求解，适用于静止介质与稳态流场。瞬态中通过 solverFreq 更新辐射，前提是辐射传播时间相对于热变化时间可忽略。"
+      ],
+      "limitations": [
+        "参与介质的体积升降温须采用参与介质模型。表面分组过粗、运动遮挡、镜面反射需另评估。",
+        "透明介质中的流动不改变固定几何的视角系数；活动构件改变遮挡时须重新核对 F_ij。"
+      ],
+      "couplings": [
+        {
+          "from_field": "surface_temperature",
+          "to_field": "wall_heat_flux",
+          "quantity": "净辐射热流密度 [W/m²]",
+          "transfer": "使用壁温 σT⁴、发射率和 F_ij 解辐射网络；可供热边界耦合",
+          "custom_work": "用同一几何生成对应 F_ij，检查表面区域号与热流符号。"
+        }
+      ],
+      "basis": "室内 enclosure、设备壳体等透明间隙内的表面对表面辐射，壁面热流可由视角系数与发射率求得。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/viewFactor/viewFactor.H",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/viewFactor/viewFactor.H；33–43；viewFactor.C 注册",
+          "claim": "v2606 按发射率、T⁴ 及视角系数构建表面热流线性系统。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation/constant/bottomAir/radiationProperties",
+          "locator": "tutorials/heatTransfer/chtMultiRegionSimpleFoam/multiRegionHeaterRadiation/constant/bottomAir/radiationProperties",
+          "claim": "v2606 上游共轭传热内嵌 viewFactor 配置。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C",
+          "locator": "src/thermophysicalModels/radiation/radiationModels/radiationModel/radiationModel.C；228–239",
+          "claim": "correct() 在首次及达到 solverFreq 时间索引时执行 calculate()，实现稳态迭代或瞬态热场中的准稳态更新。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/utilities/preProcessing/viewFactorsGen/viewFactorsGen.C",
+          "locator": "applications/utilities/preProcessing/viewFactorsGen/viewFactorsGen.C",
+          "claim": "本版工具可依据给定的几何网格与壁面设置预生成视角系数。"
+        }
+      ]
+    }
+  ]
+}

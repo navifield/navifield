@@ -1,0 +1,150 @@
+{
+  "id": "single_stream_measured_enthalpy_balance",
+  "label": "单侧流体实测焓差：热功率及累计能量",
+  "target": "heat_duty",
+  "applicability": "已选定同一受控流体回路和进出口，已知或可由独立状态确定截面混合平均比焓；以该流体焓流增量作为其接收功率的工程读回。若流量与流体状态随时间变化，须使用同步序列及对应时间窗。",
+  "relation": {
+    "fluid_received_power": "P_received(t) = m_dot(t) [h_out(t) − h_in(t)]，单位 W；正值代表所选流体焓流增加。瞬态若进出口质量流率不同，用 m_dot_out h_out − m_dot_in h_in 表示净焓流变化，并同时核算储量和质量平衡。",
+    "single_phase_approximation": "若所选流体单相、组分稳定、压力对比焓影响可忽略且比热在区间内变化很小：P ≈ m_dot × cp × (T_out − T_in)；否则采用积分 ∫cp(T,p,x)dT 或真实状态焓差。",
+    "cumulative_energy": "E_received = ∫[t0,t1] P_received(t) dt，单位 J；时间加权平均功率 E/(t1−t0)，功率与能量不可混用。",
+    "interpretation": "该值是所选流体进出口净焓流增量；只有稳态、该侧控制体蓄能和其他热/功贡献可忽略或已计入时，才近似为穿过目标换热面的净热量。相变、储能或附加功不可忽略时需扩展控制体平衡。"
+  },
+  "inputs": [
+    {
+      "key": "fluid_side",
+      "label": "所选流体侧 / selected fluid side",
+      "unit": "controlled identifier",
+      "required": "always"
+    },
+    {
+      "key": "measurement_interval",
+      "label": "同步测量时间窗 / common measurement interval",
+      "unit": "s",
+      "required": "always"
+    },
+    {
+      "key": "mass_flow_in",
+      "label": "所选侧入口质量流率 / inlet mass flow rate",
+      "unit": "kg/s",
+      "required": "always，准稳态可用一只代表该侧的质量流量计"
+    },
+    {
+      "key": "mass_flow_out",
+      "label": "所选侧出口质量流率 / outlet mass flow rate",
+      "unit": "kg/s",
+      "required": "when 非稳态蓄积、泄漏或进出口流率可能不同"
+    },
+    {
+      "key": "specific_enthalpy_in",
+      "label": "所选侧入口截面混合平均比焓 / inlet bulk specific enthalpy",
+      "unit": "J/kg",
+      "required": "与出口比焓成对，或使用合格的状态推算替代"
+    },
+    {
+      "key": "specific_enthalpy_out",
+      "label": "所选侧出口截面混合平均比焓 / outlet bulk specific enthalpy",
+      "unit": "J/kg",
+      "required": "与入口比焓成对，使用相同物性模型和参考基准"
+    },
+    {
+      "key": "temperature_in",
+      "label": "所选侧入口截面混合平均温度 / inlet bulk temperature",
+      "unit": "K",
+      "required": "焓未知时，或使用 cpΔT 近似"
+    },
+    {
+      "key": "temperature_out",
+      "label": "所选侧出口截面混合平均温度 / outlet bulk temperature",
+      "unit": "K",
+      "required": "焓未知时，或使用 cpΔT 近似"
+    },
+    {
+      "key": "pressure_in",
+      "label": "所选侧入口绝对压力 / inlet absolute pressure",
+      "unit": "Pa",
+      "required": "状态焓随压力或相态变化时"
+    },
+    {
+      "key": "pressure_out",
+      "label": "所选侧出口绝对压力 / outlet absolute pressure",
+      "unit": "Pa",
+      "required": "状态焓随压力或相态变化时"
+    },
+    {
+      "key": "fluid_composition_phase",
+      "label": "各端组成及相态 / fluid composition and phase at both ports",
+      "unit": "composition fractions; phase identity",
+      "required": "选物性与识别相变；两相时可能还需干度或相分率"
+    },
+    {
+      "key": "specific_heat",
+      "label": "所选侧适用平均定压比热 / representative cp",
+      "unit": "J/(kg·K)",
+      "required": "仅在单相 cpΔT 近似路径使用"
+    },
+    {
+      "key": "volume_flow_density",
+      "label": "实测体积流量及同状态密度 / actual volume flow and density",
+      "unit": "m³/s; kg/m³",
+      "required": "质量流量不可直接获得时，作为 m_dot=ρQ_v 的替代；注明基准状态"
+    }
+  ],
+  "questions": {
+    "fluid_side": "需要冷侧接收、热侧放出，还是指定其他流体侧？各进口出口和正方向如何定义？",
+    "measurement_interval": "是瞬时功率、哪个稳定时间窗的平均功率，还是指定时间段累计能量？",
+    "mass_flow_in": "所选侧入口质量流率是多少；若只有体积流量，测量位置、压力、温度和密度基准是什么？",
+    "specific_enthalpy_in": "入口比焓是否已知；如未知，该侧入口温度、压力、组成及相态是什么？",
+    "specific_enthalpy_out": "出口比焓是否已知；如未知，该侧出口温度、压力、组成及相态是什么？",
+    "mass_flow_out": "在所选时间窗是否有明显蓄积、旁路、泄漏或质量流率差；如有出口流量与控制体库存如何测定？",
+    "specific_heat": "若仅用温差法，是否确认单相、组成稳定且 cp 在温区和压力范围内近似恒定？",
+    "heat_loss": "是否要得到另一流体侧换热量或设备净热负荷；若是，环境漏热、设备蓄热及其他功如何测量或估计？",
+    "temperature_in": "同一侧入口的混合平均温度是多少，和流量是否同时取得？",
+    "temperature_out": "同一侧出口的混合平均温度是多少，和入口及流量是否处在同一稳定时段？"
+  },
+  "limitations": [
+    "所选侧流量和入口/出口测温必须对应相同回路、测点截面与时间窗；不可把热侧入口和冷侧出口温度直接代入同一流体焓差。",
+    "相变时温度差可很小而潜热显著；应由压力、干度/相分率及组成等确定两端比焓，不能只用 cpΔT。",
+    "混合、反应、成分变化、泄漏、多进出口或多相滑移时需逐股质量与焓流求和；热化学反应与状态焓基准需一致，不能无依据省略反应能。",
+    "快速非稳态下入口出口流率及控制体内质量、内能库存可变化；净焓流不自动等于界面热流，需额外测量或估计储能、机械功、动能及位能。",
+    "仅凭单侧流体测量无法唯一辨识另一侧换热量、环境漏热和设备蓄热；不能据此自动预测双侧壁面热通量。"
+  ],
+  "validation": [
+    "检查测点身份、测量时间同步、质量守恒、流向和单位；针对温差小的情况评估传感器差值误差及不确定度。",
+    "比较 m_dot(h_out−h_in) 与适用时 m_dot cpΔT；物性变化、压力影响及两相条件下优先使用状态焓。",
+    "若目标是双侧换热或漏热，补测另一侧流量及其进出口状态，必要时测环境漏热和设备蓄热；在同一时间窗做完整能量平衡。"
+  ],
+  "evidence": [
+    {
+      "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote1218.pdf",
+      "locator": "热交换器理论，式 (75) 附近，文档页 59–60",
+      "claim": "NIST 技术报告给出流体焓差乘质量流率及适用的比热温差表达，并讨论单相与两相换热。"
+    },
+    {
+      "url": "https://trc.nist.gov/cryogenics/Papers/Review/2015-Cryogenic_Measurements.pdf",
+      "locator": "§5.5 Thermal or Calorimetric (Mass Flow), equation (19)",
+      "claim": "热量测量讨论质量流量、比热和进出口温差的关系，支持单相近似口径。"
+    }
+  ],
+  "outputs": [
+    "heat_duty",
+    "thermal_energy"
+  ],
+  "input_routes": {
+    "enthalpy_balance": [
+      "fluid_side",
+      "measurement_interval",
+      "mass_flow_in",
+      "specific_enthalpy_in",
+      "specific_enthalpy_out"
+    ],
+    "single_phase_temperature_balance": [
+      "fluid_side",
+      "measurement_interval",
+      "mass_flow_in",
+      "temperature_in",
+      "temperature_out",
+      "specific_heat"
+    ]
+  },
+  "conditional_minimum": "若所选侧质量流量、入口混合平均温度及适用比热已经确认，稳定单相温差法最少补该侧出口混合平均温度。已有入口比焓时也可直接补该侧出口混合平均比焓。两路流量应标明侧别。"
+}

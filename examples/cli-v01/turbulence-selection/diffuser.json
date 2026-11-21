@@ -1,0 +1,15 @@
+{
+  "description": "Locate mean wall-flow separation in a smooth planar water diffuser with an adverse pressure gradient. The velocity is the inlet bulk value and the reference length is the inlet height. The near-wall mesh is planned to resolve the wall layer.",
+  "flow": "diffuser_adverse_gradient",
+  "target": "separation_location",
+  "regime": "fully_turbulent",
+  "fluid": "single_phase_incompressible_newtonian",
+  "surface": "smooth",
+  "wall_mode": "wall_resolved",
+  "planned_y_plus": 1,
+  "velocity_m_s": 2,
+  "velocity_basis": "bulk",
+  "length_m": 0.015,
+  "length_basis": "inlet_height",
+  "nu_m2_s": 0.000001
+}

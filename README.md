@@ -6,6 +6,19 @@ NaviField is a local simulation toolbox for students and engineers. Run your own
 
 ## 安装
 
+v0.2.0 随包提供版本化求解器知识库，以及稳态直圆翅片的建模和原生温度、传热率读回。黄铜翅片示例会在新的项目目录中调用本机 CalculiX 2.22，并逐点对照八个轴向温度。[黄铜翅片示例](examples/cli-v01/brass-fin/README.md)
+
+知识库可离线查询 9 款软件的 678 条工程能力、23 种求解链和 34 条论文记录。先按具体物理量或 DOI 查询，再按需要展开模型、耦合方向、证据和待补输入。
+
+```bat
+navifield capabilities list
+navifield capabilities paper-cases --doi 10.17482/uumfd.446304
+navifield capabilities chain-inventory --chain steady_extended_surface_conduction --solver calculix --version 2.22
+navifield capabilities couplings --solver elmer
+```
+
+自然语言选型使用 `navifield route request.json --brief`，文件格式如 `{"original_request":"细长铝棒基部定温，末端绝热，侧面有综合换热系数，想算轴向温度和基部传热率。"}`。首次筛选可能只得到部分候选或无匹配记录。资料目录随包提供原始 JSON 与 SQLite 查询索引。每篇论文的原生计算、文献数据与实验验收状态分别记录。[知识库数据和证据说明](navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)
+
 准备 64 位 Python 3.10 或更新版本。在解压目录打开 Windows 命令提示符（cmd.exe），建议为 NaviField 建独立环境。安装命令会一并安装基础依赖 psutil 和 Pydantic 2。
 
 ```bat

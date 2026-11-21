@@ -1,0 +1,489 @@
+{
+  "solver": "moose",
+  "version": "2024-03-08",
+  "chains": [
+    {
+      "id": "outlet_net_vapor",
+      "status": "custom",
+      "scope": "固定版可复用单相通道和饱和物性，但设备壁核态产汽、并流再凝结、出口汽相输运均需另建。孔隙均衡闪蒸不会给设备出口分相率。",
+      "steps": [
+        {
+          "id": "props",
+          "operation": "配置单相参考与两相饱和属性",
+          "equation": "T_sat(p)，h_fg=h_g−h_l",
+          "receives": [
+            "流道工况、材料和温压"
+          ],
+          "produces": [
+            "基础流动/热状态及相属性"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "one_phase",
+            "two_phase_eos",
+            "pore_eq"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "vapor_transport",
+          "operation": "实现壁面源、两相输运、体相再凝结",
+          "equation": "∂t(α_vρ_v)+∇·(α_vρ_vU_v)=S_wall+S_int",
+          "receives": [
+            "固定壁温 [K]、气泡闭合、两相物性、饱和关系"
+          ],
+          "produces": [
+            "相分率、速度和汽相通量 [kg/(m²·s)]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "one_phase",
+            "bubble_exp"
+          ],
+          "depends_on": [
+            "props"
+          ]
+        },
+        {
+          "id": "out",
+          "operation": "输出设备出口净汽相质量流",
+          "equation": "m_dot_net=Σ面∫α_vρ_vU_v·n dA",
+          "receives": [
+            "所实现的面相质量通量与入口出口法向"
+          ],
+          "produces": [
+            "净汽相流量 [kg/s]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "bubble_exp"
+          ],
+          "depends_on": [
+            "vapor_transport"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "壁面核态热流与体相凝结",
+          "relation": "RPI 型壁热流分配产生汽源，同时保留相间凝结",
+          "applicability": "待开发和校验，固定版单相 HTC 与等温物性函数无法替代",
+          "implementation": "custom",
+          "evidence": [
+            "one_phase",
+            "bubble_exp"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "受热段指定壁温 [K] 与其它壁面热边界。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口各相质量流率 [kg/s] 或相速度 [m/s]、分率与温度 [K]，出口压力 [Pa]。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        },
+        {
+          "key": "surface_tension",
+          "meaning": "液汽表面张力 [N/m]。"
+        },
+        {
+          "key": "boiling_closures",
+          "meaning": "明确壁热流分配、成核点、泡脱离直径与频率模型及系数。"
+        },
+        {
+          "key": "interfacial_heat_transfer",
+          "meaning": "指定两侧相际换热闭合、气泡直径与相际面积模型及相体系。"
+        },
+        {
+          "key": "diagnostic_patches",
+          "meaning": "所有进口和出口控制面、法向约定及时间平均窗口 [s]。"
+        }
+      ],
+      "custom_work": [
+        "自研或耦合外部两相流求解器，提供两相能量与相间源、相速度/相分率和气相面流量回读。"
+      ],
+      "checks": [
+        "Σ出口 α汽ρ汽 U面·S 与 −Σ入口 α汽ρ汽 U面·S 各记实测或数值基准；若用汇总净值保留有符号回流。",
+        "闭合 d∫αρ dV/dt + Σ各外边界面质量流 − ∫(S_wall+S_int)dV；稳态储存项才可略。",
+        "与匹配壁温、过冷度和压力下的壁热流及出口相分离称量或相通量比较。环隙泡参数实验仅校验部分。"
+      ],
+      "sources": [
+        {
+          "id": "one_phase",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/components/FlowChannel1Phase.C",
+          "locator": "modules/thermal_hydraulics/src/components/FlowChannel1Phase.C；组件定义及单相模型",
+          "claim": "固定版截面平均单相通道可承载单相动量和换热，不能预测出口两相质量流。",
+          "kind": "version_source"
+        },
+        {
+          "id": "two_phase_eos",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C",
+          "locator": "modules/fluid_properties/src/fluidproperties/StiffenedGasTwoPhaseFluidProperties.C；两相属性及饱和函数",
+          "claim": "固定版两相热力学可提供物性和饱和条件，不给壁面产汽或凝结速率。",
+          "kind": "version_source"
+        },
+        {
+          "id": "pore_eq",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C",
+          "locator": "modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C；thermophysicalProperties，TWOPHASE",
+          "claim": "压力和焓确定纯水的局部平衡饱和度，孔隙流不等同于工业设备内的相滑移或有限速率。",
+          "kind": "version_source"
+        },
+        {
+          "id": "bubble_exp",
+          "url": "https://www.sciencedirect.com/science/article/abs/pii/S0017931019305629",
+          "locator": "近常压蒸汽-水竖直环隙实验，摘要与工况表",
+          "claim": "实测空隙率与泡参数供过冷核态局部闭合核对；实验以加热通量控制，不能替代固定壁温设备的出口气相流量验证。",
+          "kind": "physics_reference"
+        }
+      ]
+    },
+    {
+      "id": "unresolved_film",
+      "status": "configured",
+      "scope": "纯饱和蒸汽与竖直光滑近等温板之间的重力层流膜，总热负荷和冷凝量可由外算 Nusselt 平均系数及面积积分得到。求未知壁温时可给通用 Robin 热边界。局部膜厚演化、瞬态排液及求解汽相质量反馈需另建。",
+      "steps": [
+        {
+          "id": "film",
+          "operation": "按板式层流膜闭合外算",
+          "equation": "h_bar=0.943[k_l³ ρ_l(ρ_l−ρ_v)g h_fg/(μ_l L ΔT)]^(1/4)；q_bar=h_bar ΔT；m_dot=A q_bar/h_fg",
+          "receives": [
+            "纯饱和蒸汽、平板尺寸、热物性与壁温"
+          ],
+          "produces": [
+            "h_bar [W/(m²·K)]、q [W/m²] 与 j [kg/(m²·s)]"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt",
+            "flatplate_exp"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "bc",
+          "operation": "已知壁温直算热负荷；未知壁温用原生 Robin 热边界求解",
+          "equation": "已知 Tw：q=h_bar(T_sat−Tw)，Q=Aq。未知 Tw：以 h_ext 和参考温度 T_sat 给 Robin，迭代更新 h_ext。固定 Tw 与 Robin 二选一。 通过 ADConvectionHeatTransferBC 提供 htc_ambient 与 T_ambient。",
+          "receives": [
+            "外部 q [W/m²] 或 h [W/(m²·K)] 与 T_sat [K]"
+          ],
+          "produces": [
+            "冷壁温度（仅未知壁温路线）[K]",
+            "热负荷 [W]"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "solid_h",
+            "bcflux"
+          ],
+          "depends_on": [
+            "film"
+          ]
+        },
+        {
+          "id": "drain",
+          "operation": "求总体凝结排液并区分可选的动态反馈",
+          "equation": "等温稳态 m_dot=Q_lat/h_fg；仅需总量用静态代数。若解汽相和动态膜，再添加面质量与焓源、排液及膜库存方程。",
+          "receives": [
+            "q_lat [W/m²]、h_fg [J/kg]、换热面积 [m²]"
+          ],
+          "produces": [
+            "冷凝排液 [kg/s]"
+          ],
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ],
+          "depends_on": [
+            "film"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "Nusselt 层流重力膜外算",
+          "relation": "h_bar=0.943[k_l³ ρ_l(ρ_l−ρ_v)g h_fg/(μ_l L ΔT)]^(1/4)；q_bar=h_bar ΔT；m_dot=A q_bar/h_fg",
+          "applicability": "竖直光滑近等温板、纯饱和蒸汽、无显著剪切",
+          "implementation": "external",
+          "evidence": [
+            "nusselt"
+          ]
+        },
+        {
+          "name": "已给热边界",
+          "relation": "ADConvectionHeatTransferBC 使用 htc_ambient 与 T_ambient；Neumann 可直接给 q",
+          "applicability": "未知 Tw 的固壁/冷却响应；同一热面不用双边界，单相 Gnielinski 不提供凝结。",
+          "implementation": "configured",
+          "evidence": [
+            "solid_h",
+            "gnielinski",
+            "bcflux"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "板高、宽和有效换热面积 [m,m²]；标注重力、沿板距离 x 与冷壁几何。"
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "冷壁温度 [K]，可指定实测值或由独立固壁/冷却边界求取。平均式的等温条件需复核。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "绝对压力 [Pa]，用于饱和与组分质量/摩尔分率换算。"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力加速度矢量 [m/s²]。"
+        }
+      ],
+      "custom_work": [
+        "等温整板总量可以外算输入 h_bar、热负荷及质量和，无需开发膜求解器。未知壁温使用 Robin；h 依赖 Tw 时外层重算并检查守恒。",
+        "局部膜厚时变、动态排液及汽相质量与动量反馈须另接自定义闭合，静态总量不承诺这些字段。"
+      ],
+      "checks": [
+        "校验 Tw<T_sat，连续层流膜、纯蒸汽和重力排液条件。以液膜流量/单位板宽 Γ [kg/(m·s)] 计算 Re_f=4Γ/μ_l，检查波状和过渡风险。",
+        "比较冷却热量、排液速度/称量及 m_dot L≈Q_lat；若计液膜显热，单列后再做能量闭合。",
+        "贴板 x→0 局部式有奇点。首段用控制面平均，核对板面积和排液工况的敏感性。"
+      ],
+      "sources": [
+        {
+          "id": "solid_h",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/bcs/ADConvectionHeatTransferBC.C",
+          "locator": "modules/thermal_hydraulics/src/bcs/ADConvectionHeatTransferBC.C；validParams()/computeQpResidual",
+          "claim": "接受 T_ambient 与 htc_ambient 用户函数，硬性给定普通对流热通量；无膜传质/排液。",
+          "kind": "version_source"
+        },
+        {
+          "id": "gnielinski",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/thermal_hydraulics/src/materials/ADWallHTCGnielinskiAnnularMaterial.C",
+          "locator": "modules/thermal_hydraulics/src/materials/ADWallHTCGnielinskiAnnularMaterial.C；validParams()/computeQpProperties",
+          "claim": "单相环隙 Gnielinski，调用 SinglePhaseFluidProperties，不能作为膜冷凝换热。",
+          "kind": "version_source"
+        },
+        {
+          "id": "bcflux",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/framework/src/bcs/ADFunctionNeumannBC.C",
+          "locator": "framework/src/bcs/ADFunctionNeumannBC.C；对象与通量残差",
+          "claim": "可把外部热流函数施加在 MOOSE 热方程上，保留凝结源在外部。",
+          "kind": "version_source"
+        },
+        {
+          "id": "nusselt",
+          "url": "https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/mixedconvection-laminar-film-condensation-on-a-semiinfinite-vertical-plate/31C5E09D0B0EE39E476ECA61024479A8",
+          "locator": "Nusselt 极限及气相剪切扩展",
+          "claim": "重力排液静蒸汽层流膜是特定极限。剪切、波动或非等温必须用相应扩展或验证。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "flatplate_exp",
+          "url": "https://khu.elsevierpure.com/en/publications/an-experimental-investigation-of-film-condensation-of-flowing-mix-2/",
+          "locator": "竖直水冷平板纯蒸汽及蒸汽-空气换热实验",
+          "claim": "可在相同来流、壁温与工况内对比热流；有来流剪切的点不能直接当静蒸汽薄膜验证。",
+          "kind": "physics_reference"
+        }
+      ]
+    },
+    {
+      "id": "condensation_with_ncg",
+      "status": "custom",
+      "scope": "固定版有气相混合物热物性、标量对流及热边界部件。已解析气侧的水蒸汽质量守恒与液侧阻力同解需自定义。PorousFlow 饱和度模型不提供设备壁通量。",
+      "steps": [
+        {
+          "id": "mixture",
+          "operation": "组装气相能量与蒸汽输运基础",
+          "equation": "∂t(ρY_v)+∇·(ρUY_v)=∇·(ρD_eff∇Y_v)",
+          "receives": [
+            "蒸汽/空气组分、速度、温度、压力及物性"
+          ],
+          "produces": [
+            "气相组分与温度，冷壁处法向梯度"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "mix",
+            "sc_advection"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "mass_energy",
+          "operation": "开发冷壁耦合条件",
+          "equation": "j=−ρD_eff (∇Y_v·n)/(1−Y_v,i)，n 指向冷壁，且 p_v,i=p_sat(T_i)；q_l=(T_i−T_w)/R_l=q_sens+j h_fg",
+          "receives": [
+            "冷壁温度与液侧热阻，气侧压力和组分梯度，h_fg"
+          ],
+          "produces": [
+            "凝结通量 [kg/(m²·s)]、冷壁热负荷 [W]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "steam_air_exp",
+            "pore_eq"
+          ],
+          "depends_on": [
+            "mixture"
+          ]
+        },
+        {
+          "id": "boundary",
+          "operation": "传递蒸汽损失、热流及总质量",
+          "equation": "j_air=0，j_tot=j_v；q_l=q_sens+j_v h_fg",
+          "receives": [
+            "界面通量 j_v 与 q_l、面积和相容通量符号"
+          ],
+          "produces": [
+            "积分汽损、排液 [kg/s] 与热流 [W]"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "bcflux"
+          ],
+          "depends_on": [
+            "mass_energy"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "蒸汽–空气质量及界面热阻闭合",
+          "relation": "j=−ρD_eff (∇Y_v·n)/(1−Y_v,i)，n 指向冷壁，且 p_v,i=p_sat(T_i)；q_l=(T_i−T_w)/R_l=q_sens+j h_fg",
+          "applicability": "气侧层解析；二组分、空气壁面不可透过，界面局部饱和；同一迭代同时解气相组分、壁膜热阻和能量，q_sens 为指向界面的气侧显热。",
+          "implementation": "custom",
+          "evidence": [
+            "diffusion_physics",
+            "steam_air_exp"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "plate_geometry",
+          "meaning": "板高、宽和有效换热面积 [m,m²]；标注重力、沿板距离 x 与冷壁几何。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "冷却侧温度 [K]、冷壁热边界与实物热接触。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "蒸汽/空气入口速度 [m/s]、温度 [K] 与出口压力 [Pa]。"
+        },
+        {
+          "key": "operating_pressure",
+          "meaning": "绝对压力 [Pa]，用于饱和与组分质量/摩尔分率换算。"
+        },
+        {
+          "key": "phase_properties",
+          "meaning": "液汽密度 [kg/m³]、比热 [J/(kg·K)]、导热率 [W/(m·K)]、黏度 [Pa·s] 与一致焓基准；按对应相和实物工况。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "p_sat(T) 或 T_sat(p) 的可追溯表或物性对象 [Pa,K]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 h_fg [J/kg]，与饱和液汽焓差和热物性基准一致。"
+        },
+        {
+          "key": "gas_composition",
+          "meaning": "蒸汽和空气质量分率 [0–1]，定义入口与回流条件。"
+        },
+        {
+          "key": "vapor_diffusivity",
+          "meaning": "水蒸汽在空气中的 D_ab [m²/s]，若湍流再指定湍流 Schmidt 数。"
+        },
+        {
+          "key": "liquid_thermal_resistance",
+          "meaning": "界面到冷壁的液膜/接触热阻 [m²·K/W] 或可重算的膜厚及 k_l。"
+        }
+      ],
+      "custom_work": [
+        "实现密度加权扩散、界面饱和与等量壁面组分/总质量通量；和液侧阻力及热方程双向更新。固定版混合物物性只为输运提供属性。"
+      ],
+      "checks": [
+        "冷壁正凝结通量、露点门限、干空气壁面净通量零、总气相质量与蒸汽损失等量，壁面排液单列。",
+        "对照蒸汽-空气垂直冷板 Q、局部热流与冷凝称量；网格须分别对组分边界层和温度梯度收敛，避免相同气侧扩散热阻重复计入。",
+        "收敛检查 p_v、T_i、R_l、q、j 的残差和全局能量/组分收支。气相近纯时 Stefan 分母病态，应切换核实的纯蒸汽路径。"
+      ],
+      "sources": [
+        {
+          "id": "mix",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/fluid_properties/src/fluidproperties/IdealRealGasMixtureFluidProperties.C",
+          "locator": "modules/fluid_properties/src/fluidproperties/IdealRealGasMixtureFluidProperties.C；相混合热力学实现；基类 VaporMixtureFluidProperties.C",
+          "claim": "固定版有蒸汽混合物热力学对象，组分分率参与物性；无冷壁饱和扩散及凝结源。",
+          "kind": "version_source"
+        },
+        {
+          "id": "sc_advection",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/navier_stokes/src/fvkernels/INSFVScalarFieldAdvection.C",
+          "locator": "modules/navier_stokes/src/fvkernels/INSFVScalarFieldAdvection.C；computeQpResidual 和有效参数",
+          "claim": "提供标量对流部件；实际蒸汽质量加权扩散和边界质量守恒仍须按编配方案落实。",
+          "kind": "version_source"
+        },
+        {
+          "id": "pore_eq",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C",
+          "locator": "modules/porous_flow/src/userobjects/PorousFlowWaterVapor.C；thermophysicalProperties，TWOPHASE",
+          "claim": "压力和焓确定纯水的局部平衡饱和度，孔隙流不等同于工业设备内的相滑移或有限速率。",
+          "kind": "version_source"
+        },
+        {
+          "id": "bcflux",
+          "url": "https://github.com/idaholab/moose/blob/2024-03-08/framework/src/bcs/ADFunctionNeumannBC.C",
+          "locator": "framework/src/bcs/ADFunctionNeumannBC.C；对象与通量残差",
+          "claim": "可把外部热流函数施加在 MOOSE 热方程上，保留凝结源在外部。",
+          "kind": "version_source"
+        },
+        {
+          "id": "diffusion_physics",
+          "url": "https://www.sciencedirect.com/science/article/pii/002954939390107K",
+          "locator": "Kageyama 等的扩散层与液膜闭合，摘要",
+          "claim": "指出局部凝结需要同时考虑气侧质扩散与凝结液膜阻力。原文竖直管试验结果仅用于相应几何。",
+          "kind": "physics_reference"
+        },
+        {
+          "id": "steam_air_exp",
+          "url": "https://da.lib.kobe-u.ac.jp/da/kernel/0100502555/0100502555.pdf",
+          "locator": "竖直矩形通道冷板实验，装置与测点",
+          "claim": "沿板对照局部热流与温度；不能反向推定所有工况的直接质量通量精度。",
+          "kind": "physics_reference"
+        }
+      ]
+    }
+  ]
+}

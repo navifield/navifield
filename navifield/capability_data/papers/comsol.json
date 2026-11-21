@@ -1,0 +1,282 @@
+[
+  {
+    "id": "comsol-resistive-heater-2015",
+    "doi": "10.2495/CMEM150341",
+    "title": "Finite element modelling of the resistive heating of disposable molecular diagnostics devices",
+    "authors": "T. Pardy, T. Rang, I. Tulp",
+    "year": 2015,
+    "software": "COMSOL",
+    "software_version": "4.4",
+    "industry": "电热测试与温度标定",
+    "targets": [
+      "temperature"
+    ],
+    "source_url": "https://www.witpress.com/Secure/elibrary/papers/CMEM15/CMEM15034FU1.pdf",
+    "source_locator": "§3, §4.1–4.2, Figures 1–6",
+    "conditions": [
+      "测试件 1：24 V 直流供电，记录 45 min",
+      "测试件 2：9 V 直流供电"
+    ],
+    "model_chain": [
+      "电流守恒与欧姆定律计算电流和电场",
+      "焦耳热源 J·E 耦合瞬态导热，计算温度随时间变化"
+    ],
+    "required_inputs": [
+      "加热元件及测试结构尺寸",
+      "施加电压",
+      "电导率和电阻温度系数",
+      "材料密度、比热容、热导率与热边界"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "temperature",
+        "detail": "测试件 1 稳态温度 64.42 ± 0.15 °C，24 V DC。",
+        "locator": "§4.2.1, Figure 4"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "temperature",
+        "detail": "测试件 1 设定点附近模拟误差 0.31 ± 0.17 °C；两者约 1800 s 达到设定点。",
+        "locator": "§4.2.1, Figure 4"
+      },
+      {
+        "kind": "measured",
+        "quantity": "temperature",
+        "detail": "测试件 2 饱和温度 61.59 ± 0.56 °C，9 V DC。",
+        "locator": "§4.2.2, Figure 5"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "temperature",
+        "detail": "测试件 2 在 1500 s 附近模拟与设定点误差 1.12 ± 0.62 °C。",
+        "locator": "§4.2.2, Figure 5"
+      }
+    ],
+    "limitations": [
+      "加热元件不能无损拆解，内部几何尺寸只能近似；瞬态升温存在偏差。",
+      "材料参数使用软件内置库，完整工程文件未核实。"
+    ],
+    "provenance": "论文原文；只提取电热测试件和温度标定。"
+  },
+  {
+    "id": "comsol-composite-induction-2024",
+    "doi": "10.3390/polym16192760",
+    "title": "Induction Heating of Laminated Composite Structures with Magnetically Responsive Nanocomposite Interlayers for Debonding-on-Demand Applications",
+    "authors": "Eleni Gkartzou, Konstantinos Zafeiris, Christos Tsirogiannis, Alberto Pedreira, Adrián Rodríguez, Pablo Romero-Rodriguez, Giorgos P. Gakis, Tatjana Kosanic-Milickovic, Apostolos Kyritsis, Costas A. Charitidis",
+    "year": 2024,
+    "software": "COMSOL",
+    "software_version": "5.5",
+    "industry": "复合材料与感应加热",
+    "targets": [
+      "magnetic_field",
+      "temperature",
+      "heating_rate"
+    ],
+    "source_url": "https://www.mdpi.com/2073-4360/16/19/2760",
+    "source_locator": "§2.4, §3.4, Table 3, Figures 9–14, Appendix A",
+    "conditions": [
+      "射频发生器功率 2–3 kW，间距 20–45 mm",
+      "PEKK 纳米复合夹层置于交变磁场"
+    ],
+    "model_chain": [
+      "磁场方程计算线圈及试件处场强分布",
+      "红外热像实验评估实际加热和脱粘过程"
+    ],
+    "required_inputs": [
+      "线圈和试件几何及相对间距",
+      "频率与线圈激励",
+      "材料电导率、介电率和磁导率",
+      "空气域及磁绝缘边界"
+    ],
+    "observations": [
+      {
+        "kind": "simulated",
+        "quantity": "magnetic_field",
+        "detail": "间距 20 mm 时，3 kW 相对 2 kW 工况下计算磁场强度最高约增加 25%。",
+        "locator": "§3.4.1, Figure 9"
+      },
+      {
+        "kind": "derived",
+        "quantity": "heating_rate",
+        "detail": "从 Type II 试件的红外温度记录得到，起始 0–10 s 的升温率为 8.0–17.5 °C/s。",
+        "locator": "§3.4.2，图 14、表 6"
+      },
+      {
+        "kind": "derived",
+        "quantity": "time_to_temperature",
+        "detail": "从温度曲线读出超过 320 °C 的时间。表 6 的 Type II 试件在 2、2.25 kW 下分别为 270、250 s；正文合并概述为约 250 s。",
+        "locator": "§3.4.2, Table 6"
+      }
+    ],
+    "limitations": [
+      "磁场为仿真结果，温度为实验结果；本文这些结果不是仿真温度与实测温度的点对点精度验证。",
+      "线圈等效激励及完整工程文件尚未核实。"
+    ],
+    "provenance": "期刊开放原文，磁场与热实验结果分别归类。"
+  },
+  {
+    "id": "comsol-induction-crucible-2021",
+    "doi": "10.1155/2021/9922503",
+    "title": "COMSOL Simulation for Design of Induction Heating System in VULCAN Facility",
+    "authors": "Jinkun Min, Guangyu Zhu, Yidan Yuan, Jingquan Liu",
+    "year": 2021,
+    "software": "COMSOL",
+    "software_version": null,
+    "industry": "高温设备与能源",
+    "targets": [
+      "temperature",
+      "probe_temperature"
+    ],
+    "source_url": "https://onlinelibrary.wiley.com/doi/10.1155/2021/9922503",
+    "source_locator": "§§2, 3.2, 3.4, 4.1, 5；图 4–6；表 1–2",
+    "conditions": [
+      "表 2 试验频率 47 kHz；低于 1500 K 用 C 型热电偶，高于 1500 K 用红外测温。",
+      "内外坩埚均为石墨；外坩埚有热电偶定位孔，作者模型省略该孔。图 4–5 有原始尺寸图。",
+      "作者在图 6 选择规则线圈的圆柱等效模型以获得磁场，未求真实导线内电流分布。§3.4 以固体耦合描述双层贴合。",
+      "§3.4 给出内坩埚氩气强制对流 h≈100 W/(m²·K)、外坩埚自然对流 h=35 W/(m²·K)、铜管水回路 30 °C；表 1 列出材料物性和默认项。"
+    ],
+    "model_chain": [
+      "高频线圈非接触励磁在石墨产生涡流，体耗散加热固体。",
+      "读外坩埚定位处温度作为实验观测量；作者认为该位置可作为坩埚温度的近似指标。表 2 未提供全域峰温、线圈铜损或试件总发热的实验对照。"
+    ],
+    "required_inputs": [
+      "图 4–5 尺寸和虚拟测点仍需完成数字化及核对，图 6 等效匝数和电流归一需核对。",
+      "表 2 电流峰值或有效值及对应线圈电流定义、内外参考流体温度、接触热阻与辐射配置未在原文相应段落确认。",
+      "冻结材料表适用范围、测点映射和实验不确定度后才比较数值。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "temperature",
+        "detail": "40.3 A 时 343.9 K；99.7 A 时 612.7 K；200.0 A 时 1509.8 K。",
+        "locator": "§5, Table 2"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "temperature",
+        "detail": "相应 40.3、99.7、200.0 A 工况分别为 338.6、577.4、1431.4 K。",
+        "locator": "§5, Table 2"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "temperature",
+        "detail": "作者成对温度最大相对偏差 5.8%，发生于 99.7 A；该偏差不作本软件验收阈值。",
+        "locator": "§5, Table 2"
+      }
+    ],
+    "limitations": [
+      "COMSOL 具体版本未确认，表 2 模拟列的精确取值位置/统计方式未交代。",
+      "200 A 的 1509.8 K 属红外测温档，与冻结 C 型热电偶读数不是同一测量定义。",
+      "251.3 A 行有实测但无成对模拟列，未纳入冻结对照。",
+      "完整几何文件、探头插入深度与测量不确定度未核实。§3.4 未说明辐射配置或独立接触热阻。"
+    ],
+    "provenance": "开放论文 §5 温度对照表。",
+    "reproduction": {
+      "status": "not_run",
+      "scope": "按显式 DOI 关联的两个预留低温点。value 为作者实验读数，authors_COMSOL_K 为作者模拟比较值。未原生复算，未确认偏差或验收。",
+      "routes": [
+        {
+          "chain": "noncontact_induction_to_steady_temperature",
+          "solver": "getdp",
+          "version": "3.5.0",
+          "requires_explicit_doi": true
+        }
+      ],
+      "cases": [],
+      "brief_results": [
+        {
+          "kind": "held_out_experimental_targets",
+          "conditions": "47 kHz，外坩埚 C 型热电偶温度；峰温、试件耗散及线圈铜损不具同量实测对照。",
+          "measurements": [
+            {
+              "quantity": "probe_temperature",
+              "unit": "K",
+              "value": 343.9,
+              "coil_current_A": 40.3,
+              "frequency_Hz": 47000,
+              "measurement_definition": "外石墨坩埚定位孔处 C 型热电偶读数，见图 5 与表 2。",
+              "authors_COMSOL_K": 338.6
+            },
+            {
+              "quantity": "probe_temperature",
+              "unit": "K",
+              "value": 612.7,
+              "coil_current_A": 99.7,
+              "frequency_Hz": 47000,
+              "measurement_definition": "外石墨坩埚定位孔处 C 型热电偶读数，见图 5 与表 2。",
+              "authors_COMSOL_K": 577.4
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "原文未确认峰值/RMS、仿真测温选区与绝热/辐射等完整设置；需复核完整几何、热边界、接触热阻、测量不确定度。"
+      ]
+    }
+  },
+  {
+    "id": "comsol-induction-welding-2025",
+    "doi": "10.1002/pc.29732",
+    "title": "Experimental and numerical investigation of susceptor-aided continuous induction welding of low-melt PAEK composites",
+    "authors": "Francesca Lionetto, Giulio Zecca, Giuseppe Buccoliero, Sonia Bagheri, Claudio Mele",
+    "year": 2025,
+    "software": "COMSOL",
+    "software_version": "4.4",
+    "industry": "复合材料制造与感应焊接",
+    "targets": [
+      "temperature",
+      "heating_rate"
+    ],
+    "source_url": "https://iris.unisalento.it/retrieve/a940d1e3-1a37-482a-9a78-2b1007e3c94d/A86_Pol%20%20Comp_25_IW.pdf",
+    "source_locator": "§2.3, §3, §4.1–4.2, Table 1, Figures 7–9",
+    "conditions": [
+      "250 kHz 线圈；连续焊接线圈速度 2 mm/s",
+      "0.2 mm 厚 AISI 1095 可移动钢感应片",
+      "静态 100 A 工况用于电导率反标"
+    ],
+    "model_chain": [
+      "Maxwell 电磁场与固体传热耦合计算感应热",
+      "移动网格描述线圈运动；结合熔融与结晶表征",
+      "界面温度与热电偶记录对照"
+    ],
+    "required_inputs": [
+      "层合板、线圈、感应片几何与运动速度",
+      "激励电流及频率",
+      "各向异性电导率、热导率、密度和比热",
+      "相变热特性、接触和冷却边界"
+    ],
+    "observations": [
+      {
+        "kind": "comparison",
+        "quantity": "heating_rate",
+        "detail": "2 mm/s 工况界面温度实测及预测升温率均为 10.6 °C/s。",
+        "locator": "§4.2, Figure 9D"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "temperature",
+        "detail": "实测与预测峰值温度相差低于 2%；冷却段存在偏差。",
+        "locator": "§4.2, Figure 9D"
+      },
+      {
+        "kind": "derived",
+        "quantity": "electrical_conductivity",
+        "detail": "静态温度反标得到面内 2070 S/m、厚度方向 0.15 S/m。",
+        "locator": "§4.1, Table 1, Figure 7"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "temperature",
+        "detail": "2 mm/s 时 16 s 局部温度约 310–350 °C，属于计算温度。",
+        "locator": "§4.2, Figure 8"
+      }
+    ],
+    "limitations": [
+      "静态温度数据用于反标电导率，静态拟合不能作为独立验证。",
+      "冷却段模型与测量偏差可能与接触和空气间隙有关。",
+      "完整模型文件及测量原始数据未核实。"
+    ],
+    "provenance": "期刊开放原文；电导率反标与连续焊温度比较分别标注。"
+  }
+]

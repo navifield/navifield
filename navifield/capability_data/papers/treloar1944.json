@@ -1,0 +1,458 @@
+[
+  {
+    "id": "treloar1944-uniaxial-to-equal-biaxial",
+    "doi": "10.1039/TF9444000059",
+    "title": "Stress-strain data for vulcanised rubber under various types of deformation",
+    "authors": "L. R. G. Treloar",
+    "year": 1944,
+    "software": "Experiment",
+    "software_version": null,
+    "industry": "材料力学 / 硫化橡胶",
+    "targets": [
+      "biaxial_nominal_stress",
+      "uniaxial_nominal_stress"
+    ],
+    "keywords": [
+      "Treloar",
+      "Neo-Hooke",
+      "单轴拉伸",
+      "等双轴",
+      "名义应力",
+      "CalculiX"
+    ],
+    "source_url": "https://pubs.rsc.org/en/content/articlehtml/1944/tf/tf9444000059",
+    "source_locator": "Trans. Faraday Soc. 1944, 40, 59–70；单轴与等双轴名义应力的公开数字化数据",
+    "conditions": [
+      "校准只用 λ=1 至 1.585 的六行单轴数据（含原点），等权零截距拟合 P=μ(λ−λ⁻²)，以 kgf/cm² 解释历史单位、乘 0.0980665 得 MPa。",
+      "四个等双轴留出点独立用于事后对照；取拉伸方向面反力/初始面积，不能换用 Cauchy 应力。两档 K/μ 预设 1000 与 100，K 未实测也未用留出拟合。"
+    ],
+    "model_chain": [
+      "现代独立计算用 CalculiX 2.22 的位移控制虚拟 10 mm 均匀立方体，X、Y 同伸长、Z 方向自由收缩，1 与 2 单元/边的 C3D8 网格。1944 原文是实验。",
+      "验证用相同有限体积模量与厚向零牵引解析解；实验比较取相同量纲的初始截面积名义应力。"
+    ],
+    "required_inputs": [
+      "原件逐页核验、两数据模式的试件/材料批次映射和实验不确定度仍待核实；独立的体积模量缺失。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "uniaxial_nominal_stress",
+        "detail": "六行单轴数字化数据仅作材料校准。",
+        "locator": "公开数据归档 simple elongation"
+      },
+      {
+        "kind": "measured",
+        "quantity": "biaxial_nominal_stress",
+        "detail": "四个预留等双轴数字化实验数据，未回填材料参数。",
+        "locator": "公开数据归档 equibiaxial extension"
+      }
+    ],
+    "limitations": [
+      "数值门槛仅检验虚拟均匀体与同模型解析解的一致性。实验偏差未设置验收容差；不外推到执行器，也不替代 Yao 复现。"
+    ],
+    "provenance": "RSC 论文与 University of Duisburg-Essen Treloar 数据转录；现代 Calculation 见独立工作站回执。",
+    "reproduction": {
+      "status": "native_readback_acceptance_not_set",
+      "scope": "只比较均匀硫化橡胶假定试件的跨模式本构；16/16 通过数值解析门槛，四个实验留出无验收门槛。",
+      "routes": [],
+      "cases": [
+        {
+          "case": "k1000_l1115_n1",
+          "K_over_mu": 1000,
+          "lambda": 1.115,
+          "cells_per_edge": 1,
+          "run_id": "r001",
+          "native_Px_MPa": 0.19068269999999998,
+          "native_Py_MPa": 0.19068269999999998,
+          "native_lambda_z": 0.8046789,
+          "finite_bulk_analytic_MPa": 0.19068268318467746,
+          "experiment_nominal_MPa": 0.23732093,
+          "native_minus_experiment_MPa": -0.04663823000000003,
+          "native_minus_experiment_percent": -19.651966642807288,
+          "native_minus_analytic_MPa": 1.681532252328921e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "1357871d8c713c8e31151d4b0376e1c04c0bc56aa4c8de6e6fa32348d808cd26",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "32cb393e821cc15fec83d46b91bedf5fb89eee1391b0476a551da238630fbc86"
+        },
+        {
+          "case": "k1000_l1115_n2",
+          "K_over_mu": 1000,
+          "lambda": 1.115,
+          "cells_per_edge": 2,
+          "run_id": "r002",
+          "native_Px_MPa": 0.19068269999999998,
+          "native_Py_MPa": 0.19068269999999998,
+          "native_lambda_z": 0.8046789,
+          "finite_bulk_analytic_MPa": 0.19068268318467746,
+          "experiment_nominal_MPa": 0.23732093,
+          "native_minus_experiment_MPa": -0.04663823000000003,
+          "native_minus_experiment_percent": -19.651966642807288,
+          "native_minus_analytic_MPa": 1.681532252328921e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "4c50e637a7ca33ee3b2963007277a160cee2f9bd724847279bdc91a69d344608",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "e6631d8c188b3e6b3c788ef32e67dcb1119a43831e1f3e5324c30b18b1d2000d"
+        },
+        {
+          "case": "k1000_l1200_n1",
+          "K_over_mu": 1000,
+          "lambda": 1.2,
+          "cells_per_edge": 1,
+          "run_id": "r003",
+          "native_Px_MPa": 0.2846211,
+          "native_Py_MPa": 0.2846211,
+          "native_lambda_z": 0.6948871,
+          "finite_bulk_analytic_MPa": 0.28462112984196847,
+          "experiment_nominal_MPa": 0.32558078,
+          "native_minus_experiment_MPa": -0.04095968,
+          "native_minus_experiment_percent": -12.580496919996321,
+          "native_minus_analytic_MPa": -2.984196845190468e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "5af875bcd7e41f01e557332332300f2ab8bf429fbf2a5b099cf4b1a09dcc4231",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "9a40d3e87854507c037c390abd9aeec7d215156d193426834c01124da2ba28eb"
+        },
+        {
+          "case": "k1000_l1200_n2",
+          "K_over_mu": 1000,
+          "lambda": 1.2,
+          "cells_per_edge": 2,
+          "run_id": "r004",
+          "native_Px_MPa": 0.2846211,
+          "native_Py_MPa": 0.2846211,
+          "native_lambda_z": 0.6948871,
+          "finite_bulk_analytic_MPa": 0.28462112984196847,
+          "experiment_nominal_MPa": 0.32558078,
+          "native_minus_experiment_MPa": -0.04095968,
+          "native_minus_experiment_percent": -12.580496919996321,
+          "native_minus_analytic_MPa": -2.984196845190468e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "0013a67aba55ada2ed113e3484a04cf36e7ce120bd07e8728ea4d5c99bc1cd1e",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "cfdde8c91e9a3720c73ff7e4d57a036baec956031f7a64ff854e15743880ac00"
+        },
+        {
+          "case": "k1000_l1310_n1",
+          "K_over_mu": 1000,
+          "lambda": 1.31,
+          "cells_per_edge": 1,
+          "run_id": "r005",
+          "native_Px_MPa": 0.3747293,
+          "native_Py_MPa": 0.3747293,
+          "native_lambda_z": 0.5832503,
+          "finite_bulk_analytic_MPa": 0.37472926174174825,
+          "experiment_nominal_MPa": 0.43443459,
+          "native_minus_experiment_MPa": -0.05970529000000002,
+          "native_minus_experiment_percent": -13.743217362135006,
+          "native_minus_analytic_MPa": 3.82582517333141e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "b4ce6c2b82f81db6ec3952cb3b0000e9a992ac7a57bef0649a78ca2830dc9d2a",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "47ecdf0e0693763acabca2501ddfb5f016f14fccd577b6693e2253129ac08179"
+        },
+        {
+          "case": "k1000_l1310_n2",
+          "K_over_mu": 1000,
+          "lambda": 1.31,
+          "cells_per_edge": 2,
+          "run_id": "r006",
+          "native_Px_MPa": 0.3747293,
+          "native_Py_MPa": 0.3747293,
+          "native_lambda_z": 0.5832503,
+          "finite_bulk_analytic_MPa": 0.37472926174174825,
+          "experiment_nominal_MPa": 0.43443459,
+          "native_minus_experiment_MPa": -0.05970529000000002,
+          "native_minus_experiment_percent": -13.743217362135006,
+          "native_minus_analytic_MPa": 3.82582517333141e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "c5da8c6256b71b8c3c86457541a84e8458acb8887a9e23f25c681dc2b77e9fd7",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "6831d8badad6db64db41897523f3a9d45e0b84edf0cae376c6ae2a2ce1abd0ee"
+        },
+        {
+          "case": "k1000_l1420_n1",
+          "K_over_mu": 1000,
+          "lambda": 1.42,
+          "cells_per_edge": 1,
+          "run_id": "r007",
+          "native_Px_MPa": 0.44460410000000006,
+          "native_Py_MPa": 0.44460410000000006,
+          "native_lambda_z": 0.4965174,
+          "finite_bulk_analytic_MPa": 0.4446041059286216,
+          "experiment_nominal_MPa": 0.50798447,
+          "native_minus_experiment_MPa": -0.06338036999999996,
+          "native_minus_experiment_percent": -12.476832214969084,
+          "native_minus_analytic_MPa": -5.928621538142664e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "2057db9746ceb7632824984e8553141459da9280b5848e16215578724a34c8b0",
+          "sta_sha256": "d7409ffa155a4a8daba8d1f837a49f2871d5d6fcecb8c3c35d00c229177bacab",
+          "log_sha256": "b4e56c58942d1170d28b78d3b9db0d11334c04abee6fe3afbdff22adc3ef2a80"
+        },
+        {
+          "case": "k1000_l1420_n2",
+          "K_over_mu": 1000,
+          "lambda": 1.42,
+          "cells_per_edge": 2,
+          "run_id": "r008",
+          "native_Px_MPa": 0.44460410000000006,
+          "native_Py_MPa": 0.44460410000000006,
+          "native_lambda_z": 0.4965174,
+          "finite_bulk_analytic_MPa": 0.4446041059286216,
+          "experiment_nominal_MPa": 0.50798447,
+          "native_minus_experiment_MPa": -0.06338036999999996,
+          "native_minus_experiment_percent": -12.476832214969084,
+          "native_minus_analytic_MPa": -5.928621538142664e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "6c3362570421c11c2e11c31fdf0831d31b2ed2e650b621e437568b48b7c4857b",
+          "sta_sha256": "d7409ffa155a4a8daba8d1f837a49f2871d5d6fcecb8c3c35d00c229177bacab",
+          "log_sha256": "2f12c89559c3a453597ce9ddf49d03f0f7fae97c2fd0a3d408b097e94adc87ea"
+        },
+        {
+          "case": "k100_l1115_n1",
+          "K_over_mu": 100,
+          "lambda": 1.115,
+          "cells_per_edge": 1,
+          "run_id": "r009",
+          "native_Px_MPa": 0.1887798,
+          "native_Py_MPa": 0.1887798,
+          "native_lambda_z": 0.8075091,
+          "finite_bulk_analytic_MPa": 0.18877979322299443,
+          "experiment_nominal_MPa": 0.23732093,
+          "native_minus_experiment_MPa": -0.048541130000000016,
+          "native_minus_experiment_percent": -20.453792255069967,
+          "native_minus_analytic_MPa": 6.777005567837335e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "bb922c797783bd4db1869d1f8bbe60b1ab6ba90dae03ee40ee9e864345d7d169",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "ce55c6b26ae96724a61bfbf464ba54ee6f14a4e4af25618427e1525dfb872192"
+        },
+        {
+          "case": "k100_l1115_n2",
+          "K_over_mu": 100,
+          "lambda": 1.115,
+          "cells_per_edge": 2,
+          "run_id": "r010",
+          "native_Px_MPa": 0.1887798,
+          "native_Py_MPa": 0.1887798,
+          "native_lambda_z": 0.8075091,
+          "finite_bulk_analytic_MPa": 0.18877979322299443,
+          "experiment_nominal_MPa": 0.23732093,
+          "native_minus_experiment_MPa": -0.048541130000000016,
+          "native_minus_experiment_percent": -20.453792255069967,
+          "native_minus_analytic_MPa": 6.777005567837335e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "b6f4a08649444e6fce648e6cf732be26d3fea0a08f38229d923950f01b46dca3",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "d3d9bad75c7cf472144c1c7dba1c67adfba93d4f1aa8ec11aa03dcb26b6948f8"
+        },
+        {
+          "case": "k100_l1200_n1",
+          "K_over_mu": 100,
+          "lambda": 1.2,
+          "cells_per_edge": 1,
+          "run_id": "r011",
+          "native_Px_MPa": 0.2819389,
+          "native_Py_MPa": 0.2819389,
+          "native_lambda_z": 0.6988046,
+          "finite_bulk_analytic_MPa": 0.28193889799987915,
+          "experiment_nominal_MPa": 0.32558078,
+          "native_minus_experiment_MPa": -0.04364188000000002,
+          "native_minus_experiment_percent": -13.404317048444941,
+          "native_minus_analytic_MPa": 2.0001208467235188e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "bfb3fd8e37cc4134046b05ff404321d934de8fd01fd1557b63e6fcaa67e6151e",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "069edcf8c608096930b3099e3bfd79b3dc1ee7628233e5643e4fe461de54e754"
+        },
+        {
+          "case": "k100_l1200_n2",
+          "K_over_mu": 100,
+          "lambda": 1.2,
+          "cells_per_edge": 2,
+          "run_id": "r012",
+          "native_Px_MPa": 0.2819389,
+          "native_Py_MPa": 0.2819389,
+          "native_lambda_z": 0.6988046,
+          "finite_bulk_analytic_MPa": 0.28193889799987915,
+          "experiment_nominal_MPa": 0.32558078,
+          "native_minus_experiment_MPa": -0.04364188000000002,
+          "native_minus_experiment_percent": -13.404317048444941,
+          "native_minus_analytic_MPa": 2.0001208467235188e-09,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "fd291876b1586cc6060745ed0b2b64adec0cb99ea32bd60b13f49f467bfa37d0",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "bc22ccb458d8da1cf2ccaa8fb19864b5e1c4bcf418d6cfa53cfe6cd1dd057c7a"
+        },
+        {
+          "case": "k100_l1310_n1",
+          "K_over_mu": 100,
+          "lambda": 1.31,
+          "cells_per_edge": 1,
+          "run_id": "r013",
+          "native_Px_MPa": 0.37123019999999995,
+          "native_Py_MPa": 0.37123019999999995,
+          "native_lambda_z": 0.5879614,
+          "finite_bulk_analytic_MPa": 0.3712301833594094,
+          "experiment_nominal_MPa": 0.43443459,
+          "native_minus_experiment_MPa": -0.06320439000000005,
+          "native_minus_experiment_percent": -14.548655069109495,
+          "native_minus_analytic_MPa": 1.6640590572158942e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "e59dce737949805866d2ecb0fe459a06b7c826333760fd4719f072f005d01a03",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "92c5c98a897dd8f6264f491d72467e32ea1a23f6f9530f60bd49a5b61ca67073"
+        },
+        {
+          "case": "k100_l1310_n2",
+          "K_over_mu": 100,
+          "lambda": 1.31,
+          "cells_per_edge": 2,
+          "run_id": "r014",
+          "native_Px_MPa": 0.37123019999999995,
+          "native_Py_MPa": 0.37123019999999995,
+          "native_lambda_z": 0.5879614,
+          "finite_bulk_analytic_MPa": 0.3712301833594094,
+          "experiment_nominal_MPa": 0.43443459,
+          "native_minus_experiment_MPa": -0.06320439000000005,
+          "native_minus_experiment_percent": -14.548655069109495,
+          "native_minus_analytic_MPa": 1.6640590572158942e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "212d758d08fa3f7c54260e8f0082bd4fcdd1a4b14d454a132ae47f6dfaa0f047",
+          "sta_sha256": "5a5cd29c963a41013f18d9fe9089cd5cb08080b1be0648151e1d2aefcc13c978",
+          "log_sha256": "7f2ba4139487f72236262beb1d0bfdd406b9e4acf1923e658149b6e7f432574d"
+        },
+        {
+          "case": "k100_l1420_n1",
+          "K_over_mu": 100,
+          "lambda": 1.42,
+          "cells_per_edge": 1,
+          "run_id": "r015",
+          "native_Px_MPa": 0.4402819,
+          "native_Py_MPa": 0.4402819,
+          "native_lambda_z": 0.5016574,
+          "finite_bulk_analytic_MPa": 0.44028185133946895,
+          "experiment_nominal_MPa": 0.50798447,
+          "native_minus_experiment_MPa": -0.06770257000000002,
+          "native_minus_experiment_percent": -13.327684997929172,
+          "native_minus_analytic_MPa": 4.866053104901624e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "9930ece449aa878a6ede3bd99459d2477675470d02fcbcc376358d8f8d932262",
+          "sta_sha256": "d7409ffa155a4a8daba8d1f837a49f2871d5d6fcecb8c3c35d00c229177bacab",
+          "log_sha256": "8aa332b7b5aec17f7140be54fc237f99c5ab50697cd99ea48d0c3c6d9fbb0f75"
+        },
+        {
+          "case": "k100_l1420_n2",
+          "K_over_mu": 100,
+          "lambda": 1.42,
+          "cells_per_edge": 2,
+          "run_id": "r016",
+          "native_Px_MPa": 0.4402819,
+          "native_Py_MPa": 0.4402819,
+          "native_lambda_z": 0.5016574,
+          "finite_bulk_analytic_MPa": 0.44028185133946895,
+          "experiment_nominal_MPa": 0.50798447,
+          "native_minus_experiment_MPa": -0.06770257000000002,
+          "native_minus_experiment_percent": -13.327684997929172,
+          "native_minus_analytic_MPa": 4.866053104901624e-08,
+          "analytic_numeric_gate_passed": true,
+          "dat_sha256": "bce10265bd6e0e71e1ff3fce31e8e943700d04c7d66835f85306243962cd2b65",
+          "sta_sha256": "d7409ffa155a4a8daba8d1f837a49f2871d5d6fcecb8c3c35d00c229177bacab",
+          "log_sha256": "7062a713b1d8758dea4ce689e7b28c632b953201074458d035246ec5b7458e21"
+        }
+      ],
+      "brief_results": [
+        {
+          "kind": "equal_biaxial_held_out_experimental_comparison",
+          "conditions": "K/μ=1000，2 单元/边；全部数值为 MPa。",
+          "measurements": [
+            {
+              "quantity": "biaxial_nominal_stress",
+              "lambda": 1.115,
+              "unit": "MPa",
+              "value": 0.23732093,
+              "native_Px_MPa": 0.19068269999999998,
+              "native_Py_MPa": 0.19068269999999998,
+              "native_minus_experiment_MPa": -0.04663823000000003,
+              "native_minus_experiment_percent": -19.651966642807288
+            },
+            {
+              "quantity": "biaxial_nominal_stress",
+              "lambda": 1.2,
+              "unit": "MPa",
+              "value": 0.32558078,
+              "native_Px_MPa": 0.2846211,
+              "native_Py_MPa": 0.2846211,
+              "native_minus_experiment_MPa": -0.04095968,
+              "native_minus_experiment_percent": -12.580496919996321
+            },
+            {
+              "quantity": "biaxial_nominal_stress",
+              "lambda": 1.31,
+              "unit": "MPa",
+              "value": 0.43443459,
+              "native_Px_MPa": 0.3747293,
+              "native_Py_MPa": 0.3747293,
+              "native_minus_experiment_MPa": -0.05970529000000002,
+              "native_minus_experiment_percent": -13.743217362135006
+            },
+            {
+              "quantity": "biaxial_nominal_stress",
+              "lambda": 1.42,
+              "unit": "MPa",
+              "value": 0.50798447,
+              "native_Px_MPa": 0.44460410000000006,
+              "native_Py_MPa": 0.44460410000000006,
+              "native_minus_experiment_MPa": -0.06338036999999996,
+              "native_minus_experiment_percent": -12.476832214969084
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "K 未由实验给出，批次映射及仪器不确定度未完整核实，实验验收 NOT_SET。"
+      ],
+      "calibration": {
+        "uniaxial_input": {
+          "name": "uniaxial-fit-input.json",
+          "sha256": "1dc82ccbf58de2952f121f27cd5d9b6de8a98a212e64d23ee8558eecb8479ceb"
+        },
+        "row_count": 6,
+        "mu_MPa": 0.35699412559037963,
+        "rmse_MPa": 0.011128164621399168,
+        "main_K_over_mu": 1000,
+        "sensitivity_K_over_mu": 100,
+        "K_measured": false
+      },
+      "equal_biaxial_holdout": {
+        "name": "biaxial-holdout.json",
+        "sha256": "c09524953398c80e24416db5c3beeeb035e38723f2e9ffb6a7399d0c71d00e86"
+      },
+      "public_data_transcription": {
+        "url": "https://www.uni-due.de/imperia/md/content/mathematik/treloarjonesdata.zip",
+        "archive_sha256": "6fffbaee0b53fa0af434034990b294e791c0d9448780026a09176e5831b1c108"
+      },
+      "test_quantity": "Positive tensile reaction on one loaded face per undeformed area 100 mm²; MPa.",
+      "native_evidence": {
+        "comparison": {
+          "name": "treloar-comparison.json",
+          "sha256": "280413915fabb1ef0b4692f6b9a35e5c0ff4fa20fcc9bf51b6c734a3c5ca7b2e"
+        },
+        "archive": {
+          "name": "results.tar.gz",
+          "sha256": "ec27c5dc1d77164b487823b9d7b6c915969c20d797bed6348a8c237caee2c573"
+        },
+        "receipt": {
+          "name": "receipt.json",
+          "sha256": "00bbcdd909c7f1454259ba9200ff0f2ae374645b2a5403d335db0a0dd6af6a81"
+        },
+        "solver": "CalculiX 2.22",
+        "solver_exe_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+        "deck_commit": "585cfab126ede2d8db078b27def354ac6bd1fa15",
+        "analytic_pass_count": 16,
+        "native_case_count": 16
+      },
+      "experimental_acceptance": "NOT_SET"
+    }
+  }
+]

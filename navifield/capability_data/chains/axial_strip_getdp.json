@@ -1,0 +1,149 @@
+{
+  "solver": "getdp",
+  "version": "3.5.0",
+  "chains": [
+    {
+      "id": "axial_electrothermal_strip",
+      "status": "configured",
+      "scope": "GetDP 3.5.0 → CalculiX 2.22。一维等截面直条，直流定端电势，恒物性，侧面绝热、两端定温，左端轴向固定、右端轴向无外载。小变形控制件，用于原生数值链核验。",
+      "required_inputs": [],
+      "native_adapter": {
+        "id": "confirmed_axial_strip",
+        "prepare_command": "navifield prepare-strip",
+        "execution_command": "navifield run"
+      },
+      "steps": [
+        {
+          "id": "dc_joule_source",
+          "operation": "GetDP 3.5.0：一维电势及单元焦耳源",
+          "equation": "d/dx(A/ρ·dφ/dx)=0；E=−dφ/dx，J=E/ρ，q=J·E [W/m³]，器件功率 P=∫Aq dx [W]。",
+          "receives": [
+            "矩形截面积 [m²]、长度 [m]、两端电势 [V]、恒定电阻率 [Ω·m]"
+          ],
+          "produces": [
+            "单元 q [W/m³]、签名端电流 [A]、器件功率 [W]"
+          ],
+          "ports": {
+            "inputs": [
+              "strip_geometry",
+              "terminal_potentials",
+              "electrical_resistivity"
+            ],
+            "outputs": [
+              "joule_heat",
+              "terminal_current",
+              "device_power"
+            ]
+          },
+          "depends_on": [],
+          "implementation": "configured",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "steady_heat",
+          "operation": "GetDP 3.5.0：绝热侧壁及两端定温导热",
+          "equation": "−d/dx(kA·dT/dx)=Aq；侧面热通量为零。",
+          "receives": [
+            "按单元编号和节点坐标映射 q [W/m³]、恒定导热率 [W/(m·K)]、两端定温 [K]"
+          ],
+          "produces": [
+            "截面平均节点温度 [K]、峰值及其 x [m]、两端外流热率 [W]"
+          ],
+          "ports": {
+            "inputs": [
+              "joule_heat",
+              "thermal_conductivity",
+              "end_temperatures"
+            ],
+            "outputs": [
+              "nodal_temperature",
+              "maximum_strip_temperature",
+              "end_heat_flow"
+            ]
+          },
+          "depends_on": [
+            "dc_joule_source"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "id": "axial_thermal_expansion",
+          "operation": "CalculiX 2.22：一维杆热膨胀静力",
+          "equation": "ε_th=α(T−T₀)；恒定 α。左端 u_x=0，右端轴向牵引为零。",
+          "receives": [
+            "同节点温度 [K]、初始节点温度 T₀ 和热膨胀参考温度、线弹性及膨胀参数"
+          ],
+          "produces": [
+            "x=L 端轴向位移 [m]，热应变积分交叉核对 [m]"
+          ],
+          "ports": {
+            "inputs": [
+              "nodal_temperature",
+              "reference_temperature",
+              "linear_axial_material",
+              "axial_end_constraints"
+            ],
+            "outputs": [
+              "free_end_axial_displacement"
+            ]
+          },
+          "depends_on": [
+            "steady_heat"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "ccx_222"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "焦耳功率单向耦合",
+          "relation": "对每个电单元求 q=J·E，按编号和轴向坐标映射热源并检查功率积分。",
+          "applicability": "介质均匀、ρ 与温度无关、无接触电阻及额外体热源。",
+          "implementation": "configured",
+          "evidence": [
+            "getdp_350"
+          ]
+        },
+        {
+          "name": "热到轴向应变",
+          "relation": "以求解得到的绝对节点温度和初始温度生成 T3D2 热膨胀载荷，计算右端轴向位移。",
+          "applicability": "一维小变形、无轴向外载、无结构反馈；不解析横向位移、截面内温差或局部泊松变形。",
+          "implementation": "configured",
+          "evidence": [
+            "ccx_222"
+          ]
+        }
+      ],
+      "custom_work": [
+        "先用路由确认假设和 SI 参考条件，再由 prepare-strip 编译电网格和输入，通过 navifield run 的作业所有者调用安装包的直条执行器。"
+      ],
+      "checks": [
+        "核对两端电流通量、端子电功率、焦耳积分和定温端热收支；比较右端原生位移和节点温度热应变积分。",
+        "电热用 SI，CalculiX 用 mm/N/MPa/K；外报位移换回 m。结果对应当前工况的原生读回，工程验证需独立基准。"
+      ],
+      "sources": [
+        {
+          "id": "getdp_350",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "GetDP 3.5.0, FunctionSpace, GradGrad Formulation, Resolution and PostOperation",
+          "claim": "节点标量场、扩散弱式、体源项、端节点定值及表格场输出。复用 getdp.dc_conduction 和 getdp.joule_heat_to_temperature 的方程能力。"
+        },
+        {
+          "id": "ccx_222",
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "CalculiX 2.22, T3D2, section 7.56 Eq. 871, *INITIAL CONDITIONS, *TEMPERATURE, *EXPANSION and *STATIC",
+          "claim": "T3D2 热膨胀及指定节点位移读回，复用 calculix.temperature_to_structure_same_mesh 的同网格传递原理。"
+        }
+      ]
+    }
+  ]
+}

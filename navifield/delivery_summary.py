@@ -59,6 +59,41 @@ def _schemes(root,run):
         rows.append(line+' ['+order+']')
     return ('；'.join(rows) if rows else MISSING,'运行开始时 fvSchemes 副本；逐项列出，不将混合格式统一归类')
 
+def _starting_boundaries(root,run):
+    snapshot=run.get('input_snapshot') or {}
+    copied=snapshot.get('copied') or []
+    fields=[name for name in copied if isinstance(name,str) and re.fullmatch(r'0/[^/]+',name)]
+    rows=[]; incomplete=[]
+    for name in sorted(fields):
+        try:
+            path=project.resolve_path(root,snapshot['path']+'/'+name)
+            text=_read(path)
+            if text is None:raise ValueError('missing')
+            tokens=re.findall(r'"(?:\\.|[^"\\])*"|[{};]|[^\s{};]+',strip_foam_comments(text))
+            pos=tokens.index('boundaryField')
+            if tokens[pos+1]!='{':raise ValueError('boundaryField')
+            pos+=2; depth=1; patch=None; found=False; patch_type=False
+            while pos<len(tokens) and depth:
+                token=tokens[pos]
+                if depth==1 and pos+1<len(tokens) and tokens[pos+1]=='{':patch=token;patch_type=False
+                if token=='{':depth+=1
+                elif token=='}':
+                    depth-=1
+                    if depth==1:
+                        if patch is not None and not patch_type:incomplete.append(name+' / '+patch+' 未取得显式类型')
+                        patch=None
+                elif depth==2 and token=='type' and pos+2<len(tokens) and tokens[pos+2]==';':
+                    rows.append(f'{name} / {patch}: type {tokens[pos+1]};');found=True;patch_type=True
+                elif token.startswith('#'):incomplete.append(name+' 含预处理指令')
+                pos+=1
+            if depth or not found:incomplete.append(name+' 未完整取得显式类型')
+        except (KeyError,ValueError,IndexError,TypeError):incomplete.append(name+' 不可读或不可解析')
+    if not fields:
+        return MISSING,'运行开始时未取得 0 目录原生字段快照；生成式案例可能在启动后才生成；不使用声明或结束后案例替代'
+    return ('；'.join(rows) if rows else MISSING,
+            '仅运行开始时复制的 0 目录原生字段中的显式 type，不展开 include，不判断正确性'+
+            ('；'+'；'.join(incomplete) if incomplete else ''))
+
 def _residuals(root,run):
     text=_read(root/'result'/run['run_id']/'native.log')
     if text is None:return MISSING,'原生日志未取得'
@@ -222,6 +257,7 @@ def generate(root,rids,*,facts_path=None,monitor=None,absolute_pressure=None):
             rows.append((rid,'运行记录',MISSING,'指定运行未取得'));continue
         mesh,mesh_source=_mesh(root,run)
         scheme,scheme_source=_schemes(root,run)
+        boundary,boundary_source=_starting_boundaries(root,run)
         residual,residual_source=_residuals(root,run)
         continuity,continuity_source=_continuity(root,run)
         flux,flux_source=_flux(root,run)
@@ -233,12 +269,12 @@ def generate(root,rids,*,facts_path=None,monitor=None,absolute_pressure=None):
         record=_json(root/'.navifield/records'/f'{rid}.json') or {}
         resources=record.get('resources') or {}
         execution=f'结束状态={resources.get("termination","未取得")}；退出码={resources.get("exit_code")}；核数={resources.get("cores")}；墙钟秒={resources.get("wall_seconds")}'
-        for item,value,source in (('执行记录',execution,'运行记录；只表示执行状态'),('网格质量',mesh,mesh_source),('div 格式（含非对流项）',scheme,scheme_source),
+        for item,value,source in (('执行记录',execution,'运行记录；只表示执行状态'),('网格质量',mesh,mesh_source),('div 格式（含非对流项）',scheme,scheme_source),('边界类型（起始快照）',boundary,boundary_source),
                                   ('末段残差',residual,residual_source),('连续性误差',continuity,continuity_source),
                                   ('入出口通量',flux,flux_source),('监测量末段',observed,monitor_source),
                                   ('负绝对压力',pressure,pressure_source),('净力抵消',force,'用户声明；未取得时不推断'),
                                   ('未确认输入',assumptions,'用户声明；未取得时不推断'),('网格对比',grid,'用户声明；未取得时不推断')):
-            rows.append((rid,item,str(value)[:1900],str(source)[:1900]))
+            rows.append((rid,item,str(value) if item=='边界类型（起始快照）' else str(value)[:1900],str(source)[:1900]))
     sections=_history_sections(key='delivery',title='交付前可信度摘要',columns=('运行','项目','实测或声明','来源与限制'),rows=rows)
     sections+=(ReportSection(key='scope',title='适用范围',blocks=(
         ReportParagraph(text='该摘要不阻断操作；物理含义与工程适用性由使用者判断。'),)),)

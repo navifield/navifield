@@ -1,0 +1,5722 @@
+{
+  "schema_version": 1,
+  "solver": "moose",
+  "version": "2024-03-08",
+  "capabilities": [
+    {
+      "id": "moose.heat_conduction",
+      "module": "Heat Transfer module / kernels",
+      "scope": "Conduction with volumetric sources; assemble variables, kernels, materials and boundary conditions in a MOOSE application. SI units here are a consistent choice, not enforced by MOOSE. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "heat_source",
+          "unit": "W/m^3",
+          "aliases": [
+            "体热源"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件",
+            "初始条件（瞬态）"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度",
+            "温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "heat_conduction"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/heat_transfer/sqa/heat_transfer_srs.html",
+            "scope": "2024-03-08 Heat Transfer SRS, System Scope and functional requirements."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Steady 1D slab: compare temperature and boundary heat flux with analytical values, then refine mesh."
+    },
+    {
+      "id": "moose.solid_mechanics",
+      "module": "Solid Mechanics module / material and kernel objects",
+      "scope": "Solid equilibrium with stress and strain material objects and displacement variables; configure constitutive law and constraints. SI units are chosen consistently. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "traction",
+          "unit": "Pa",
+          "aliases": [
+            "面力"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件",
+            "初始条件（瞬态）"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移",
+            "位移场"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力",
+            "应力场"
+          ]
+        }
+      ],
+      "conditions": [
+        "linear_elasticity",
+        "small_strain"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/syntax/Materials/",
+            "scope": "2024-03-08 materials index lists thermal expansion eigenstrain and elasticity objects."
+          },
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/v1.0.0/source/materials/ComputeThermalExpansionEigenstrain.html",
+            "scope": "v1.0.0 documented interface and example temperature, stress_free_temperature, thermal_expansion_coeff and eigenstrain_name; check exact 2024 release syntax."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare uniaxial elastic bar displacement, stress and reactions with closed form."
+    },
+    {
+      "id": "moose.darcy_flow",
+      "module": "PorousFlow / Darcy velocity auxiliary calculation",
+      "scope": "Fully saturated porous flow: assemble pressure equations, fluid and porous-medium materials and Darcy velocity auxiliary output. Use consistent SI units. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "permeability",
+          "unit": "m^2",
+          "aliases": [
+            "渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件",
+            "初始条件（瞬态）"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "darcy_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "达西速度",
+            "渗流速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "fully_saturated"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/porous_flow/sqa/porous_flow_srs.html",
+            "scope": "2024-03-08 PorousFlow SRS requirement 13.3.1, fully saturated Darcy velocity."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare 1D constant-permeability flow against Darcy law and check inlet/outlet mass balance."
+    },
+    {
+      "id": "moose.phase_field_conserved",
+      "module": "Phase Field / Cahn-Hilliard",
+      "scope": "Conserved concentration evolution from a chosen free-energy functional and mobility. This is a model-building framework; user supplies constitutive free energy, scaling, initial and boundary conditions. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "concentration",
+          "unit": "1",
+          "aliases": [
+            "浓度",
+            "组分浓度"
+          ]
+        },
+        {
+          "id": "free_energy_density",
+          "unit": "J/m^3",
+          "aliases": [
+            "自由能密度"
+          ]
+        },
+        {
+          "id": "mobility",
+          "unit": "m^5/(J s)",
+          "aliases": [
+            "迁移率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件",
+            "初始条件（瞬态）"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "concentration",
+          "unit": "1",
+          "aliases": [
+            "浓度场",
+            "组分浓度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "conserved_order_parameter"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/phase_field/Phase_Field_Equations.html",
+            "scope": "2024-03-08 Basic Phase Field Equations, Phase Field Summary, Cahn-Hilliard equation; mobility unit assumes dimensionless concentration and energy density J/m³."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Closed 1D domain: check total concentration conservation, energy evolution and mesh/time-step convergence."
+    },
+    {
+      "id": "moose.phase_field_nonconserved",
+      "module": "Phase Field / Allen-Cahn",
+      "scope": "Nonconserved dimensionless order parameter evolves according to an application-specific free energy; assemble the model, initial and boundary conditions. Units assume dimensional free-energy density. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "order_parameter",
+          "unit": "1",
+          "aliases": [
+            "序参量"
+          ]
+        },
+        {
+          "id": "free_energy_density",
+          "unit": "J/m^3",
+          "aliases": [
+            "自由能密度"
+          ]
+        },
+        {
+          "id": "order_parameter_mobility",
+          "unit": "m^3/(J s)",
+          "aliases": [
+            "序参量迁移率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件",
+            "初始条件（瞬态）"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "order_parameter",
+          "unit": "1",
+          "aliases": [
+            "序参量场"
+          ]
+        }
+      ],
+      "conditions": [
+        "nonconserved_order_parameter"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/phase_field/Phase_Field_Equations.html",
+            "scope": "2024-03-08 Basic Phase Field Equations, Phase Field Summary, Allen-Cahn equation; units depend on declared scaling."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare homogeneous order-parameter relaxation with its ordinary differential equation; refine time step."
+    },
+    {
+      "id": "moose.thermal_expansion",
+      "module": "Heat Transfer + Solid Mechanics / ComputeThermalExpansionEigenstrain",
+      "scope": "One-way thermoelasticity: assemble or provide a temperature field; couple it into the thermal eigenstrain material and include its eigenstrain name in the strain model, with elastic properties and displacement constraints. This is framework assembly, not a ready workflow. SI units are a consistent choice. MOOSE application-readable mesh with compatible elements, assigned subdomains and boundary IDs; direct Gmsh MSH compatibility must be verified for the application. For a thermal-stress query, isolate thermal loading; the reported stress field otherwise includes all applied loads.",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度场"
+          ]
+        },
+        {
+          "id": "reference_temperature",
+          "unit": "K",
+          "aliases": [
+            "无应力温度"
+          ]
+        },
+        {
+          "id": "thermal_expansion",
+          "unit": "1/K",
+          "aliases": [
+            "线膨胀系数"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "温度和位移边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移",
+            "位移场"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力",
+            "应力场",
+            "热应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermal_expansion",
+        "small_strain",
+        "linear_elasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/syntax/Materials/",
+            "scope": "2024-03-08 materials index lists thermal expansion eigenstrain and elasticity objects."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Free uniformly heated bar: compare expansion to alpha L delta T and zero stress; fixed bar: compare stress and reactions.",
+      "couplings": [
+        {
+          "from_field": "固体温度",
+          "to_field": "固体力学",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "按参考温度计算热本征应变；单向",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        }
+      ]
+    },
+    {
+      "id": "moose.aqueous_equilibrium_transport",
+      "module": "Chemical reactions",
+      "scope": "以主组分描述水相平衡物种及其输运，适合工艺水无生命体系。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度"
+          ]
+        },
+        {
+          "id": "equilibrium_constants",
+          "unit": "model-dependent",
+          "aliases": [
+            "平衡常数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度"
+          ]
+        },
+        {
+          "id": "aqueous_species_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "水相物种浓度"
+          ]
+        }
+      ],
+      "conditions": [
+        "aqueous_chemistry",
+        "reactive_transport"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/chemical_reactions/",
+            "scope": "Chemical Reactions 模块的反应网络和水相反应输运。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "单平衡反应水溶液核对元素守恒和物种比例，再与保守示踪剂结果比对。",
+      "couplings": [
+        {
+          "from_field": "水相组分输运",
+          "to_field": "化学平衡",
+          "quantity": "solute_concentration",
+          "unit": "mol/m^3",
+          "transfer": "主组分进入质量作用式；配置后联算",
+          "implementation": "configured",
+          "custom_work": "提供计量矩阵及参考态一致的平衡常数。"
+        },
+        {
+          "from_field": "化学平衡",
+          "to_field": "水相组分输运",
+          "quantity": "aqueous_species_concentration",
+          "unit": "mol/m^3",
+          "transfer": "从属物种的存储和通量计入守恒；联算",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        }
+      ]
+    },
+    {
+      "id": "moose.frictional_contact",
+      "module": "Contact",
+      "scope": "用接触约束处理固体接触不可穿透和库仑滑移，可选择版本文档列出的节点—面或 mortar 形式。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "friction_coefficient",
+          "unit": "1",
+          "aliases": [
+            "摩擦系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "contact_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "接触压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "mechanical_contact",
+        "coulomb_friction"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/contact/",
+            "scope": "ContactAction、MechanicalContactConstraint 与 mortar 接触对象。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "两个块体压紧后水平加载，检查法向反力、滑移阈值和穿透量。"
+    },
+    {
+      "id": "moose.em_harmonic_helmholtz",
+      "module": "Electromagnetics",
+      "scope": "二维频域 Maxwell Helmholtz 求复电场或二维波导基模，组合需按相应对象和边界配置。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "permittivity",
+          "unit": "F/m",
+          "aliases": [
+            "介电常数"
+          ]
+        },
+        {
+          "id": "magnetic_permeability",
+          "unit": "H/m",
+          "aliases": [
+            "磁导率"
+          ]
+        },
+        {
+          "id": "frequency",
+          "unit": "Hz",
+          "aliases": [
+            "频率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electric_field",
+          "unit": "V/m",
+          "aliases": [
+            "复电场"
+          ]
+        }
+      ],
+      "conditions": [
+        "electromagnetic_wave",
+        "frequency_domain",
+        "2d"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/electromagnetics/",
+            "scope": "Electromagnetics 模块列出二维 Helmholtz 波与 waveguide 基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "二维均匀波导核对解析截止频率与相位常数。"
+    },
+    {
+      "id": "moose.electrical_conduction",
+      "module": "Electromagnetics",
+      "scope": "由固体静电势求电场和电流密度，可选官方电接触界面条件。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m",
+          "aliases": [
+            "电导率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electric_potential",
+          "unit": "V",
+          "aliases": [
+            "电势"
+          ]
+        },
+        {
+          "id": "current_density",
+          "unit": "A/m^2",
+          "aliases": [
+            "电流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "electrical_conduction",
+        "electrostatic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/electromagnetics/",
+            "scope": "Electromagnetics 模块的电流密度和电势、两块电接触验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "同质杆校核 V/I，与分段材料界面电流守恒。"
+    },
+    {
+      "id": "moose.electrothermal_resistive_heating",
+      "module": "Electromagnetics",
+      "scope": "将已解电势梯度与电导率组成体积焦耳热并加载导电固体的热方程。可配置常电导或提供温变电导材料形成反馈。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "electric_potential",
+          "unit": "V",
+          "aliases": [
+            "电势"
+          ]
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m",
+          "aliases": [
+            "电导率"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "joule_heat",
+          "unit": "W/m^3",
+          "aliases": [
+            "焦耳热源"
+          ]
+        }
+      ],
+      "conditions": [
+        "electrothermal",
+        "joule_heating"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/source/kernels/JouleHeatingSource.html",
+            "scope": "版本 Kernels 系统的 JouleHeatingSource；电场和热传导模块需联合配置。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀电阻杆核对 VI 与体积积分，再比较定温边界下的一维解析温升。",
+      "couplings": [
+        {
+          "from_field": "金属电流",
+          "to_field": "固体传热",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "通过焦耳热源核把电势梯度换算为体积功率；常物性单向",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        },
+        {
+          "from_field": "固体传热",
+          "to_field": "金属电流",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "仅在选择温变电导材料时迭代反馈",
+          "implementation": "configured",
+          "custom_work": "提供 σ(T) 材料函数与导数；按联合应用配置。"
+        }
+      ]
+    },
+    {
+      "id": "moose.fluid_thermodynamic_properties",
+      "module": "Fluid Properties",
+      "scope": "由压力、温度得到内置流体单相状态属性，须选择材料及限定状态区间。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        },
+        {
+          "id": "specific_enthalpy",
+          "unit": "J/kg",
+          "aliases": [
+            "比焓"
+          ]
+        }
+      ],
+      "conditions": [
+        "equation_of_state",
+        "single_phase"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/fluid_properties/",
+            "scope": "Fluid Properties 模块的单相流体状态方程接口及对象。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用该流体状态关系的公开表格对多个 p–T 点逐点比较。"
+    },
+    {
+      "id": "moose.functional_field_expansion",
+      "module": "Functional Expansion Tools",
+      "scope": "按选定基函数从分布量生成系数并重构，在共解或跨程序模型交换中可表示数据。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "field_samples",
+          "unit": "field-dependent",
+          "aliases": [
+            "场样本"
+          ]
+        },
+        {
+          "id": "basis_definition",
+          "unit": "model-dependent",
+          "aliases": [
+            "基函数定义"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "expansion_coefficients",
+          "unit": "normalization-dependent",
+          "aliases": [
+            "展开系数"
+          ]
+        }
+      ],
+      "conditions": [
+        "function_expansion",
+        "field_projection"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/functional_expansion_tools/",
+            "scope": "Functional Expansion Tools 模块的展开、传递及重构用途。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "以近似阶内已知多项式检查重构误差及高阶截断残差。"
+    },
+    {
+      "id": "moose.gray_surface_radiation",
+      "module": "Heat Transfer",
+      "scope": "固体表面间灰漫辐射与热传导，采用辐射度和视角因子。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "emissivity",
+          "unit": "1",
+          "aliases": [
+            "发射率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "heat_conduction",
+        "surface_to_surface_radiation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/heat_transfer/",
+            "scope": "Heat Transfer 模块 SRS 的灰漫辐射及视角因子功能。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "平行灰体板比较解析净辐射热流，核对视角因子互易性。",
+      "couplings": [
+        {
+          "from_field": "固体温度",
+          "to_field": "灰漫表面辐射",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "表面温度决定辐射度；迭代",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        },
+        {
+          "from_field": "表面辐射",
+          "to_field": "固体传热",
+          "quantity": "heat_flux",
+          "unit": "W/m^2",
+          "transfer": "净热流为固体边界热通量；迭代",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        }
+      ]
+    },
+    {
+      "id": "moose.level_set_transport",
+      "module": "Level Set",
+      "scope": "通过配置的对流速度推进水平集变量，联合应用可组装流场提供的速度。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "level_set",
+          "unit": "m",
+          "aliases": [
+            "水平集距离"
+          ]
+        }
+      ],
+      "conditions": [
+        "level_set",
+        "interface_tracking"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+            "scope": "版本应用语法的 Level Set 模块平流对象。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "圆形界面恒速平移，检查相界面偏差与包围体积漂移。",
+      "couplings": [
+        {
+          "from_field": "流体运动",
+          "to_field": "水平集界面",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "速度进入水平集对流项；单向",
+          "implementation": "configured",
+          "custom_work": "选择符号、初始距离函数和重初始化选项。"
+        }
+      ]
+    },
+    {
+      "id": "moose.incompressible_flow",
+      "module": "Navier-Stokes",
+      "scope": "等密度流体连续性与动量方程，版本文档列出 CGFE 和有限体积实现。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "incompressible_flow",
+        "navier_stokes",
+        "laminar"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/navier_stokes/",
+            "scope": "Navier Stokes 模块连续 Galerkin 与不可压缩有限体积。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "泊肃叶流核对速度型面、流量和压降。"
+    },
+    {
+      "id": "moose.compressible_flow",
+      "module": "Navier-Stokes",
+      "scope": "密度基可压缩流，配置状态方程和 HLLC 有限体积通量。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "fluid_equation_of_state",
+          "unit": "model-dependent",
+          "aliases": [
+            "流体状态方程"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "conditions": [
+        "compressible_flow",
+        "navier_stokes",
+        "hllc"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/navier_stokes/",
+            "scope": "Navier Stokes 模块 Compressible Finite Volume HLLC。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "一维激波管比较波速与各区压力密度。"
+    },
+    {
+      "id": "moose.conjugate_heat_transfer",
+      "module": "Navier-Stokes",
+      "scope": "组合流体能量与固体导热的有限元或有限体积输入卡。先用共形界面和常物性强制对流。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "conjugate_heat_transfer",
+        "forced_convection",
+        "conformal_interface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/navier_stokes/",
+            "scope": "Navier Stokes 的能量变量与 Heat Transfer 的导热模块；为联合配置路线。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "双区层流加热核对流固壁温、两侧通量与出口焓差。",
+      "couplings": [
+        {
+          "from_field": "流体动量",
+          "to_field": "流体热场",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "流速驱动能量对流；常物性单向",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        },
+        {
+          "from_field": "流体热场",
+          "to_field": "固体导热",
+          "quantity": "heat_flux",
+          "unit": "W/m^2",
+          "transfer": "共形界面同时满足温度连续与热流守恒",
+          "implementation": "configured",
+          "custom_work": "组装流体能量和固体导热，分区材料和界面通量需自行配置。"
+        },
+        {
+          "from_field": "固体导热",
+          "to_field": "流体热场",
+          "quantity": "heat_flux",
+          "unit": "W/m^2",
+          "transfer": "共形界面以同值反号返向传热；联算",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        }
+      ]
+    },
+    {
+      "id": "moose.mechanics_coupled_phase_field",
+      "module": "Phase Field",
+      "scope": "组成或序参量相变与弹性应变能联算，适合含本征应变的固态析出。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "free_energy_density",
+          "unit": "J/m^3",
+          "aliases": [
+            "体积自由能"
+          ]
+        },
+        {
+          "id": "elastic_energy_density",
+          "unit": "J/m^3",
+          "aliases": [
+            "弹性能密度"
+          ]
+        },
+        {
+          "id": "phase_field_length_scale",
+          "unit": "m",
+          "aliases": [
+            "弥散界面长度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "order_parameter",
+          "unit": "1",
+          "aliases": [
+            "序参量"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "phase_field",
+        "elastic_eigenstrain"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/phase_field/",
+            "scope": "Phase Field 模块的弹性耦合与自由能材料。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先验证零错配的相场基准，再用约束均匀本征应变检查应力和能量导数。",
+      "couplings": [
+        {
+          "from_field": "固态相场",
+          "to_field": "弹性力学",
+          "quantity": "phase_eigenstrain",
+          "unit": "1",
+          "transfer": "按相分布更新本征应变；双向共解",
+          "implementation": "configured",
+          "custom_work": "提供相本征应变与弹性能的材料参数。"
+        },
+        {
+          "from_field": "弹性力学",
+          "to_field": "固态相场",
+          "quantity": "elastic_energy_density",
+          "unit": "J/m^3",
+          "transfer": "能量对相变量导数加入演化驱动力；双向共解",
+          "implementation": "configured",
+          "custom_work": "为特殊自由能编写或配置一致导数。"
+        }
+      ]
+    },
+    {
+      "id": "moose.porous_heat_transport",
+      "module": "Porous Flow",
+      "scope": "饱和多孔体系中流体对流和等效导热，配置矿物骨架和液体的能量物性。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "permeability",
+          "unit": "m^2",
+          "aliases": [
+            "渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "darcy_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "达西速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "saturated_porous_flow",
+        "porous_heat_advection"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/porous_flow/sqa/porous_flow_srs.html",
+            "scope": "2024-03-08 Porous Flow SRS 的热传导与多孔介质热对流。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "一维水驱热锋，核对温度穿透、总能量和液相质量。",
+      "couplings": [
+        {
+          "from_field": "孔液渗流",
+          "to_field": "多孔体能量",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "Darcy 速度决定流动携带焓；常物性单向",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        }
+      ]
+    },
+    {
+      "id": "moose.thermoelastic_poromechanics",
+      "module": "Porous Flow",
+      "scope": "配置饱和单液相 Darcy 流、温度输运及 Biot 骨架热弹性。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "permeability",
+          "unit": "m^2",
+          "aliases": [
+            "渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1",
+          "aliases": [
+            "Biot系数"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermoporoelasticity",
+        "saturated_porous_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/porous_flow/sqa/porous_flow_srs.html",
+            "scope": "Porous Flow SRS 与 Materials 系统列出的 Biot 模量、热膨胀及 Darcy 速度材料。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先回归 Terzaghi 固结，再在无排水加热条件核对初期孔压和热膨胀响应。",
+      "couplings": [
+        {
+          "from_field": "孔液渗流",
+          "to_field": "固体骨架",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "Biot 有效应力；多场共解",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        },
+        {
+          "from_field": "固体骨架",
+          "to_field": "孔液储存",
+          "quantity": "volumetric_strain",
+          "unit": "1",
+          "transfer": "体积应变率影响流体质量积累；多场共解",
+          "implementation": "configured",
+          "custom_work": "显式配置应变与温度相依的孔隙率材料及一致导数；有效应力与储存参数依据同一套 Biot 定义。"
+        },
+        {
+          "from_field": "孔液渗流",
+          "to_field": "多孔介质热场",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "流体焓对流；多场共解",
+          "implementation": "configured",
+          "custom_work": "在含有关联模块的应用中组装变量与内置对象，配置区域、边界和材料。"
+        },
+        {
+          "from_field": "多孔介质热场",
+          "to_field": "固体骨架",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "以热本征应变反馈力学，可同时经状态关系反馈流体；共解",
+          "implementation": "configured",
+          "custom_work": "选择压力和温度基准及骨架、流体热膨胀律。"
+        }
+      ]
+    },
+    {
+      "id": "moose.finite_strain_elasticity",
+      "module": "Solid Mechanics",
+      "scope": "有限变形应变与应力更新，按材料确定应变分解和应力测度。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "solid_mechanics",
+        "finite_strain"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/solid_mechanics/",
+            "scope": "Solid Mechanics 模块 finite strain formulation。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "单元拉伸检查反力并用纯刚体转动检查应力客观性。"
+    },
+    {
+      "id": "moose.j2_plasticity",
+      "module": "Solid Mechanics",
+      "scope": "配置各向同性 J2 屈服与径向返回应力积分，适用于延性金属。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "yield_stress",
+          "unit": "Pa",
+          "aliases": [
+            "屈服应力"
+          ]
+        },
+        {
+          "id": "hardening_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "硬化模量"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        },
+        {
+          "id": "equivalent_plastic_strain",
+          "unit": "1",
+          "aliases": [
+            "等效塑性应变"
+          ]
+        }
+      ],
+      "conditions": [
+        "elastoplasticity",
+        "von_mises",
+        "j2_plasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/solid_mechanics/",
+            "scope": "Solid Mechanics 的应力更新与 IsotropicPlasticityStressUpdate 材料。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "单轴双线性拉伸卸载，检查屈服点、切线和残余应变。"
+    },
+    {
+      "id": "moose.solid_thermal_properties",
+      "module": "Solid Properties",
+      "scope": "选定已实现固体材料，以温度计算密度、比热和热导率；具体温度范围由材料关系确定。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "solid_material_model",
+          "unit": "model-dependent",
+          "aliases": [
+            "固体材料模型"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "specific_heat_capacity",
+          "unit": "J/(kg K)",
+          "aliases": [
+            "比热"
+          ]
+        }
+      ],
+      "conditions": [
+        "solid_thermal_properties",
+        "temperature_dependent"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/solid_properties/",
+            "scope": "Solid Properties 模块材料热物性接口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在材料关联式标注的低、中、高温度分别核对单位与值。",
+      "couplings": [
+        {
+          "from_field": "固体温度",
+          "to_field": "固体热物性",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "温度代入关联式以更新导热率和比热，组合到热求解时可迭代",
+          "implementation": "configured",
+          "custom_work": "选择内置材料，缺失材料需实现或拟合温度关系。"
+        }
+      ]
+    },
+    {
+      "id": "moose.sampled_uncertainty_propagation",
+      "module": "Stochastic Tools",
+      "scope": "配置概率分布并由采样器调用确定性应用，汇总目标量分布。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "parameter_distributions",
+          "unit": "model-dependent",
+          "aliases": [
+            "参数分布"
+          ]
+        },
+        {
+          "id": "simulation_quantity_of_interest",
+          "unit": "model-dependent",
+          "aliases": [
+            "模型目标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "quantity_sample_statistics",
+          "unit": "quantity-dependent",
+          "aliases": [
+            "统计结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "stochastic_sampling",
+        "uncertainty_propagation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/stochastic_tools/",
+            "scope": "Stochastic Tools 模块 Samplers、MultiApps 和统计功能。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "线性模型输入正态分布，核对输出样本均值和方差误差随样本增加降低。"
+    },
+    {
+      "id": "moose.single_phase_flow_channel",
+      "module": "Thermal Hydraulics",
+      "scope": "一维单相热工通道求质量、动量、能量；可与独立热结构交换壁面热流。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "flow_area",
+          "unit": "m^2",
+          "aliases": [
+            "通道截面积"
+          ]
+        },
+        {
+          "id": "hydraulic_diameter",
+          "unit": "m",
+          "aliases": [
+            "水力直径"
+          ]
+        },
+        {
+          "id": "fluid_equation_of_state",
+          "unit": "model-dependent",
+          "aliases": [
+            "流体状态方程"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "mass_flow_rate",
+          "unit": "kg/s",
+          "aliases": [
+            "质量流量"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermal_hydraulics",
+        "single_phase",
+        "one_dimensional"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/thermal_hydraulics/",
+            "scope": "Thermal Hydraulics 模块单相 FlowChannel 和热结构相关组件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "定流量直管检查阻力压降与给热引起的进出口焓差。"
+    },
+    {
+      "id": "moose.channel_wall_heat_exchange",
+      "module": "Thermal Hydraulics",
+      "scope": "单相一维管流与固体热结构通过换热边界联算。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "换热系数"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermal_hydraulics",
+        "wall_heat_transfer",
+        "single_phase"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/thermal_hydraulics/",
+            "scope": "Thermal Hydraulics 的 FlowChannel 与 HeatStructure 对流边界组件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "恒热通量通道核对进出口焓增，随后验证双侧输入输出传热守恒。",
+      "couplings": [
+        {
+          "from_field": "单相内部流体",
+          "to_field": "固体热结构",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "流体截面平均温度作为壁面对流参考；联算",
+          "implementation": "configured",
+          "custom_work": "配置适用的换热关联式及湿周。"
+        },
+        {
+          "from_field": "固体热结构",
+          "to_field": "单相内部流体",
+          "quantity": "heat_flux",
+          "unit": "W/m^2",
+          "transfer": "壁面热流按湿周进入一维能量方程；联算",
+          "implementation": "configured",
+          "custom_work": "核对边界面积与流道长度归一化。"
+        }
+      ]
+    },
+    {
+      "id": "moose.xfem_crack_representation",
+      "module": "XFEM",
+      "scope": "利用扩展有限元在单元内部表示位移间断，可使用给定裂纹切割。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "crack_geometry",
+          "unit": "m",
+          "aliases": [
+            "裂纹几何"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "xfem",
+        "prescribed_crack"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/xfem/",
+            "scope": "XFEM 模块的元素切割、裂纹表示与相关力学对象。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "固定中心裂纹拉伸板，比较裂纹张开位移与网格加密后的近尖端参考。"
+    },
+    {
+      "id": "moose.ale_fluid_structure_interaction",
+      "module": "Fluid-Structure Interaction",
+      "scope": "以相邻流固子域的界面核耦合 Navier–Stokes 流动与弹性固体，流体方程可在变形网格积分。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "动力黏度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "流体密度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "fluid_structure_interaction",
+        "navier_stokes",
+        "ale"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/fsi/sqa/fsi_srs.html",
+            "scope": "版本 FSI SRS 第 2 节和 6.2.1 的界面核、变形流体网格与 Jacobian 回归。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "柔性管段小变形，先验证静态压力载荷和界面位移连续，再做时步及网格收敛。",
+      "couplings": [
+        {
+          "from_field": "黏性流体动量",
+          "to_field": "弹性固体",
+          "quantity": "traction",
+          "unit": "Pa",
+          "transfer": "流体压力与黏应力作为界面牵引；共解",
+          "implementation": "configured",
+          "custom_work": "配置流固界面核、法向和反力，核对两侧力平衡。"
+        },
+        {
+          "from_field": "弹性固体",
+          "to_field": "流体动网格",
+          "quantity": "displacement",
+          "unit": "m",
+          "transfer": "移动界面位移进入流体方程的变形网格；共解",
+          "implementation": "configured",
+          "custom_work": "组装位移与动网格方程；另做网格质量和界面速度一致性验证。"
+        }
+      ]
+    },
+    {
+      "id": "moose.quartz_dissolution_kinetics",
+      "module": "Geochemistry",
+      "scope": "给定水相组分及动力学参数，计算矿物石英在酸性水溶液中的溶解析出及组分状态。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "initial_molality",
+          "unit": "mol/kg",
+          "aliases": [
+            "初始质量摩尔浓度"
+          ]
+        },
+        {
+          "id": "chemical_reaction_model",
+          "unit": "model-dependent",
+          "aliases": [
+            "化学数据库与动力学模型"
+          ]
+        },
+        {
+          "id": "reaction_surface_area",
+          "unit": "m^2",
+          "aliases": [
+            "反应表面积"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "aqueous_molality",
+          "unit": "mol/kg",
+          "aliases": [
+            "水相质量摩尔浓度"
+          ]
+        },
+        {
+          "id": "mineral_amount",
+          "unit": "mol",
+          "aliases": [
+            "矿物物质的量"
+          ]
+        }
+      ],
+      "conditions": [
+        "mineral_dissolution",
+        "geochemical_kinetics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/geochemistry/tests_and_examples/kinetic_quartz.html",
+            "scope": "版本受动力学控制的石英溶解示例。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "封闭反应器核对元素、矿物变化量和质量平衡，并检查时间步长减半的速率历史。"
+    },
+    {
+      "id": "moose.pde_parameter_inversion",
+      "module": "Optimization",
+      "scope": "以测量与前向 PDE 计算的失配作为反演目标，通过参数化和迭代确定输入参数。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "observed_responses",
+          "unit": "quantity-dependent",
+          "aliases": [
+            "观测量"
+          ]
+        },
+        {
+          "id": "parameterization",
+          "unit": "model-dependent",
+          "aliases": [
+            "待反演参数化"
+          ]
+        },
+        {
+          "id": "forward_model",
+          "unit": "model-dependent",
+          "aliases": [
+            "前向物理模型"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "estimated_parameters",
+          "unit": "parameter-dependent",
+          "aliases": [
+            "反演参数"
+          ]
+        }
+      ],
+      "conditions": [
+        "inverse_optimization",
+        "pde_constrained"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/optimization/theory/InvOptTheory.html",
+            "scope": "版本 Inverse Optimization 理论及 A–Z 所列 Force Inversion Examples。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用含已知参数的合成观测，检查有限差分梯度与求得参数；另评估噪声敏感性。"
+    },
+    {
+      "id": "moose.nonlocal_solid_mechanics",
+      "module": "Peridynamics",
+      "scope": "近场动力学小应变非普通态对应模型求固体变形，以邻域和稳定化处理非局部机械响应。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "网格",
+            "moose网格"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "peridynamic_horizon",
+          "unit": "m",
+          "aliases": [
+            "非局部视界"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "peridynamics",
+        "small_strain",
+        "nonlocal_mechanics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+            "scope": "版本 A–Z 的 Force Stabilized Non Ordinary State Based Peridynamic Mechanics Kernel 及 Horizon Stabilized Small Strain 条目。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均质板单轴拉伸，核对位移与反力，并分别做节点间距和视界敏感性。"
+    },
+    {
+      "id": "moose.soret_thermal_diffusion",
+      "module": "Misc",
+      "scope": "组装能力。ADThermoDiffusion 直接以用户给定的 AD 材料属性 S=soret_coefficient 和同网格温度梯度计算热扩散项，物理通量 J_T=−S∇T，S 为正时通量沿降温方向。核需要温度耦合变量和 S；温度值、浓度或扩散率如何参与 S 由材料定义。Fick 扩散由独立项提供。官方稳态测试选择 S=u/T² 并用 ADDiffusion 组装单位扩散系数的对照。",
+      "inputs": [
+        {
+          "id": "temperature_gradient",
+          "unit": "K/m",
+          "aliases": [
+            "由同网格温度变量计算的梯度"
+          ]
+        },
+        {
+          "id": "soret_coefficient",
+          "unit": "mol/(m*s*K)",
+          "aliases": [
+            "Soret 通量系数（以摩尔浓度为输运量时）"
+          ]
+        },
+        {
+          "id": "species_concentration_boundary",
+          "unit": "mol/m^3",
+          "aliases": [
+            "用于固定浓度尺度的边界浓度"
+          ]
+        },
+        {
+          "id": "species_diffusivity",
+          "unit": "m^2/s",
+          "aliases": [
+            "独立 Fick 扩散项系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "thermodiffusion_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "热扩散浓度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "soret_effect",
+        "configured_thermal_diffusion_kernel",
+        "common_mesh",
+        "positive_absolute_temperature",
+        "configured_ad_soret_material"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/misc/test/tests/kernels/thermo_diffusion/ad_thermo_diffusion.i",
+            "scope": "ADThermoDiffusion、独立热扩散、稳态解析浓度检验"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/misc/doc/content/source/kernels/ADThermoDiffusion.md",
+            "scope": "温度梯度驱动的扩散项"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/misc/src/kernels/ADThermoDiffusion.C",
+            "scope": "温度耦合变量，材料 soret_coefficient 及弱式符号"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/misc/test/src/materials/ADSoretCoeffTest.C",
+            "scope": "官方测试专用 S=u/T² 材料构造"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用一维线性温场对照稳态通量抵消和浓度解析分布，检查反转温度梯度后浓度分布方向。",
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "species_transport",
+          "quantity": "temperature_gradient",
+          "unit": "K/m",
+          "transfer": "同网格温度变量及其形函数梯度，经 ADThermoDiffusion 加入残量",
+          "implementation": "configured",
+          "custom_work": "提供采用相同物质基准的 S(T,u,…) 材料属性及独立的 Fick 扩散。若用正 S，温度驱动通量指向低温。"
+        }
+      ]
+    },
+    {
+      "id": "moose.ray_path_function_integral",
+      "module": "Ray Tracing",
+      "scope": "配置能力。以有限元网格中给定射线为路径，用 FunctionIntegralRayKernel 沿轨迹分段积分已知函数，通过 RayIntegralValue 后处理读取。适用于几何光学式路径积分诊断。",
+      "inputs": [
+        {
+          "id": "moose_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "射线计算网格"
+          ]
+        },
+        {
+          "id": "ray_origin_and_direction",
+          "unit": "m and 1",
+          "aliases": [
+            "起点和传播方向"
+          ]
+        },
+        {
+          "id": "ray_path_integrand",
+          "unit": "f_unit",
+          "aliases": [
+            "待积分函数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ray_path_integral",
+          "unit": "f_unit*m",
+          "aliases": [
+            "沿射线的积分量"
+          ]
+        }
+      ],
+      "conditions": [
+        "configured_ray_study",
+        "defined_ray_termination",
+        "path_integration"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/ray_tracing/doc/content/source/raykernels/FunctionIntegralRayKernel.md",
+            "scope": "路径积分数学定义与 RayIntegralValue 读取"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/ray_tracing/src/raykernels/FunctionIntegralRayKernel.C",
+            "scope": "积分核 computeQpIntegral"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在直线路径上用常数与线性函数对照解析积分，经过不同网格分割后比较结果。"
+    },
+    {
+      "id": "moose.polygon_concentric_mesh",
+      "module": "Reactor",
+      "scope": "原生几何网格生成器，限定通用多边形内的同心圆环网格，如规则圆形嵌件和外部基体。提供半径、各边扇区与环向层数等，输出可标识圆环及背景的有限元网格。",
+      "inputs": [
+        {
+          "id": "ring_radii",
+          "unit": "m",
+          "aliases": [
+            "同心圆环半径"
+          ]
+        },
+        {
+          "id": "polygon_size",
+          "unit": "m",
+          "aliases": [
+            "外多边形尺寸"
+          ]
+        },
+        {
+          "id": "polygon_sector_counts",
+          "unit": "1",
+          "aliases": [
+            "各边分段数"
+          ]
+        },
+        {
+          "id": "ring_layer_counts",
+          "unit": "1",
+          "aliases": [
+            "圆环分层数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "polygon_ring_mesh",
+          "unit": "MOOSE-readable mesh file",
+          "aliases": [
+            "多边形同心环网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "concentric_rings",
+        "regular_polygon_outer_boundary",
+        "non_overlapping_ring_radii"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/reactor/doc/content/source/meshgenerators/PolygonConcentricCircleMeshGenerator.md",
+            "scope": "同心圆环、多边形背景、尺寸、区域 ID 和生成输入"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/reactor/src/meshgenerators/PolygonConcentricCircleMeshGenerator.C",
+            "scope": "PolygonConcentricCircleMeshGenerator 实现"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用一个普通圆形嵌件检查区域面积、共享界面、节点重复和网格质量，并验证网格加密前后标签一致。"
+    },
+    {
+      "id": "moose.rdg_tracer_advection_1d",
+      "module": "Reconstructed Discontinuous Galerkin",
+      "scope": "组装能力。官方一维示踪剂测试以常数阶自由度配置 AEFV 通量和斜率限制器。none 对应零阶重构，minmod、mc 或 superbee 可启用限幅线性重构。",
+      "inputs": [
+        {
+          "id": "advection_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "一维给定平流速度"
+          ]
+        },
+        {
+          "id": "tracer_initial_fraction",
+          "unit": "1",
+          "aliases": [
+            "初始示踪剂分数"
+          ]
+        },
+        {
+          "id": "slope_limiter",
+          "unit": "enum",
+          "aliases": [
+            "斜率限制器"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "tracer_fraction_profile",
+          "unit": "1",
+          "aliases": [
+            "示踪剂一维分布"
+          ]
+        }
+      ],
+      "conditions": [
+        "one_dimensional_advection",
+        "prescribed_constant_velocity",
+        "configured_rdg_flux"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/rdg/test/tests/advection_1d/rdgP0.i",
+            "scope": "AEFVUpwindInternalSideFlux、AEFVSlopeLimitingOneD 和示踪剂剖面采样"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/rdg/test/tests/advection_1d/tests",
+            "scope": "不同斜率限制器的官方回归配置"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照方波按给定速度的平移，分别比较相位误差、总量、峰值与前沿耗散。"
+    },
+    {
+      "id": "moose.richards_unsaturated_flow",
+      "module": "Richards",
+      "scope": "组装能力。独立 Richards 模块中的质量累积和压力通量；用有效饱和度、相对渗透率、液体密度和黏度定义非饱和渗流，读取孔隙液压和有效饱和度。",
+      "inputs": [
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率张量"
+          ]
+        },
+        {
+          "id": "capillary_retention_curve",
+          "unit": "pressure vs fraction",
+          "aliases": [
+            "持水曲线"
+          ]
+        },
+        {
+          "id": "relative_permeability_curve",
+          "unit": "fraction vs fraction",
+          "aliases": [
+            "相对渗透率曲线"
+          ]
+        },
+        {
+          "id": "richards_mass_flux_boundary",
+          "unit": "kg/(m^2*s)",
+          "aliases": [
+            "补给质量通量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙液压力"
+          ]
+        },
+        {
+          "id": "effective_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效饱和度"
+          ]
+        }
+      ],
+      "conditions": [
+        "unsaturated_richards_flow",
+        "single_pressure_variable",
+        "capillary_constitutive_law"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/richards/doc/content/modules/richards/index.md",
+            "scope": "Richards 模块方程和应用范围"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/richards/test/tests/broadbridge_white/bw01.i",
+            "scope": "RichardsMassChange、RichardsFlux、RichardsSeffAux 和材料闭式"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "按 Broadbridge–White 边界条件对照解析饱和度剖面，并闭合补给积分与储液量变化。"
+    },
+    {
+      "id": "moose.multiapp_interpolated_field_transfer",
+      "module": "Transfers / MultiAppGeometricInterpolationTransfer",
+      "scope": "MOOSE MultiApp 之间用源节点数据和几何插值写入目标变量。可选择源或目标的变形位置，非重叠区可外推。按 MultiApp 和 Transfer 的 execute_on 调度执行，一条传递只负责一个方向。NaviField 仍需编排双向连接、交换步、欠松弛和收敛判断。逆距离插值不保障积分守恒，等距邻居的并行确定性需核查。",
+      "inputs": [
+        {
+          "id": "source_temperature",
+          "unit": "K",
+          "aliases": [
+            "源网格温度场"
+          ]
+        },
+        {
+          "id": "source_coordinates",
+          "unit": "m",
+          "aliases": [
+            "源网格坐标"
+          ]
+        },
+        {
+          "id": "target_coordinates",
+          "unit": "m",
+          "aliases": [
+            "目标网格坐标"
+          ]
+        },
+        {
+          "id": "transfer_execution_stage",
+          "unit": "1",
+          "aliases": [
+            "场交换执行阶段"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_temperature",
+          "unit": "K",
+          "aliases": [
+            "目标网格插值温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_multiapp",
+        "source_and_target_variable_defined",
+        "explicit_transfer_execution_stage",
+        "nodal_interpolation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/framework/doc/content/source/transfers/MultiAppGeometricInterpolationTransfer.md",
+            "scope": "固定版本插值 Transfer，支持变形坐标与非重叠域外推"
+          },
+          {
+            "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/syntax/Transfers/index.html",
+            "scope": "Multiple applications transfer execution and coupling configuration"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用不同节点布置的两个网格核对常量复现、边界外推误差及交换步时间对齐。涉及能量源项的传场单独积分校核。",
+      "couplings": [
+        {
+          "from_field": "源应用温度",
+          "to_field": "目标应用温度",
+          "quantity": "mapped_temperature",
+          "unit": "K",
+          "transfer": "在指定 Transfer 事件执行几何插值或外推",
+          "implementation": "configured",
+          "custom_work": "确定坐标架、交换步和源目标变量，积分守恒需另行核验。"
+        }
+      ]
+    },
+    {
+      "id": "moose.multiapp_integral_transfer_correction",
+      "module": "transfers / MultiAppConservativeTransfer",
+      "scope": "MultiApp 保守传场框架先由两侧 Postprocessor 分别计算源、目标积分，再缩放目标场以匹配积分。需要选用继承该基类的具体 Transfer。典型传量是热源密度，经域积分转换为总功率。目标同一时间窗内先执行映射，再执行积分缩放。裁剪、分区局部守恒和跨求解器适配仍需项目验证。",
+      "inputs": [
+        {
+          "id": "source_heat_generation",
+          "unit": "W/m^3",
+          "aliases": [
+            "源域体热源"
+          ]
+        },
+        {
+          "id": "source_integrated_power",
+          "unit": "W",
+          "aliases": [
+            "源域积分功率"
+          ]
+        },
+        {
+          "id": "target_integrated_power",
+          "unit": "W",
+          "aliases": [
+            "目标域映射前积分功率"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "adjusted_target_heat_generation",
+          "unit": "W/m^3",
+          "aliases": [
+            "校正后目标域体热源"
+          ]
+        },
+        {
+          "id": "target_power_after_adjustment",
+          "unit": "W",
+          "aliases": [
+            "校正后目标域积分功率"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_multiapp",
+        "conservative_transfer_derived_class",
+        "paired_integral_postprocessors",
+        "nonzero_adjustment_denominator"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/framework/doc/content/source/transfers/MultiAppConservativeTransfer.md",
+            "scope": "固定版本对象说明及适用范围"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/test/tests/transfers/multiapp_conservative_transfer/parent_power_density.i",
+            "scope": "固定版本案例输入"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用源功率分布和目标网格检查调整前后积分，核对零积分、量纲、局部峰值与交换步时序。",
+      "couplings": [
+        {
+          "from_field": "源应用热源场",
+          "to_field": "目标应用热源场",
+          "quantity": "adjusted_target_heat_generation",
+          "unit": "W/m^3",
+          "transfer": "选定映射完成后以两侧 Postprocessor 积分比缩放目标场",
+          "implementation": "configured",
+          "custom_work": "实现一致的积分量，处理零分母和分区局部误差。"
+        }
+      ]
+    },
+    {
+      "id": "moose.ad_joule_source_temperature_dependent",
+      "module": "kernels / ADJouleHeatingSource",
+      "scope": "电势梯度和区域电导率通过 σ∣∇V∣² 转为热方程体热源。分材料区域可供不同 AD 电导率，若电导率受温度驱动，由 AD 材料向残差提供温度导数。电势方程、热方程、分区材料和温度属性命名需配置；选择整体式求解时在同一非线性组装内更新反馈。",
+      "inputs": [
+        {
+          "id": "electric_potential",
+          "unit": "V",
+          "aliases": [
+            "电势场"
+          ]
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m",
+          "aliases": [
+            "分区电导率"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "用于电导率的温度场"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "joule_heat_generation",
+          "unit": "W/m^3",
+          "aliases": [
+            "焦耳体热源"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "热求解温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_ad_kernel",
+        "ad_conductivity_property",
+        "specified_electric_and_thermal_boundaries"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/kernels/ADJouleHeatingSource.md",
+            "scope": "固定版本对象说明及适用范围"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/joule_heating/transient_ad_jouleheating.i",
+            "scope": "固定版本案例输入"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用串联双材料杆比较 I²R 与体热源积分，校核热通量和温度依赖电阻反馈。",
+      "couplings": [
+        {
+          "from_field": "导电固体电势",
+          "to_field": "固体热场",
+          "quantity": "joule_heat_generation",
+          "unit": "W/m^3",
+          "transfer": "同网格积分点以电势梯度和 AD 电导率构造体热源",
+          "implementation": "configured",
+          "custom_work": "提供电势和能量方程以及同块电导率属性。"
+        },
+        {
+          "from_field": "固体热场",
+          "to_field": "电导率材料",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "可由温度依赖 AD 材料回写同次残量中的电导率",
+          "implementation": "configured",
+          "custom_work": "选择温变电阻率模型和参考温度。"
+        }
+      ]
+    },
+    {
+      "id": "moose.occluded_cavity_radiation_view_factors",
+      "module": "userobjects / ViewFactorRayStudy",
+      "scope": "利用表面集、射线追踪和方向求积计算二维或三维封闭腔体的视角系数，支持遮挡与非凸几何。视角系数随后作为灰漫表面辐射交换的几何输入，温度与发射率仍由辐射求解对象配置。运动几何何时重新生成系数需要单独编排。",
+      "inputs": [
+        {
+          "id": "cavity_surface_coordinates",
+          "unit": "m",
+          "aliases": [
+            "腔体表面坐标"
+          ]
+        },
+        {
+          "id": "directional_quadrature_order",
+          "unit": "1",
+          "aliases": [
+            "方向求积级别"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "surface_view_factor",
+          "unit": "1",
+          "aliases": [
+            "表面对视角系数"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_ray_tracing",
+        "closed_cavity_surface_sets",
+        "fixed_geometry_per_evaluation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/userobjects/ViewFactorRayStudy.md",
+            "scope": "固定版本对象说明及适用范围"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用半封闭平行板或带遮挡面腔体核对行和、面积互易性和方向求积收敛。",
+      "couplings": [
+        {
+          "from_field": "腔体表面射线几何",
+          "to_field": "灰漫辐射交换",
+          "quantity": "surface_view_factor",
+          "unit": "1",
+          "transfer": "通过射线命中积分生成几何矩阵，供辐射方程读取",
+          "implementation": "configured",
+          "custom_work": "提供封闭边界分组，运动几何需另排更新时序。"
+        }
+      ]
+    },
+    {
+      "id": "moose.meshed_gap_thermal_contact",
+      "module": "actions / ThermalContactAction",
+      "scope": "显式网格化间隙中的两侧温度和给定等效界面导热参数进入 ThermalContact 自动搭建的交换模型，形成界面热流并以相反符号进入两侧能量方程。本卡限定常数接触导热配置。动态接触压力、气隙属性和组装顺序需要另设对象并验收。",
+      "inputs": [
+        {
+          "id": "surface_temperature",
+          "unit": "K",
+          "aliases": [
+            "两侧表面温度"
+          ]
+        },
+        {
+          "id": "thermal_contact_conductance",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "等效界面导热系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "contact_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "界面传热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_thermal_contact_action",
+        "constant_conductance",
+        "matched_boundary_pair"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/actions/ThermalContactAction.md",
+            "scope": "固定版本对象说明及适用范围"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/meshed_gap_thermal_contact/meshed_gap_thermal_contact_constant_conductance.i",
+            "scope": "固定版本案例输入"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对比双材料一维串联热阻计算，核查两侧通量符号和积分平衡。",
+      "couplings": [
+        {
+          "from_field": "主侧接触面温度",
+          "to_field": "副侧固体能量",
+          "quantity": "contact_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "配对温差经接触导热闭合进入副侧热方程",
+          "implementation": "configured",
+          "custom_work": "定义配对面、换热系数和通量方向。"
+        },
+        {
+          "from_field": "副侧接触面温度",
+          "to_field": "主侧固体能量",
+          "quantity": "contact_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "另一侧使用相反取向构造本侧热残量",
+          "implementation": "configured",
+          "custom_work": "核对两侧积分热量平衡。"
+        }
+      ]
+    },
+    {
+      "id": "moose.fully_saturated_darcy_enthalpy_advection",
+      "module": "kernels / PorousFlowFullySaturatedHeatAdvection",
+      "scope": "完全饱和单流体相的压力与重力驱动 Darcy 速度。速度及密度输运焓，形成能量方程的对流项。在同一网格的能量组装中消耗材料属性。适用未迎风的 Kernel，温度过冲控制需要独立配置或采用该模块其他稳定化对象。",
+      "inputs": [
+        {
+          "id": "fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "流体压力场"
+          ]
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率"
+          ]
+        },
+        {
+          "id": "fluid_density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "流体密度"
+          ]
+        },
+        {
+          "id": "fluid_enthalpy",
+          "unit": "J/kg",
+          "aliases": [
+            "比焓"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "advective_enthalpy_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "对流焓通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "fully_saturated",
+        "one_fluid_phase",
+        "multiply_by_density",
+        "without_upwinding"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/kernels/PorousFlowFullySaturatedHeatAdvection.md",
+            "scope": "固定版本对象说明及适用范围"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "以一维饱和对流测试核对焓通量和温度锋面，检查无迎风情况下的网格敏感性。",
+      "couplings": [
+        {
+          "from_field": "饱和孔隙流动",
+          "to_field": "多孔介质热场",
+          "quantity": "advective_enthalpy_flux",
+          "unit": "W/m^2",
+          "transfer": "由 Darcy 通量乘密度和比焓，在材料点组装对流项",
+          "implementation": "configured",
+          "custom_work": "配置单流体相材料，并校核未迎风时的过冲。"
+        }
+      ]
+    },
+    {
+      "id": "moose.porous_flow_fe_species_dispersion",
+      "module": "kernels / PorousFlowDispersiveFlux",
+      "scope": "沿介质流速建立各相组分的纵向与横向弥散张量，并与分子扩散共同加入有限元组分守恒。压力/材料决定的速度通过组装点属性传给组分通量。此 Kernel 需要另组装积累、平流、源项和边界闭合。",
+      "inputs": [
+        {
+          "id": "darcy_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "各相达西速度"
+          ]
+        },
+        {
+          "id": "component_mass_fraction",
+          "unit": "1",
+          "aliases": [
+            "组分质量分数"
+          ]
+        },
+        {
+          "id": "molecular_diffusivity",
+          "unit": "m^2/s",
+          "aliases": [
+            "分子扩散系数"
+          ]
+        },
+        {
+          "id": "longitudinal_dispersivity",
+          "unit": "m",
+          "aliases": [
+            "纵向弥散度"
+          ]
+        },
+        {
+          "id": "transverse_dispersivity",
+          "unit": "m",
+          "aliases": [
+            "横向弥散度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "dispersive_component_flux",
+          "unit": "kg/(m^2 s)",
+          "aliases": [
+            "组分弥散通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_porous_flow_fe",
+        "consistent_component_index",
+        "specified_phase_and_tortuosity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/kernels/PorousFlowDispersiveFlux.md",
+            "scope": "固定版本对象说明及适用范围"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对比各向同性扩散和一维有流弥散闭式解，核对组分总质量及网格敏感性。",
+      "couplings": [
+        {
+          "from_field": "达西流动",
+          "to_field": "多孔组分输运",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "各相流速确定有限元组分弥散张量方向和尺度",
+          "implementation": "configured",
+          "custom_work": "配置相索引、曲折度和实际纵横向弥散闭合。"
+        }
+      ]
+    },
+    {
+      "id": "moose.thermally_activated_power_law_creep",
+      "module": "materials / PowerLawCreepStressUpdate",
+      "scope": "将试算有效应力、温度和时间送入幂律蠕变速率模型，并经径向返回更新积分点蠕变应变与应力。必须在兼容的非弹性应力计算器内调用。本卡针对有温度输入的单幂律；疲劳、损伤和寿命准则需独立实现。",
+      "inputs": [
+        {
+          "id": "trial_effective_stress",
+          "unit": "Pa",
+          "aliases": [
+            "试算等效应力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度场"
+          ]
+        },
+        {
+          "id": "activation_energy",
+          "unit": "J/mol",
+          "aliases": [
+            "活化能"
+          ]
+        },
+        {
+          "id": "time_increment",
+          "unit": "s",
+          "aliases": [
+            "时间增量"
+          ]
+        },
+        {
+          "id": "stress_exponent",
+          "unit": "1",
+          "aliases": [
+            "应力指数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "creep_strain",
+          "unit": "1",
+          "aliases": [
+            "累积蠕变应变"
+          ]
+        },
+        {
+          "id": "updated_stress",
+          "unit": "Pa",
+          "aliases": [
+            "更新后应力张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_radial_return",
+        "isotropic_creep_material",
+        "calibrated_power_law"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/doc/content/source/materials/PowerLawCreepStressUpdate.md",
+            "scope": "固定版本对象说明及适用范围"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/test/tests/power_law_creep/power_law_creep.i",
+            "scope": "固定版本案例输入"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用恒应力和恒温单轴工况比对蠕变应变-时间关系，检查时间步收敛与温度变化响应。",
+      "couplings": [
+        {
+          "from_field": "固体热场",
+          "to_field": "固体蠕变应力更新",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "当前温度控制幂律蠕变热激活率，随隐式应力更新",
+          "implementation": "configured",
+          "custom_work": "校准热激活系数和应力返回方法。"
+        }
+      ]
+    },
+    {
+      "id": "moose.elastic_scalar_damage_stress_update",
+      "module": "materials / ComputeDamageStress",
+      "scope": "应变和弹性刚度给出未损伤应力，由 DamageBase 派生材料提供损伤状态更新应力。仅覆盖弹性损伤路径；塑性、蠕变、断裂能标定与网格客观化需项目选择为独立本构配置。",
+      "inputs": [
+        {
+          "id": "mechanical_strain",
+          "unit": "1",
+          "aliases": [
+            "机械应变场"
+          ]
+        },
+        {
+          "id": "elasticity_tensor",
+          "unit": "Pa",
+          "aliases": [
+            "弹性刚度张量"
+          ]
+        },
+        {
+          "id": "scalar_damage",
+          "unit": "1",
+          "aliases": [
+            "标量损伤场"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "damaged_stress",
+          "unit": "Pa",
+          "aliases": [
+            "损伤后应力张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_damage_base_material",
+        "elastic_damage_only",
+        "damage_evolution_configured"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/doc/content/source/materials/ComputeDamageStress.md",
+            "scope": "固定版本对象说明及适用范围"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对给定常量损伤做单元拉伸并对照有效刚度，随后核对卸载刚度和历史变量。",
+      "couplings": [
+        {
+          "from_field": "固体损伤材料",
+          "to_field": "弹性应力更新",
+          "quantity": "scalar_damage",
+          "unit": "1",
+          "transfer": "DamageBase 材料在积分点提供损伤变量以修正刚度",
+          "implementation": "configured",
+          "custom_work": "配置损伤演化以及离散的网格客观性。"
+        }
+      ]
+    },
+    {
+      "id": "moose.ad_material_convective_heat_flux",
+      "module": "bcs / ADConvectiveHeatFluxBC",
+      "scope": "读取边界积分点材料给出的环境温度和换热系数，利用固体表面温度计算外向热通量 h(T−T∞)。变量及 AD 材料项在能量方程同次残量组装内求值。以独立对流域供环境物性时仍需项目配对、传场和热量平衡核对。",
+      "inputs": [
+        {
+          "id": "surface_temperature",
+          "unit": "K",
+          "aliases": [
+            "表面温度"
+          ]
+        },
+        {
+          "id": "ambient_temperature",
+          "unit": "K",
+          "aliases": [
+            "环境温度"
+          ]
+        },
+        {
+          "id": "heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "对流换热系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "outward_boundary_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "向外边界热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "ad_boundary_residual",
+        "material_properties_at_boundary",
+        "specified_outward_normal"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/bcs/ADConvectiveHeatFluxBC.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/bcs/ADConvectiveHeatFluxBC.C",
+            "scope": "固定版本参数和实现，相关配置为 T_infinity, heat_transfer_coefficient"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/ad_convective_heat_flux/equilibrium.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀温差下核对 hΔT 的符号及积分，将两侧温度设为相同检查热通量归零。",
+      "couplings": [
+        {
+          "from_field": "环境对流材料属性",
+          "to_field": "固体温度边界",
+          "quantity": "outward_boundary_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "积分点温差与材料换热系数乘积作为外向热通量",
+          "implementation": "configured",
+          "custom_work": "独立场供给时配置物性映射，核对通量方向。"
+        }
+      ]
+    },
+    {
+      "id": "moose.interior_gap_combined_heat_exchange",
+      "module": "interfacekernels / SideSetHeatTransferKernel",
+      "scope": "在未显式划分的窄间隙两侧，界面 Kernel 同次组装读取两侧温度。通过界面导热、可选的各侧至间隙流体对流、可选的各侧辐射通道计算边界残量。间隙流体的温度可为变量或材料属性。仅此对象不会自动给间隙流体生成反向能量方程，设计间隙介质及其能量守恒仍需配置。",
+      "inputs": [
+        {
+          "id": "side_temperature",
+          "unit": "K",
+          "aliases": [
+            "界面两侧温度"
+          ]
+        },
+        {
+          "id": "bulk_gap_temperature",
+          "unit": "K",
+          "aliases": [
+            "间隙流体温度"
+          ]
+        },
+        {
+          "id": "gap_conductance",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "间隙面导热系数"
+          ]
+        },
+        {
+          "id": "side_heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "各侧对流换热系数"
+          ]
+        },
+        {
+          "id": "effective_emissivity",
+          "unit": "1",
+          "aliases": [
+            "等效发射率"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "side_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "各侧界面热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "internal_sideset",
+        "configured_gap_heat_paths",
+        "absolute_temperature_for_radiation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/interfacekernels/SideSetHeatTransferKernel.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/interfacekernels/SideSetHeatTransferKernel.C",
+            "scope": "固定版本参数和实现，相关配置为 conductance, Tbulk_var/Tbulk_mat, h_primary, h_neighbor, emissivity_eff_primary, emissivity_eff_neighbor"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/sideset_heat_transfer/gap_thermal_1D.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先单独打开每种换热通道核对解析值及符号，再检查多通道收支和与流体侧能量方程的一致性。",
+      "couplings": [
+        {
+          "from_field": "界面主侧温度",
+          "to_field": "界面副侧能量",
+          "quantity": "side_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "内部界面导热残量使用两侧温差",
+          "implementation": "configured",
+          "custom_work": "提供相配内部面及导热闭合。"
+        },
+        {
+          "from_field": "界面副侧温度",
+          "to_field": "界面主侧能量",
+          "quantity": "side_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "同次界面组装加入相反方向的导热通量",
+          "implementation": "configured",
+          "custom_work": "隔离导热通道检查两侧功率平衡。"
+        },
+        {
+          "from_field": "间隙流体温度",
+          "to_field": "间隙两侧固体能量",
+          "quantity": "side_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "流体温度与各侧温度差进入可选对流项",
+          "implementation": "configured",
+          "custom_work": "若求解流体能量，需要自行组装对应反向源项。"
+        }
+      ]
+    },
+    {
+      "id": "moose.quadrature_unmeshed_gap_heat_flux",
+      "module": "bcs / GapHeatTransfer",
+      "scope": "对未显式网格化的间隙，用四边积分点配对读取对面温度与间距，结合间隙导热材料转为两侧热边界残量。该卡限定 quadrature 路线。非共形两侧的局部通量可有差异，搜索容差、间隙几何与近零间隙上下界需定义。",
+      "inputs": [
+        {
+          "id": "paired_surface_temperature",
+          "unit": "K",
+          "aliases": [
+            "配对面温度"
+          ]
+        },
+        {
+          "id": "gap_distance",
+          "unit": "m",
+          "aliases": [
+            "间隙距离"
+          ]
+        },
+        {
+          "id": "gap_thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "间隙介质导热系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gap_boundary_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "间隙两侧热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "quadrature_gap_projection",
+        "paired_surfaces",
+        "gap_conductance_material"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/bcs/GapHeatTransfer.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/bcs/GapHeatTransfer.C",
+            "scope": "固定版本参数和实现，相关配置为 quadrature, paired_boundary, gap_distance, gap_temp, min_gap, max_gap"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/heat_conduction/2d_quadrature_gap_heat_transfer/nonmatching.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照平行板 kΔT/d，改变两侧网格并比较两侧累计换热及局部误差。",
+      "couplings": [
+        {
+          "from_field": "主侧固体热场",
+          "to_field": "副侧固体热场",
+          "quantity": "gap_boundary_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "边界积分点读取对侧温度和间隙导热率",
+          "implementation": "configured",
+          "custom_work": "设置搜索与间隙截断，校核非共形配对功率。"
+        },
+        {
+          "from_field": "副侧固体热场",
+          "to_field": "主侧固体热场",
+          "quantity": "gap_boundary_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "相反侧积分点读取温差并贡献边界热残量",
+          "implementation": "configured",
+          "custom_work": "两侧网格积分可产生不平衡，需核对误差。"
+        }
+      ]
+    },
+    {
+      "id": "moose.anisotropic_fourier_conduction_tensor",
+      "module": "kernels / AnisoHeatConduction",
+      "scope": "温度梯度与二阶导热张量相乘，向固体温度残量加入各向异性 Fourier 扩散。材料张量与对温度的导数在积分点使用。时间储热、源项、材料主方向到网格坐标的变换及输出热通量提取需独立配置。",
+      "inputs": [
+        {
+          "id": "temperature_gradient",
+          "unit": "K/m",
+          "aliases": [
+            "温度梯度"
+          ]
+        },
+        {
+          "id": "conductivity_tensor",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数张量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "conductive_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "各向异性传导热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "rank_two_thermal_conductivity",
+        "consistent_tensor_basis",
+        "configured_conduction_residual"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/kernels/AnisoHeatConduction.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/kernels/AnisoHeatConduction.C",
+            "scope": "固定版本参数和实现，相关配置为 thermal_conductivity"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "沿材料主轴与旋转方向分别校核扩散，并核对温度依赖张量的数值导数。"
+    },
+    {
+      "id": "moose.ad_temperature_to_electrical_conductivity",
+      "module": "materials / ADElectricalConductivity",
+      "scope": "温度通过参考电阻率及线性温度系数得到积分点电阻率，再取倒数生成电导率属性。属性可同时供电势求解和 ADJouleHeatingSource 同次残量组装读取。限定拟合有效温差且电阻率为正；材料分块、单位、接触电阻和跨域映射由调用者配置。",
+      "inputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "局部温度"
+          ]
+        },
+        {
+          "id": "reference_resistivity",
+          "unit": "ohm m",
+          "aliases": [
+            "参考电阻率"
+          ]
+        },
+        {
+          "id": "temperature_coefficient",
+          "unit": "1/K",
+          "aliases": [
+            "电阻率温度系数"
+          ]
+        },
+        {
+          "id": "reference_temperature",
+          "unit": "K",
+          "aliases": [
+            "参考温度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m",
+          "aliases": [
+            "温变电导率"
+          ]
+        }
+      ],
+      "conditions": [
+        "ad_electrical_conductivity_material",
+        "linear_resistivity_calibration",
+        "positive_resistivity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/materials/ADElectricalConductivity.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/materials/ElectricalConductivity.C",
+            "scope": "固定版本参数和实现，相关配置为 temperature, reference_resistivity, temperature_coefficient, reference_temperature, base_name"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/joule_heating/transient_ad_jouleheating.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在两种温度下比较给定参考电阻率的解析结果，检查分材料块的电热闭合与积分功率。",
+      "couplings": [
+        {
+          "from_field": "固体热场",
+          "to_field": "金属电流及焦耳耗散",
+          "quantity": "electrical_conductivity",
+          "unit": "S/m",
+          "transfer": "积分点温度变成电导率属性，由两类残量读取",
+          "implementation": "configured",
+          "custom_work": "限定线性电阻率温度范围，配置材料区域和属性名称。"
+        }
+      ]
+    },
+    {
+      "id": "moose.multiapp_channel_to_solid_convection",
+      "module": "actions / CoupledHeatTransferAction",
+      "scope": "固体主应用把边界温度按轴向分层平均后传给一维通道子应用的壁温变量。子应用把各相流体温度、换热系数和适用时的接触比例传回固体边界，合成入固热流 Σκh(T流−T壁)。交换在 MultiApp/Transfer 的配置执行点触发。项目需提供流体侧换热、通道与实体空间对齐、交换步和热平衡收敛准则。",
+      "inputs": [
+        {
+          "id": "solid_boundary_temperature",
+          "unit": "K",
+          "aliases": [
+            "固侧边界温度"
+          ]
+        },
+        {
+          "id": "channel_phase_temperature",
+          "unit": "K",
+          "aliases": [
+            "通道各相温度"
+          ]
+        },
+        {
+          "id": "phase_heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "各相对流系数"
+          ]
+        },
+        {
+          "id": "wall_contact_fraction",
+          "unit": "1",
+          "aliases": [
+            "各相墙面接触比例"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "channel_wall_temperature",
+          "unit": "K",
+          "aliases": [
+            "传入通道的层平均壁温"
+          ]
+        },
+        {
+          "id": "solid_incoming_convective_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "传入固体的对流热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_multiapp",
+        "solid_master_app",
+        "flow_channel_sub_apps",
+        "aligned_axial_layers",
+        "defined_transfer_execution"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/doc/content/source/actions/CoupledHeatTransferAction.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/src/actions/CoupledHeatTransferAction.C",
+            "scope": "固定版本参数和实现，相关配置为 boundary, T, T_wall, T_fluid, htc, kappa"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/test/tests/actions/coupled_heat_transfer_action/master.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在热损可控的单相通道检查两侧焓差与传热功率。多相场合单独核查接触分配与质量/能量闭合。",
+      "couplings": [
+        {
+          "from_field": "固体主应用热场",
+          "to_field": "一维通道子应用",
+          "quantity": "channel_wall_temperature",
+          "unit": "K",
+          "transfer": "边界温度按通道轴层平均，在指定 MultiApp 事件传递",
+          "implementation": "configured",
+          "custom_work": "配置空间对齐、交换步和子应用通道壁温变量。"
+        },
+        {
+          "from_field": "一维通道子应用",
+          "to_field": "固体主应用热场",
+          "quantity": "channel_phase_temperature",
+          "unit": "K",
+          "transfer": "通道各相温度通过空间 UserObject 并按约定执行点传回",
+          "implementation": "configured",
+          "custom_work": "匹配通道层、流体温度变量和固定点收敛。"
+        },
+        {
+          "from_field": "一维通道子应用",
+          "to_field": "固体主应用热场",
+          "quantity": "phase_heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "transfer": "回传各相换热系数，乘固壁与流体温差形成边界热流",
+          "implementation": "configured",
+          "custom_work": "选择通道换热闭合及固体面积积分，核对能量。"
+        },
+        {
+          "from_field": "一维多相通道子应用",
+          "to_field": "固体主应用热场",
+          "quantity": "wall_contact_fraction",
+          "unit": "1",
+          "transfer": "多相时回传壁面接触份额，决定各相热通量权重",
+          "implementation": "configured",
+          "custom_work": "配置接触份额输出且核对所有相的物性和份额。"
+        }
+      ]
+    },
+    {
+      "id": "moose.aligned_heat_structure_two_sided_exchange",
+      "module": "components / HeatStructure2DCoupler",
+      "scope": "两个同类型二维热结构在各自单一边界上按最近单元一对一配对并交换温度。每侧用换热系数、对侧与本侧温差及面积缩放计算入射热通量。限定已对齐网格，没有任意非共形传递；配对方向、区域和热接触物性由项目核查。",
+      "inputs": [
+        {
+          "id": "primary_temperature",
+          "unit": "K",
+          "aliases": [
+            "主边界温度"
+          ]
+        },
+        {
+          "id": "secondary_temperature",
+          "unit": "K",
+          "aliases": [
+            "副边界温度"
+          ]
+        },
+        {
+          "id": "heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "换热系数"
+          ]
+        },
+        {
+          "id": "paired_boundary_area",
+          "unit": "m^2",
+          "aliases": [
+            "配对边界面积"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "incoming_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "两侧入射热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "same_type_2d_heat_structures",
+        "single_boundary_per_side",
+        "one_to_one_aligned_elements"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/doc/content/source/components/HeatStructure2DCoupler.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/src/components/HeatStructure2DCoupler.C",
+            "scope": "固定版本参数和实现，相关配置为 primary_boundary, secondary_boundary, heat_transfer_coefficient"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/thermal_hydraulics/test/tests/components/heat_structure_2d_coupler/heat_structure_2d_coupler.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对不同面积的匹配算例核查热通量面积缩放及两侧面积积分功率相抵。",
+      "couplings": [
+        {
+          "from_field": "主侧二维热结构",
+          "to_field": "副侧二维热结构",
+          "quantity": "incoming_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "读取一对一配对温差与面积缩放后施加入射热流",
+          "implementation": "configured",
+          "custom_work": "配置同型热结构及对齐边界。"
+        },
+        {
+          "from_field": "副侧二维热结构",
+          "to_field": "主侧二维热结构",
+          "quantity": "incoming_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "同一配对的另一侧依据自身面积计算反向热流",
+          "implementation": "configured",
+          "custom_work": "核查面面积积分抵消并输出源侧符号。"
+        }
+      ]
+    },
+    {
+      "id": "moose.incompressible_fv_face_enthalpy_advection",
+      "module": "fvkernels / INSFVEnergyAdvection",
+      "scope": "不可压缩有限体积能量方程以通量形式用面速度输运体积焓量，热量面通量为法向速度与 advected_quantity 的面插值之积。速度供体来自流动求解的面速度重构。该对象只计算平流项，扩散、热储存和流固边界耦合需额外对象。",
+      "inputs": [
+        {
+          "id": "face_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "面速度"
+          ]
+        },
+        {
+          "id": "volumetric_enthalpy",
+          "unit": "J/m^3",
+          "aliases": [
+            "体积焓量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "face_advective_energy_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "面能量平流通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "moose_incompressible_fv",
+        "consistent_face_velocity_and_advection_scheme",
+        "configured_enthalpy_functor"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/navier_stokes/doc/content/source/fvkernels/INSFVEnergyAdvection.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/navier_stokes/src/fvkernels/INSFVEnergyAdvection.C",
+            "scope": "固定版本参数和实现，相关配置为 advected_quantity"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "以恒速一维温度脉冲核查反向流时通量符号、能量余额及面插值的有界性。",
+      "couplings": [
+        {
+          "from_field": "不可压动量场",
+          "to_field": "流体能量场",
+          "quantity": "face_velocity",
+          "unit": "m/s",
+          "transfer": "面速度重构结果输运体积焓形成面能量通量",
+          "implementation": "configured",
+          "custom_work": "配置通量偏置、物性和入口焓。"
+        }
+      ]
+    },
+    {
+      "id": "moose.instantaneous_expansion_eigenstrain",
+      "module": "materials / ComputeInstantaneousThermalExpansionFunctionEigenstrain",
+      "scope": "当前及上一时刻温度给出瞬时热膨胀系数，按温度增量的梯形规则更新各向同性历史热应变。热应变经输出 eigenstrain 属性单向传给力学残量。要求选择正确的无应力初始化、重启状态与温度场，并单独配置受约束结构和力学本构。",
+      "inputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "当前温度"
+          ]
+        },
+        {
+          "id": "previous_temperature",
+          "unit": "K",
+          "aliases": [
+            "前一时刻温度"
+          ]
+        },
+        {
+          "id": "stress_free_temperature",
+          "unit": "K",
+          "aliases": [
+            "无应力温度"
+          ]
+        },
+        {
+          "id": "instantaneous_expansion_coefficient",
+          "unit": "1/K",
+          "aliases": [
+            "瞬时线膨胀系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "thermal_eigenstrain",
+          "unit": "1",
+          "aliases": [
+            "热本征应变"
+          ]
+        }
+      ],
+      "conditions": [
+        "isotropic_thermal_expansion",
+        "instantaneous_coefficient",
+        "retained_old_state",
+        "eigenstrain_used_by_mechanics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/doc/content/source/materials/ComputeInstantaneousThermalExpansionFunctionEigenstrain.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/src/materials/ComputeInstantaneousThermalExpansionFunctionEigenstrain.C",
+            "scope": "固定版本参数和实现，相关配置为 thermal_expansion_function; coupled temperature and stress-free temperature inherited from the base"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/test/tests/thermal_expansion_function/finite_const.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较非恒温线膨胀系数的解析温度积分与有限步更新，核对重启和冷却路径。",
+      "couplings": [
+        {
+          "from_field": "固体温度",
+          "to_field": "固体变形",
+          "quantity": "thermal_eigenstrain",
+          "unit": "1",
+          "transfer": "以当前前步温差和瞬时膨胀率积分本征应变，再入应力更新",
+          "implementation": "configured",
+          "custom_work": "设置无应力初值与重启状态并绑定 eigenstrain。"
+        }
+      ]
+    },
+    {
+      "id": "moose.mean_coefficient_expansion_eigenstrain",
+      "module": "materials / ComputeMeanThermalExpansionFunctionEigenstrain",
+      "scope": "用随温度变化的平均线膨胀系数函数和该函数的参考温度，求相对无应力状态的各向同性本征应变。与瞬时系数积分对象的输入不是同一类型。在每次材料状态求值时形成热应变，调用者仍需把 eigenstrain 接入结构应变关系，确定边界约束。",
+      "inputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "当前温度"
+          ]
+        },
+        {
+          "id": "coefficient_reference_temperature",
+          "unit": "K",
+          "aliases": [
+            "系数函数参考温度"
+          ]
+        },
+        {
+          "id": "stress_free_temperature",
+          "unit": "K",
+          "aliases": [
+            "无应力温度"
+          ]
+        },
+        {
+          "id": "mean_thermal_expansion_coefficient",
+          "unit": "1/K",
+          "aliases": [
+            "平均线膨胀系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "thermal_eigenstrain",
+          "unit": "1",
+          "aliases": [
+            "热本征应变"
+          ]
+        }
+      ],
+      "conditions": [
+        "isotropic_thermal_expansion",
+        "mean_coefficient",
+        "consistent_reference_temperatures"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/doc/content/source/materials/ComputeMeanThermalExpansionFunctionEigenstrain.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/solid_mechanics/src/materials/ComputeMeanThermalExpansionFunctionEigenstrain.C",
+            "scope": "固定版本参数和实现，相关配置为 thermal_expansion_function, thermal_expansion_function_reference_temperature"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "选不同的函数参考温度和无应力温度，以零热应变点和自由膨胀曲线对照材料数据。",
+      "couplings": [
+        {
+          "from_field": "固体温度",
+          "to_field": "固体变形",
+          "quantity": "thermal_eigenstrain",
+          "unit": "1",
+          "transfer": "使用平均膨胀系数函数和参考温度得到本征应变",
+          "implementation": "configured",
+          "custom_work": "区分材料函数基准和无应力温度后绑定 eigenstrain。"
+        }
+      ]
+    },
+    {
+      "id": "moose.biot_pressure_to_effective_stress",
+      "module": "kernels / PorousFlowEffectiveStressCoupling",
+      "scope": "PorousFlow 的有效流体压力乘 Biot 系数写入指定分量的骨架力学弱式，以修正总应力中的压力项。该方向在同次有限元组装传递。应变回写流体质量平衡依赖独立的体积应变和质量扩张对象，完整耦合需合理约束和排水条件。",
+      "inputs": [
+        {
+          "id": "effective_fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "有效流体压力"
+          ]
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1",
+          "aliases": [
+            "比奥系数"
+          ]
+        },
+        {
+          "id": "displacement_component_index",
+          "unit": "1",
+          "aliases": [
+            "位移分量编号"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure_stress_term",
+          "unit": "Pa",
+          "aliases": [
+            "孔压应力项"
+          ]
+        }
+      ],
+      "conditions": [
+        "porousflow_dictator",
+        "effective_pressure_material",
+        "biot_coefficient_in_unit_interval"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/kernels/PorousFlowEffectiveStressCoupling.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/kernels/PorousFlowEffectiveStressCoupling.C",
+            "scope": "固定版本参数和实现，相关配置为 PorousFlowDictator, biot_coefficient, component, PorousFlow_effective_fluid_pressure_qp"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/test/tests/poro_elasticity/terzaghi.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用饱和固结基准比较孔压与沉降，令 Biot 系数为零检查去耦极限。",
+      "couplings": [
+        {
+          "from_field": "有效流体压力场",
+          "to_field": "骨架力学",
+          "quantity": "effective_fluid_pressure",
+          "unit": "Pa",
+          "transfer": "有效压力经 Biot 系数进入指定分量的力学弱式",
+          "implementation": "configured",
+          "custom_work": "配套有效压力材料和位移分量。"
+        }
+      ]
+    },
+    {
+      "id": "moose.strain_to_porous_storage_rate",
+      "module": "materials / PorousFlowVolumetricStrain",
+      "scope": "SolidMechanics 同名 base_name 下的 total_strain 张量及历史值，在材料点计算迹和时间差分，供 PorousFlow 孔隙率或质量残量读取。该卡限定匹配的小应变材料提供者。位移变量、时间状态和分块一致性需要调用者配置。",
+      "inputs": [
+        {
+          "id": "solid_total_strain",
+          "unit": "1",
+          "aliases": [
+            "骨架总应变张量"
+          ]
+        },
+        {
+          "id": "old_solid_total_strain",
+          "unit": "1",
+          "aliases": [
+            "前步骨架总应变"
+          ]
+        },
+        {
+          "id": "time_step",
+          "unit": "s",
+          "aliases": [
+            "时间步长"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volumetric_strain",
+          "unit": "1",
+          "aliases": [
+            "体积应变"
+          ]
+        },
+        {
+          "id": "volumetric_strain_rate",
+          "unit": "1/s",
+          "aliases": [
+            "体积应变率"
+          ]
+        }
+      ],
+      "conditions": [
+        "solid_mechanics_strain_material",
+        "matching_base_name",
+        "retained_old_material_state"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/materials/PorousFlowVolumetricStrain.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/materials/PorousFlowVolumetricStrain.C",
+            "scope": "固定版本参数和实现，相关配置为 base_name, displacements, total_strain"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/test/tests/poro_elasticity/vol_expansion.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "给定线性递增的位移和已知时间步，核对应变迹及其差分，检查轴对称配置独立验证。",
+      "couplings": [
+        {
+          "from_field": "骨架力学",
+          "to_field": "孔隙储存材料",
+          "quantity": "volumetric_strain_rate",
+          "unit": "1/s",
+          "transfer": "按同名应变张量迹及历史值差分得到体积应变率",
+          "implementation": "configured",
+          "custom_work": "一致配置 base_name、位移和时间积分。"
+        }
+      ]
+    },
+    {
+      "id": "moose.matrix_strain_to_component_mass_residual",
+      "module": "kernels / PorousFlowMassVolumetricExpansion",
+      "scope": "骨架体积应变率乘以孔隙率及所选组分的各相饱和度、密度和质量分数，写入流体组分质量守恒项。此处限定 multiply_by_density=true，质量集总到节点。与压力驱动应力项可构成双向孔弹组装，孔隙率模型与合适 FE 离散需调用者确定。",
+      "inputs": [
+        {
+          "id": "matrix_volumetric_strain_rate",
+          "unit": "1/s",
+          "aliases": [
+            "骨架体积应变率"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "phase_saturation",
+          "unit": "1",
+          "aliases": [
+            "各相饱和度"
+          ]
+        },
+        {
+          "id": "phase_density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "各相密度"
+          ]
+        },
+        {
+          "id": "component_mass_fraction",
+          "unit": "1",
+          "aliases": [
+            "组分质量分数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "component_storage_rate",
+          "unit": "kg/(m^3 s)",
+          "aliases": [
+            "组分质量存储率项"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient_porous_flow",
+        "mass_lumped_form",
+        "multiply_by_density",
+        "consistent_component_index"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/kernels/PorousFlowMassVolumetricExpansion.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/kernels/PorousFlowMassVolumetricExpansion.C",
+            "scope": "固定版本参数和实现，相关配置为 PorousFlowDictator, strain_at_nearest_qp, multiply_by_density, fluid_component"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/test/tests/poro_elasticity/terzaghi.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用无边界泄漏的体积扩张基准核对组分质量守恒、符号与网格收敛。",
+      "couplings": [
+        {
+          "from_field": "骨架力学",
+          "to_field": "多孔介质组分质量守恒",
+          "quantity": "component_storage_rate",
+          "unit": "kg/(m^3 s)",
+          "transfer": "骨架体积应变率乘流体组分质量填入质量残量",
+          "implementation": "configured",
+          "custom_work": "配套同相索引、孔隙率关系和节点集总。"
+        }
+      ]
+    },
+    {
+      "id": "moose.elemental_darcy_velocity_component",
+      "module": "auxkernels / PorousFlowDarcyVelocityComponent",
+      "scope": "选定流体相的压力梯度和重力体力，经相对渗透率、固有渗透率张量、黏度和密度转换为达西速度的指定坐标分量。材料数据在元素积分点读取，输出给单元 Monomial AuxVariable。结果为表观达西速度，孔隙速度和坐标旋转需要单独换算。",
+      "inputs": [
+        {
+          "id": "pressure_gradient",
+          "unit": "Pa/m",
+          "aliases": [
+            "流体压力梯度"
+          ]
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率张量"
+          ]
+        },
+        {
+          "id": "relative_permeability",
+          "unit": "1",
+          "aliases": [
+            "相对渗透率"
+          ]
+        },
+        {
+          "id": "fluid_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体黏度"
+          ]
+        },
+        {
+          "id": "fluid_density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "流体密度"
+          ]
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2",
+          "aliases": [
+            "重力加速度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "darcy_velocity_component",
+          "unit": "m/s",
+          "aliases": [
+            "达西速度分量"
+          ]
+        }
+      ],
+      "conditions": [
+        "elemental_monomial_auxvariable",
+        "consistent_fluid_phase",
+        "defined_coordinate_component"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/auxkernels/PorousFlowDarcyVelocityComponent.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/auxkernels/PorousFlowDarcyVelocityComponent.C",
+            "scope": "固定版本参数和实现，相关配置为 gravity, PorousFlowDictator, fluid_phase, component"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对均匀渗透率的直柱压差验证线性达西速度，以及静水梯度抵消重力。",
+      "couplings": [
+        {
+          "from_field": "孔隙流体压力与材料",
+          "to_field": "单元速度诊断",
+          "quantity": "darcy_velocity_component",
+          "unit": "m/s",
+          "transfer": "以压差与重力计算所选相的达西速度分量，写入单元辅助变量",
+          "implementation": "configured",
+          "custom_work": "绑定相和坐标分量；检查表观速度与孔隙速度区别。"
+        }
+      ]
+    },
+    {
+      "id": "moose.porous_two_temperature_volume_exchange",
+      "module": "kernels / PorousFlowHeatMassTransfer",
+      "scope": "用固体温度和流体温度差乘体积换热系数，把局部交换项写入指定温度的有限元弱式。只装一个 Kernel 时只有单方向残量，若模型同时求解固、液两温度，需要在另一方配置对应对象并核对同一系数与相反符号。未采用质量集总。",
+      "inputs": [
+        {
+          "id": "reference_side_temperature",
+          "unit": "K",
+          "aliases": [
+            "另一侧温度"
+          ]
+        },
+        {
+          "id": "own_temperature",
+          "unit": "K",
+          "aliases": [
+            "本相温度"
+          ]
+        },
+        {
+          "id": "volumetric_heat_transfer_coefficient",
+          "unit": "W/(m^3 K)",
+          "aliases": [
+            "体积换热系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volumetric_exchange",
+          "unit": "W/m^3",
+          "aliases": [
+            "体积换热项"
+          ]
+        }
+      ],
+      "conditions": [
+        "two_temperature_volume_exchange",
+        "consistent_paired_energy_terms",
+        "unlumped_kernel"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/kernels/PorousFlowHeatMassTransfer.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/kernels/PorousFlowHeatMassTransfer.C",
+            "scope": "固定版本参数和实现，相关配置为 v, transfer_coefficient"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在绝热双温体中比较温差衰减与解析解，核对总热能守恒。",
+      "couplings": [
+        {
+          "from_field": "多孔另一相温度",
+          "to_field": "所选相能量",
+          "quantity": "volumetric_exchange",
+          "unit": "W/m^3",
+          "transfer": "单对象将温差乘体换热系数并加到所选方残量",
+          "implementation": "configured",
+          "custom_work": "双向温度求解时另配对方对象，并校核同系数和反符号。"
+        }
+      ]
+    },
+    {
+      "id": "moose.ad_temperature_dependent_fourier_residual",
+      "module": "kernels / ADHeatConduction",
+      "scope": "从温度梯度与积分点标量导热系数组装扩散项。采用 AD 材料时温度对导热系数的影响同步进入雅可比。储能、材料区域、热源与边界条件需要另行组装。本卡限定标量导热，不依赖各向异性张量。",
+      "inputs": [
+        {
+          "id": "temperature_gradient",
+          "unit": "K/m",
+          "aliases": [
+            "温度梯度"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "conductive_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "导热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "scalar_ad_conductivity",
+        "configured_heat_equation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/kernels/ADHeatConduction.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/kernels/ADHeatConduction.C",
+            "scope": "固定版本参数和实现，相关配置为 thermal_conductivity"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/test/tests/joule_heating/transient_ad_jouleheating.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用给定 k(T) 的一维稳态导热验证温度分布和两端热通量。"
+    },
+    {
+      "id": "moose.coupled_field_convective_heat_flux",
+      "module": "bcs / CoupledConvectiveHeatFluxBC",
+      "scope": "参考流体温度、换热系数和可选场比例进入固体边界热残量，局部换热量由参考温度与固体温差得到。同一 FE 边界组装点读取耦合场。输入场由独立通道求解时，需另配映射、调度与流体侧反向能量项。",
+      "inputs": [
+        {
+          "id": "solid_surface_temperature",
+          "unit": "K",
+          "aliases": [
+            "固体表面温度"
+          ]
+        },
+        {
+          "id": "fluid_reference_temperature",
+          "unit": "K",
+          "aliases": [
+            "参考流体温度"
+          ]
+        },
+        {
+          "id": "heat_transfer_coefficient",
+          "unit": "W/(m^2 K)",
+          "aliases": [
+            "对流换热系数"
+          ]
+        },
+        {
+          "id": "fluid_fraction",
+          "unit": "1",
+          "aliases": [
+            "流体份额"
+          ]
+        },
+        {
+          "id": "scale_factor",
+          "unit": "1",
+          "aliases": [
+            "缩放因子"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solid_boundary_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "固体边界热通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "boundary_coupled_temperature_fields",
+        "specified_coupled_field_mapping"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/doc/content/source/bcs/CoupledConvectiveHeatFluxBC.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/heat_transfer/src/bcs/CoupledConvectiveHeatFluxBC.C",
+            "scope": "固定版本参数和实现，相关配置为 T_infinity, htc, alpha, scale_factor"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀温差和两组份额下核对边界积分与理论换热功率。",
+      "couplings": [
+        {
+          "from_field": "流体参考温度与换热场",
+          "to_field": "固体热边界",
+          "quantity": "solid_boundary_heat_flux",
+          "unit": "W/m^2",
+          "transfer": "同次积分读耦合变量与可选尺度，构造边界通量",
+          "implementation": "configured",
+          "custom_work": "配置多域变量映射、流体侧反向能量项与交换时序。"
+        }
+      ]
+    },
+    {
+      "id": "moose.saturation_weighted_thermal_tensor",
+      "module": "materials / PorousFlowThermalConductivityIdeal",
+      "scope": "选定液相饱和度作为幂函数权重，对干燥和饱和端点导热张量插值，在同一积分点向多孔介质能量方程提供有效导热系数。指数、端点及主方向必须由实测或独立材料模型确定。",
+      "inputs": [
+        {
+          "id": "aqueous_saturation",
+          "unit": "1",
+          "aliases": [
+            "液相饱和度"
+          ]
+        },
+        {
+          "id": "dry_conductivity_tensor",
+          "unit": "W/(m K)",
+          "aliases": [
+            "干燥导热张量"
+          ]
+        },
+        {
+          "id": "wet_conductivity_tensor",
+          "unit": "W/(m K)",
+          "aliases": [
+            "饱和导热张量"
+          ]
+        },
+        {
+          "id": "saturation_exponent",
+          "unit": "1",
+          "aliases": [
+            "饱和度指数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "effective_thermal_conductivity_tensor",
+          "unit": "W/(m K)",
+          "aliases": [
+            "有效导热张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "porousflow_material",
+        "saturated_and_dry_calibration",
+        "consistent_aqueous_phase_index"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/materials/PorousFlowThermalConductivityIdeal.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/materials/PorousFlowThermalConductivityIdeal.C",
+            "scope": "固定版本参数和实现，相关配置为 dry_thermal_conductivity, wet_thermal_conductivity, exponent, aqueous_phase_number"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "核对饱和度 0、1 和中间态的张量，验证方向一致性和热通量。",
+      "couplings": [
+        {
+          "from_field": "多孔介质饱和度",
+          "to_field": "多孔能量材料",
+          "quantity": "effective_thermal_conductivity_tensor",
+          "unit": "W/(m K)",
+          "transfer": "同一积分点按饱和度幂插值干湿导热张量",
+          "implementation": "configured",
+          "custom_work": "标定干湿端点、指数和材料方向。"
+        }
+      ]
+    },
+    {
+      "id": "moose.porous_stored_thermal_energy_integral",
+      "module": "postprocessors / PorousFlowHeatEnergy",
+      "scope": "对选定流体相的内能按质量体积权重累积，按选项计入固体骨架内能和体积变化，然后做全域元素积分。该诊断读取已组装的节点材料值，输出用于热平衡检查；边界通量积分、时间窗口和内能零点需单独约定。",
+      "inputs": [
+        {
+          "id": "phase_saturation",
+          "unit": "1",
+          "aliases": [
+            "相饱和度"
+          ]
+        },
+        {
+          "id": "phase_density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "相密度"
+          ]
+        },
+        {
+          "id": "phase_specific_internal_energy",
+          "unit": "J/kg",
+          "aliases": [
+            "相比内能"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "region_volume",
+          "unit": "m^3",
+          "aliases": [
+            "积分域体积"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "integrated_thermal_energy",
+          "unit": "J",
+          "aliases": [
+            "多孔介质域总热能"
+          ]
+        }
+      ],
+      "conditions": [
+        "element_integral",
+        "selected_phase_indices",
+        "consistent_internal_energy_reference"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/postprocessors/PorousFlowHeatEnergy.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/postprocessors/PorousFlowHeatEnergy.C",
+            "scope": "固定版本参数和实现，相关配置为 phase, include_porous_skeleton, PorousFlowDictator, kernel_variable_number"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对均匀温度和体积已知的介质比对积分，随后对瞬态运行做储能差与通量的闭合。",
+      "couplings": [
+        {
+          "from_field": "多孔流体与固体热场",
+          "to_field": "区域储能报告",
+          "quantity": "integrated_thermal_energy",
+          "unit": "J",
+          "transfer": "选定相内能按体积分后生成标量后处理",
+          "implementation": "configured",
+          "custom_work": "指定积分区域、内能零点及是否纳入固体骨架。"
+        }
+      ]
+    },
+    {
+      "id": "moose.fully_saturated_basic_thm_assembly",
+      "module": "actions / PorousFlowBasicTHM",
+      "scope": "Action 装配饱和单相单组分 THM 路线。孔压梯度驱动 Darcy 速度和对流携热，温度供材料热膨胀，孔压进入骨架有效应力，骨架体积应变率反馈质量与能量储存。材料和耦合残量在同一应用中组装，基础 Action 不做集总或迎风。需输入流体状态、固体本构、孔隙率/渗透率、网格分区及边界。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率"
+          ]
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1",
+          "aliases": [
+            "比奥系数"
+          ]
+        },
+        {
+          "id": "conductivity_tensor",
+          "unit": "W/(m K)",
+          "aliases": [
+            "导热系数张量"
+          ]
+        },
+        {
+          "id": "thermal_expansion_coefficient",
+          "unit": "1/K",
+          "aliases": [
+            "热膨胀系数"
+          ]
+        },
+        {
+          "id": "elastic_stiffness",
+          "unit": "Pa",
+          "aliases": [
+            "弹性刚度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔压"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "骨架位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "single_phase",
+        "fully_saturated",
+        "single_component",
+        "basic_thm_action",
+        "no_upwinding"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/actions/PorousFlowBasicTHM.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/actions/PorousFlowBasicTHM.C",
+            "scope": "固定版本参数和实现，相关配置为 coupling_type, porepressure, temperature, displacements, multiply_by_density"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/test/tests/poro_elasticity/mandel_basicthm.i",
+            "scope": "固定版本上游输入算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "复核排水固结、孔压产生和纯热膨胀三个极限，检查随网格步长的孔压振荡。",
+      "couplings": [
+        {
+          "from_field": "孔隙流动",
+          "to_field": "多孔能量",
+          "quantity": "advective_enthalpy_flux",
+          "unit": "W/m^2",
+          "transfer": "单相 Darcy 流携焓，同应用有限元能量组装",
+          "implementation": "configured",
+          "custom_work": "配置流体焓、黏度和渗透率。"
+        },
+        {
+          "from_field": "孔隙流动",
+          "to_field": "骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "Biot 项把孔压加入骨架力平衡",
+          "implementation": "configured",
+          "custom_work": "定义 Biot 系数和固体边界。"
+        },
+        {
+          "from_field": "骨架力学",
+          "to_field": "孔隙质量与能量",
+          "quantity": "volumetric_strain_rate",
+          "unit": "1/s",
+          "transfer": "应变率进入流体储存及骨架与流体能量储存项",
+          "implementation": "configured",
+          "custom_work": "保留每时间步的状态材料和合适 FE 离散。"
+        },
+        {
+          "from_field": "多孔热场",
+          "to_field": "骨架力学",
+          "quantity": "thermal_eigenstrain",
+          "unit": "1",
+          "transfer": "温度经本征应变材料输入力学应变关系",
+          "implementation": "configured",
+          "custom_work": "已有热膨胀关联材料仍需显式提供。"
+        }
+      ]
+    },
+    {
+      "id": "moose.fully_saturated_multicomponent_thm_assembly",
+      "module": "actions / PorousFlowFullySaturated",
+      "scope": "使用完全饱和 Action 为单流体相的多个组分装配质量方程，孔压驱动达西迁移，并按选择增添热输运与骨架力学。组分分数需与压力变量和末组分的关系一致，能选择稳定化路线；瞬态质量项采用节点集总。物性、分组、源项和边界的物理意义需针对实际组分配置。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率"
+          ]
+        },
+        {
+          "id": "fluid_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体黏度"
+          ]
+        },
+        {
+          "id": "component_mass_fraction",
+          "unit": "1",
+          "aliases": [
+            "组分质量分数"
+          ]
+        },
+        {
+          "id": "initial_temperature",
+          "unit": "K",
+          "aliases": [
+            "初始温度"
+          ]
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1",
+          "aliases": [
+            "比奥系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔压"
+          ]
+        },
+        {
+          "id": "transported_mass_fraction",
+          "unit": "1",
+          "aliases": [
+            "输运组分质量分数"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "骨架位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "one_fully_saturated_fluid_phase",
+        "selected_stabilization",
+        "consistent_mass_fraction_closure",
+        "configured_full_thm_coupling"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/doc/content/source/actions/PorousFlowFullySaturated.md",
+            "scope": "固定版本官方对象说明"
+          },
+          {
+            "source": "https://github.com/idaholab/moose/blob/b83d2d8681e2a4ed5c674e6ee4cdfdd09a22555e/modules/porous_flow/src/actions/PorousFlowFullySaturated.C",
+            "scope": "固定版本参数和实现，相关配置为 mass_fraction_vars, coupling_type, stabilization, multiply_by_density"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "分别核对纯组分饱和固结和双组分输运的库存与流出，检查质量分数之和及热平衡。",
+      "couplings": [
+        {
+          "from_field": "孔隙流动",
+          "to_field": "多组分质量与能量",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "Darcy 流输运组分及焓，选择对应稳定化和热分支",
+          "implementation": "configured",
+          "custom_work": "提供质量分数闭合、焓与流体状态。"
+        },
+        {
+          "from_field": "孔隙流动",
+          "to_field": "骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "饱和有效压力经 Biot 项进入骨架动量",
+          "implementation": "configured",
+          "custom_work": "设定力学耦合类型和弹性材料。"
+        },
+        {
+          "from_field": "骨架力学",
+          "to_field": "组分质量与能量",
+          "quantity": "volumetric_strain_rate",
+          "unit": "1/s",
+          "transfer": "瞬态应变反馈质量储存与热能体积扩张",
+          "implementation": "configured",
+          "custom_work": "配置组分索引、力学空间和时间离散。"
+        },
+        {
+          "from_field": "多孔热场",
+          "to_field": "骨架力学",
+          "quantity": "thermal_eigenstrain",
+          "unit": "1",
+          "transfer": "热力学分支以热本征应变影响力学弱式",
+          "implementation": "configured",
+          "custom_work": "指定本征应变和与载荷一致的参考温度。"
+        }
+      ]
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "Chemical reactions",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/chemical_reactions/",
+      "records": [
+        "moose.aqueous_equilibrium_transport"
+      ],
+      "gaps": [
+        "动力学矿物反应及稳定化选择需分别核验。"
+      ]
+    },
+    {
+      "module": "Combined",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/combined/",
+      "records": [
+        "moose.thermoelastic_poromechanics",
+        "moose.electrothermal_resistive_heating",
+        "moose.multiapp_interpolated_field_transfer",
+        "moose.multiapp_integral_transfer_correction"
+      ],
+      "gaps": [
+        "Combined 是联合模块应用。具体适用性由联合输入卡、测试与启用模块决定，其余组合逐一核定。"
+      ]
+    },
+    {
+      "module": "Contact",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/contact/",
+      "records": [
+        "moose.frictional_contact"
+      ],
+      "gaps": [
+        "动态碰撞、内聚区、接触磨损及热接触各需独立建条。"
+      ]
+    },
+    {
+      "module": "Electromagnetics",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/electromagnetics/",
+      "records": [
+        "moose.em_harmonic_helmholtz",
+        "moose.electrical_conduction",
+        "moose.electrothermal_resistive_heating"
+      ],
+      "gaps": [
+        "通用三维波动仍需按实际对象核验；瞬态、端口条件与固体间接触电阻尚未独立登记。"
+      ]
+    },
+    {
+      "module": "Fluid Properties",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/fluid_properties/",
+      "records": [
+        "moose.fluid_thermodynamic_properties"
+      ],
+      "gaps": [
+        "两相饱和线和混合物 EOS 的独立参数范围待按对象登记。"
+      ]
+    },
+    {
+      "module": "Fluid-Structure Interaction",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/fsi/sqa/fsi_srs.html",
+      "records": [
+        "moose.ale_fluid_structure_interaction"
+      ],
+      "gaps": [
+        "声学流固耦合与有限应变固体按界面核分支另核。通用非匹配网格分区交换需要另建适配与稳定性验证。"
+      ]
+    },
+    {
+      "module": "Functional Expansion Tools",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/functional_expansion_tools/",
+      "records": [
+        "moose.functional_field_expansion"
+      ],
+      "gaps": [
+        "不同几何基函数、MultiApp 系数传输及分布式并行误差需独立验证。"
+      ]
+    },
+    {
+      "module": "Geochemistry",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/geochemistry/tests_and_examples/kinetic_quartz.html",
+      "records": [
+        "moose.quartz_dissolution_kinetics"
+      ],
+      "gaps": [
+        "渗流输运到化学模型空间传递及反应矿物体积到孔隙率的反馈需另按具体联合案例核对。"
+      ]
+    },
+    {
+      "module": "Heat Transfer",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/heat_transfer/",
+      "records": [
+        "moose.heat_conduction",
+        "moose.electrothermal_resistive_heating",
+        "moose.gray_surface_radiation",
+        "moose.ad_joule_source_temperature_dependent",
+        "moose.occluded_cavity_radiation_view_factors",
+        "moose.meshed_gap_thermal_contact",
+        "moose.ad_material_convective_heat_flux",
+        "moose.interior_gap_combined_heat_exchange",
+        "moose.quadrature_unmeshed_gap_heat_flux",
+        "moose.anisotropic_fourier_conduction_tensor",
+        "moose.ad_temperature_to_electrical_conductivity",
+        "moose.ad_temperature_dependent_fourier_residual",
+        "moose.coupled_field_convective_heat_flux"
+      ],
+      "gaps": [
+        "其他热接触闭合、非射线追踪视角系数法，以及流固界面不同网格布局需分别登记。"
+      ]
+    },
+    {
+      "module": "Level Set",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+      "records": [
+        "moose.level_set_transport"
+      ],
+      "gaps": [
+        "相场反馈材料属性、保守重初始化及表面张力闭合另核。"
+      ]
+    },
+    {
+      "module": "Misc",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/misc/",
+      "records": [
+        "moose.soret_thermal_diffusion"
+      ],
+      "gaps": [
+        "Misc 的其他通用对象及工程适用边界待逐项核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "Misc 的其他通用对象及工程适用边界待逐项核对。",
+          "status": "insufficient_evidence",
+          "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/misc/",
+          "reason": "已确认有明确应用的热扩散对象。其他 Misc 对象按其算例和边界独立补查。"
+        }
+      ]
+    },
+    {
+      "module": "Navier-Stokes",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/navier_stokes/",
+      "records": [
+        "moose.incompressible_flow",
+        "moose.compressible_flow",
+        "moose.conjugate_heat_transfer",
+        "moose.incompressible_fv_face_enthalpy_advection"
+      ],
+      "gaps": [
+        "湍流闭合、弱可压缩两相、混合离散和多孔惯性阻力按具体对象及离散分支待展开。"
+      ]
+    },
+    {
+      "module": "Optimization",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/optimization/theory/InvOptTheory.html",
+      "records": [
+        "moose.pde_parameter_inversion"
+      ],
+      "gaps": [
+        "各目标量的伴随构建、正则项和线性化条件需逐案核实。"
+      ]
+    },
+    {
+      "module": "Peridynamics",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+      "records": [
+        "moose.nonlocal_solid_mechanics"
+      ],
+      "gaps": [
+        "键损伤断裂、接受热场的近场力学和非局部导热需按固定版本算例进一步核实。"
+      ]
+    },
+    {
+      "module": "Phase Field",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/phase_field/",
+      "records": [
+        "moose.phase_field_conserved",
+        "moose.phase_field_nonconserved",
+        "moose.mechanics_coupled_phase_field"
+      ],
+      "gaps": [
+        "晶粒长大、成核、颗粒烧结和多组分 KKS 等需按约束和空间离散分别记录。"
+      ]
+    },
+    {
+      "module": "Porous Flow",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/porous_flow/sqa/porous_flow_srs.html",
+      "records": [
+        "moose.darcy_flow",
+        "moose.porous_heat_transport",
+        "moose.thermoelastic_poromechanics",
+        "moose.fully_saturated_darcy_enthalpy_advection",
+        "moose.porous_flow_fe_species_dispersion",
+        "moose.biot_pressure_to_effective_stress",
+        "moose.strain_to_porous_storage_rate",
+        "moose.matrix_strain_to_component_mass_residual",
+        "moose.elemental_darcy_velocity_component",
+        "moose.porous_two_temperature_volume_exchange",
+        "moose.saturation_weighted_thermal_tensor",
+        "moose.porous_stored_thermal_energy_integral",
+        "moose.fully_saturated_basic_thm_assembly",
+        "moose.fully_saturated_multicomponent_thm_assembly"
+      ],
+      "gaps": [
+        "有限体积组分弥散、非饱和和不混溶两相对流输运、裂隙及化学—孔隙率反馈需分别登记。"
+      ]
+    },
+    {
+      "module": "Ray Tracing",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/",
+      "records": [
+        "moose.ray_path_function_integral"
+      ],
+      "gaps": [
+        "反射边界、辐射能量交换及视因子的版本边界待分别核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "反射边界、辐射能量交换及视因子的版本边界待分别核对。",
+          "status": "insufficient_evidence",
+          "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+          "reason": "已确认路径积分。视因子、复杂反射与辐射能量边界需要分别核对对象和测试。"
+        }
+      ]
+    },
+    {
+      "module": "Reactor",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/reactor/",
+      "records": [
+        "moose.polygon_concentric_mesh"
+      ],
+      "gaps": [
+        "Reactor 模块的几何网格生成器自身不提供堆芯物理过程。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "Reactor 模块的几何网格生成器自身不提供堆芯物理过程。",
+          "status": "not_applicable",
+          "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/getting_started/examples_and_tutorials/tutorial04_meshing/step01_overview.html",
+          "reason": "版本概述将该模块界定为几何网格生成工具。网格生成器的输出是网格和分区，无法据此判定其他 MOOSE 模块或外部应用的物理能力。"
+        }
+      ]
+    },
+    {
+      "module": "Reconstructed Discontinuous Galerkin",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/",
+      "records": [
+        "moose.rdg_tracer_advection_1d"
+      ],
+      "gaps": [
+        "可压三方程通量、复杂热工水力边界及相应稳定性待核查。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "可压三方程通量、复杂热工水力边界及相应稳定性待核查。",
+          "status": "insufficient_evidence",
+          "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/help/a-to-z.html",
+          "reason": "基础一维标量重构已确认。可压流量守恒系统与热工水力边界需要独立输入闭环。"
+        }
+      ]
+    },
+    {
+      "module": "Richards",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/",
+      "records": [
+        "moose.richards_unsaturated_flow"
+      ],
+      "gaps": [
+        "多压力、多相及其他持水曲线和相对渗透率参数组合待核查。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "多压力、多相及其他持水曲线和相对渗透率参数组合待核查。",
+          "status": "insufficient_evidence",
+          "source": "https://raw.githubusercontent.com/idaholab/moose/2024-03-08/modules/richards/doc/content/modules/richards/index.md",
+          "reason": "已确认单压力非饱和流。当前未逐项覆盖多压力、多相及不同持水和相渗闭式的支持组合。"
+        }
+      ]
+    },
+    {
+      "module": "Solid Mechanics",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/solid_mechanics/",
+      "records": [
+        "moose.solid_mechanics",
+        "moose.thermal_expansion",
+        "moose.finite_strain_elasticity",
+        "moose.j2_plasticity",
+        "moose.thermally_activated_power_law_creep",
+        "moose.elastic_scalar_damage_stress_update",
+        "moose.instantaneous_expansion_eigenstrain",
+        "moose.mean_coefficient_expansion_eigenstrain"
+      ],
+      "gaps": [
+        "蠕变与损伤联用、其他蠕变律、有限变形超弹、各向异性和动力惯性需按对象和时间积分分别拆条。"
+      ]
+    },
+    {
+      "module": "Solid Properties",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/solid_properties/",
+      "records": [
+        "moose.solid_thermal_properties"
+      ],
+      "gaps": [
+        "各内置材料的温区、辐照状态和参数来源尚未逐项登记。"
+      ]
+    },
+    {
+      "module": "Stochastic Tools",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/stochastic_tools/",
+      "records": [
+        "moose.sampled_uncertainty_propagation"
+      ],
+      "gaps": [
+        "替代模型交叉验证、灵敏度估计与主动学习分别待展开。"
+      ]
+    },
+    {
+      "module": "Thermal Hydraulics",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/thermal_hydraulics/",
+      "records": [
+        "moose.single_phase_flow_channel",
+        "moose.channel_wall_heat_exchange",
+        "moose.multiapp_channel_to_solid_convection",
+        "moose.aligned_heat_structure_two_sided_exchange"
+      ],
+      "gaps": [
+        "两相含相变、燃烧、复杂组件网络和闭合关系需分别核实。"
+      ]
+    },
+    {
+      "module": "XFEM",
+      "source": "https://mooseframework.inl.gov/releases/moose/2024-03-08/modules/xfem/",
+      "records": [
+        "moose.xfem_crack_representation"
+      ],
+      "gaps": [
+        "裂纹演化准则、热/水力界面通量及非匹配切割稳定性需逐项核定。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "moose.ale_fluid_structure_interaction",
+      "moose.aqueous_equilibrium_transport",
+      "moose.channel_wall_heat_exchange",
+      "moose.compressible_flow",
+      "moose.conjugate_heat_transfer",
+      "moose.darcy_flow",
+      "moose.electrical_conduction",
+      "moose.electrothermal_resistive_heating",
+      "moose.em_harmonic_helmholtz",
+      "moose.finite_strain_elasticity",
+      "moose.fluid_thermodynamic_properties",
+      "moose.frictional_contact",
+      "moose.functional_field_expansion",
+      "moose.gray_surface_radiation",
+      "moose.heat_conduction",
+      "moose.incompressible_flow",
+      "moose.j2_plasticity",
+      "moose.level_set_transport",
+      "moose.mechanics_coupled_phase_field",
+      "moose.nonlocal_solid_mechanics",
+      "moose.pde_parameter_inversion",
+      "moose.phase_field_conserved",
+      "moose.phase_field_nonconserved",
+      "moose.polygon_concentric_mesh",
+      "moose.porous_heat_transport",
+      "moose.quartz_dissolution_kinetics",
+      "moose.ray_path_function_integral",
+      "moose.rdg_tracer_advection_1d",
+      "moose.richards_unsaturated_flow",
+      "moose.sampled_uncertainty_propagation",
+      "moose.single_phase_flow_channel",
+      "moose.solid_mechanics",
+      "moose.solid_thermal_properties",
+      "moose.soret_thermal_diffusion",
+      "moose.thermal_expansion",
+      "moose.thermoelastic_poromechanics",
+      "moose.xfem_crack_representation"
+    ]
+  }
+}

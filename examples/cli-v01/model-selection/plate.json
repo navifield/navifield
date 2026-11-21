@@ -1,0 +1,12 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["conduction"],
+  "goals": ["temperature", "heat_flux"],
+  "conditions": {
+    "geometry": "solid",
+    "motion": "none",
+    "time": "transient"
+  },
+  "known_inputs": ["conductivity", "density", "heat_capacity", "thermal_bc", "initial_temperature"],
+  "description": "Calculate temperature through an initially uniform aluminum plate and the resulting conductive heat flux after a prescribed heating step on one face. The opposite face is held at a specified temperature."
+}

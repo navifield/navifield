@@ -1,0 +1,253 @@
+[
+  {
+    "solver": "dolfinx",
+    "version": "0.10.0.post3",
+    "target": "pressure_drop",
+    "role": "custom",
+    "model": "DOLFINx/UFL 自定义有限元弱形式",
+    "applicability": "使用者编写完整流动、热传导或热弹性问题，并通过有限元空间求解与后处理。",
+    "exclusions": "示例及框架并非开箱可用的工业湍流、热接触或全耦合模型。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "wall_treatment"
+    ],
+    "exchanges": [
+      {
+        "from": "材料与边界",
+        "to": "有限元弱形式",
+        "quantity": "压力",
+        "unit": "Pa",
+        "method": "UFL 形式、求解与边界积分自行构造"
+      }
+    ],
+    "rationale": "固定版提供通用有限元框架和线弹性示例，应用方程需用户实现。",
+    "custom_work": "构造方程、离散、边界与后处理；需要时实现多物理迭代及映射。",
+    "checks": [
+      "解析基准、残差及网格收敛；热流和压力的积分口径一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_elasticity.html",
+        "locator": "0.10.0.post3 线弹性示例和 UFL 有限元框架",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_stokes.html",
+        "locator": "Taylor–Hood Stokes，压力零空间",
+        "claim": "在黏性线性极限组装速度和压力混合空间，指定压力零空间；求测站压差仍需自编。"
+      },
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+        "locator": "divergence-conforming DG Navier–Stokes",
+        "claim": "固定版实例给含惯性的不可压离散与时间推进。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "free_fluid"
+      ]
+    },
+    "mechanisms": [
+      "flow"
+    ],
+    "related_capabilities": [
+      "dolfinx.stokes_demo",
+      "dolfinx.navier_stokes_dg"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "dolfinx",
+    "version": "0.10.0.post3",
+    "target": "heat_duty",
+    "role": "custom",
+    "model": "DOLFINx/UFL 自定义有限元弱形式",
+    "applicability": "使用者编写完整流动、热传导或热弹性问题，并通过有限元空间求解与后处理。",
+    "exclusions": "示例及框架并非开箱可用的工业湍流、热接触或全耦合模型。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "材料与边界",
+        "to": "有限元弱形式",
+        "quantity": "热流",
+        "unit": "W",
+        "method": "UFL 形式、求解与边界积分自行构造"
+      }
+    ],
+    "rationale": "固定版提供通用有限元框架和线弹性示例，应用方程需用户实现。",
+    "custom_work": "构造方程、离散、边界与后处理；需要时实现多物理迭代及映射。",
+    "checks": [
+      "解析基准、残差及网格收敛；热流和压力的积分口径一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_elasticity.html",
+        "locator": "0.10.0.post3 线弹性示例和 UFL 有限元框架",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_poisson.html",
+        "locator": "Poisson weak form，Neumann 积分",
+        "claim": "给扩散及法向边界积分基本形式；可复用装配 API 自定义能量平流、时间项和热流率。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "dolfinx.poisson_elasticity_scipy_pyamg"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "dolfinx",
+    "version": "0.10.0.post3",
+    "target": "wall_temperature",
+    "role": "custom",
+    "model": "DOLFINx/UFL 自定义有限元弱形式",
+    "applicability": "使用者编写完整流动、热传导或热弹性问题，并通过有限元空间求解与后处理。",
+    "exclusions": "示例及框架并非开箱可用的工业湍流、热接触或全耦合模型。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "材料与边界",
+        "to": "有限元弱形式",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "UFL 形式、求解与边界积分自行构造"
+      }
+    ],
+    "rationale": "固定版提供通用有限元框架和线弹性示例，应用方程需用户实现。",
+    "custom_work": "构造方程、离散、边界与后处理；需要时实现多物理迭代及映射。",
+    "checks": [
+      "解析基准、残差及网格收敛；热流和压力的积分口径一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_elasticity.html",
+        "locator": "0.10.0.post3 线弹性示例和 UFL 有限元框架",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_poisson.html",
+        "locator": "Poisson Dirichlet/Neumann 混合边界",
+        "claim": "提供导热弱式与边界分组起点；Robin/流固接口条件及温度后处理需自编。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "dolfinx.poisson_elasticity_scipy_pyamg"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "dolfinx",
+    "version": "0.10.0.post3",
+    "target": "thermal_stress",
+    "role": "custom",
+    "model": "DOLFINx/UFL 自定义有限元弱形式，可参考线弹性示例",
+    "applicability": "使用者编写完整流动、热传导或热弹性问题，并通过有限元空间求解与后处理。",
+    "exclusions": "示例及框架并非开箱可用的工业湍流、热接触或全耦合模型。",
+    "inputs": [
+      "structural_geometry",
+      "elastic_properties",
+      "expansion_coefficient",
+      "mechanical_constraints",
+      "stress_measure",
+      "temperature_reference",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "温度场",
+        "to": "结构方程",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "UFL 形式、求解与边界积分自行构造"
+      }
+    ],
+    "rationale": "固定版提供通用有限元框架和线弹性示例，应用方程需用户实现。",
+    "custom_work": "构造方程、离散、边界与后处理；需要时实现多物理迭代及映射。",
+    "checks": [
+      "解析基准、残差及网格收敛；热流和压力的积分口径一致。"
+    ],
+    "evidence": [
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_elasticity.html",
+        "locator": "0.10.0.post3 线弹性示例和 UFL 有限元框架",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_types.html",
+        "locator": "elasticity(dtype)，σ(v) 定义",
+        "claim": "固定版展示线弹性张量和应力构造，需要自行加入热本征应变及应力自由温度。"
+      }
+    ],
+    "conditions": {
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "dolfinx.linear_elasticity"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["radiation"],
+  "goals": ["radiative_flux"],
+  "conditions": {
+    "geometry": "enclosure",
+    "motion": "none",
+    "radiation": "surface_exchange",
+    "optical": "transparent",
+    "time": "steady"
+  },
+  "known_inputs": ["emissivity", "view_factors", "wall_temperature", "thermal_bc"],
+  "description": "Estimate net radiative heat flux on the facing internal walls of a closed vacuum enclosure. The wall surfaces are diffuse and gray. Their temperatures, emissivities and view factors are specified."
+}

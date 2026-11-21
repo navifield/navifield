@@ -1,0 +1,1894 @@
+{
+  "schema_version": 1,
+  "solver": "dolfinx",
+  "version": "0.10.0.post3",
+  "capabilities": [
+    {
+      "id": "dolfinx.linear_elasticity",
+      "module": "Finite element framework / UFL / PETSc",
+      "scope": "User-defined static small-strain isotropic linear elasticity. The example assembles a displacement weak form, solves with PETSc AMG, and computes von Mises stress from displacement.",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "DOLFINx mesh topology and coordinates with region and boundary tags as required",
+          "aliases": [
+            "DOLFINx有限元网格"
+          ]
+        },
+        {
+          "id": "young_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "body_force_density",
+          "unit": "N/m^3",
+          "aliases": [
+            "体力密度"
+          ]
+        },
+        {
+          "id": "prescribed_displacement",
+          "unit": "m",
+          "aliases": [
+            "位移约束"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移场",
+            "位移"
+          ]
+        },
+        {
+          "id": "von_mises_stress",
+          "unit": "Pa",
+          "aliases": [
+            "等效应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "small_strain",
+        "linear_isotropic_elasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_elasticity.html",
+            "scope": "Problem definition, variational form, AMG and post-processing."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare axial displacement and stress with a uniform tension-bar solution away from constraints and check mesh convergence."
+    },
+    {
+      "id": "dolfinx.mixed_poisson",
+      "module": "Finite element framework / mixed UFL forms / PETSc",
+      "scope": "User-defined scalar Poisson equation with flux as an independent H(div) unknown. Uses Raviart–Thomas and discontinuous Lagrange spaces and a block solver. The example has unit diffusion.",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "DOLFINx mesh topology and coordinates with region and boundary tags as required",
+          "aliases": [
+            "DOLFINx有限元网格"
+          ]
+        },
+        {
+          "id": "poisson_source",
+          "unit": "scalar unit/m^2",
+          "aliases": [
+            "泊松源项"
+          ]
+        },
+        {
+          "id": "poisson_boundary_normal_flux",
+          "unit": "scalar unit/m",
+          "aliases": [
+            "泊松边界法向通量"
+          ]
+        },
+        {
+          "id": "prescribed_scalar",
+          "unit": "scalar unit",
+          "aliases": [
+            "给定标量边界值"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "poisson_scalar_solution",
+          "unit": "scalar unit",
+          "aliases": [
+            "泊松标量解"
+          ]
+        },
+        {
+          "id": "poisson_mixed_flux",
+          "unit": "scalar unit/m",
+          "aliases": [
+            "泊松混合通量"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "unit_diffusion",
+        "mixed_hdiv_formulation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_mixed-poisson.html",
+            "scope": "Mixed variational formulation, spaces, boundary data and PETSc block preconditioning."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Use a manufactured scalar and flux pair. Verify normal flux, cell flux balance and convergence for both fields."
+    },
+    {
+      "id": "dolfinx.hdg_cell_facet_assembly",
+      "module": "Finite element framework / submesh / entity maps",
+      "scope": "HDG Poisson example assembles a coupled cell and facet system using entity maps between a parent mesh and its facet submesh. Both blocks belong to the same scalar equation.",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "DOLFINx mesh topology and coordinates with region and boundary tags as required",
+          "aliases": [
+            "DOLFINx有限元网格"
+          ]
+        },
+        {
+          "id": "poisson_source",
+          "unit": "scalar unit/m^2",
+          "aliases": [
+            "泊松源项"
+          ]
+        },
+        {
+          "id": "prescribed_scalar",
+          "unit": "scalar unit",
+          "aliases": [
+            "给定标量边界值"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "hdg_cell_scalar",
+          "unit": "scalar unit",
+          "aliases": [
+            "HDG单元标量"
+          ]
+        },
+        {
+          "id": "hdg_facet_trace",
+          "unit": "scalar unit",
+          "aliases": [
+            "HDG面迹线标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "unit_diffusion",
+        "related_parent_facet_mesh",
+        "hdg_formulation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_hdg.html",
+            "scope": "Facet submesh, integration domains, blocked system and entity maps."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check facet mappings and boundary trace, then measure cell and trace L2 errors on refined meshes."
+    },
+    {
+      "id": "dolfinx.cahn_hilliard",
+      "module": "Finite element framework / nonlinear mixed UFL residual",
+      "scope": "User-defined transient demo solves concentration and chemical potential as a nonlinear mixed system with an automatically differentiated Jacobian and a theta time scheme.",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "DOLFINx mesh topology and coordinates with region and boundary tags as required",
+          "aliases": [
+            "DOLFINx有限元网格"
+          ]
+        },
+        {
+          "id": "initial_concentration",
+          "unit": "1",
+          "aliases": [
+            "初始浓度"
+          ]
+        },
+        {
+          "id": "nondimensional_time_step",
+          "unit": "1",
+          "aliases": [
+            "无量纲时间步长"
+          ]
+        },
+        {
+          "id": "free_energy_model",
+          "unit": "nondimensional",
+          "aliases": [
+            "自由能模型"
+          ]
+        },
+        {
+          "id": "gradient_energy_coefficient",
+          "unit": "nondimensional",
+          "aliases": [
+            "梯度能系数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "phase_concentration",
+          "unit": "1",
+          "aliases": [
+            "相场浓度"
+          ]
+        },
+        {
+          "id": "chemical_potential",
+          "unit": "nondimensional",
+          "aliases": [
+            "化学势"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "nondimensional_model",
+        "no_flux_boundary",
+        "nonlinear_mixed_formulation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_cahn-hilliard.html",
+            "scope": "Mixed variational formulation, theta method and automatic linearization."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check conservation of integrated concentration, nonlinear residual and time-step convergence.",
+      "couplings": [
+        {
+          "from_field": "浓度 c",
+          "to_field": "化学势 μ",
+          "quantity": "自由能导数和浓度梯度",
+          "unit": "示例为无量纲；物理单位由自由能定义",
+          "transfer": "同一混合弱式中 c 与 μ 同步求解",
+          "implementation": "custom",
+          "custom_work": "用户编写自由能、迁移率和残量；示例不含外部适配器或隐式回滚。"
+        },
+        {
+          "from_field": "化学势 μ",
+          "to_field": "浓度 c",
+          "quantity": "迁移通量 −M∇μ",
+          "unit": "示例为无量纲；物理单位取决于浓度和时间标度",
+          "transfer": "同一混合弱式中通量驱动浓度演化",
+          "implementation": "custom",
+          "custom_work": "用户指定边界、时间离散及非线性求解；不是额外热场或流场。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.poisson_demo",
+      "module": "PDEs (introductory) / Poisson equation",
+      "scope": "示例用 UFL 定义泊松方程弱式、边界条件并用有限元求解；具体物理解释和单位由使用者定义。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "长度单位由模型定义"
+        },
+        {
+          "id": "source_term",
+          "unit": "由所选方程定义"
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "由所选方程定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "scalar_solution",
+          "unit": "由所选方程定义",
+          "aliases": [
+            "泊松方程解"
+          ]
+        }
+      ],
+      "conditions": [
+        "scalar_elliptic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_poisson.html",
+            "scope": "Poisson equation demo"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用解析解制造源项，比较网格细化误差。"
+    },
+    {
+      "id": "dolfinx.stokes_demo",
+      "module": "PDEs (advanced) / Stokes equations",
+      "scope": "Taylor–Hood 示例使用单位黏性形式求解速度和压力，示例压力变量的符号与通常物理压力相反。用户须编写带实际黏度和带量纲边界的弱式，处理压力零空间或基准，并在物理压力读回时换号。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "m"
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa·s"
+        },
+        {
+          "id": "flow_boundary_conditions",
+          "unit": "按边界类型"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "stokes_demo_pressure",
+          "unit": "由模型的压力标度定义",
+          "aliases": [
+            "Stokes sign-reversed pressure",
+            "Stokes 示例反号压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "incompressible_fluid"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_stokes.html",
+            "scope": "Stokes equations using Taylor-Hood elements"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对解析或基准低雷诺数流动核对速度、压力及质量守恒。",
+      "couplings": [
+        {
+          "from_field": "压力",
+          "to_field": "速度",
+          "quantity": "带示例符号约定的压力梯度",
+          "unit": "由模型的压力标度与长度标度定义",
+          "transfer": "混合弱式动量方程中的压力项",
+          "implementation": "custom",
+          "custom_work": "配置带黏度的弱式和边界，识别压力零空间并将示例压力换号和定标。"
+        },
+        {
+          "from_field": "速度",
+          "to_field": "压力",
+          "quantity": "速度散度",
+          "unit": "1/s",
+          "transfer": "混合弱式不可压约束",
+          "implementation": "custom",
+          "custom_work": "用户选择稳定元对及求解器；压力零空间需按边界处理。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.gmsh_io",
+      "module": "dolfinx.io.gmsh",
+      "scope": "从 Gmsh 模型提取网格和标记；域、边界的物理含义及单位需使用者确认。",
+      "inputs": [
+        {
+          "id": "gmsh_model",
+          "unit": "Gmsh model"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "DOLFINx mesh",
+          "aliases": [
+            "DOLFINx有限元网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_model",
+        "physical_groups"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/generated/dolfinx.io.gmsh.html",
+            "scope": "dolfinx.io.gmsh API"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "导入带物理组的简单双区域网格并核对标签与尺寸。"
+    },
+    {
+      "id": "dolfinx.interpolation_io",
+      "module": "Interpolation, IO and visualisation",
+      "scope": "示例插值有限元函数并写出可视化数据；插值空间和文件格式对精度与支持的元素有约束。",
+      "inputs": [
+        {
+          "id": "finite_element_field",
+          "unit": "由场定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interpolated_field",
+          "unit": "由场定义",
+          "aliases": [
+            "插值场"
+          ]
+        }
+      ],
+      "conditions": [
+        "existing_field_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_interpolation-io.html",
+            "scope": "Interpolation and IO demo"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "插值已知解析场，比较采样误差和写出读回结果。",
+      "couplings": [
+        {
+          "from_field": "nedelec_finite_element_field",
+          "to_field": "discontinuous_lagrange_visualization_field",
+          "quantity": "interpolated_field",
+          "unit": "由场定义",
+          "transfer": "在相同网格上将 Nédélec 场转到不连续 Lagrange 可视化空间，再写出适用的 VTX 文件。",
+          "implementation": "configured",
+          "custom_work": "配置目标空间阶次、字段采样以及 ADIOS2 文件后端，核验切向连续与法向跳变。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.helmholtz",
+      "module": "Helmholtz equation",
+      "scope": "平面波 Helmholtz 示例由用户定义弱式、边界和波数；复数模式需复数 PETSc。高波数需评估离散色散误差。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "m"
+        },
+        {
+          "id": "wavenumber",
+          "unit": "1/m"
+        },
+        {
+          "id": "wave_boundary_conditions",
+          "unit": "由场定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "helmholtz_field",
+          "unit": "由场定义",
+          "aliases": [
+            "Helmholtz场"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "scalar_wave"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_helmholtz.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "平面波解析解下比较 L2 和 H1 误差及网格细化。"
+    },
+    {
+      "id": "dolfinx.waveguide_eigenmodes",
+      "module": "Electromagnetic modal analysis for a waveguide",
+      "scope": "半介质加载矩形波导示例构造 Maxwell 特征值问题，理想导电壁；需 SLEPc 及示例依赖，并非任意频域电磁产品。",
+      "inputs": [
+        {
+          "id": "waveguide_geometry",
+          "unit": "m"
+        },
+        {
+          "id": "relative_permittivity",
+          "unit": "1"
+        },
+        {
+          "id": "frequency",
+          "unit": "Hz"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "waveguide_propagation_constant",
+          "unit": "1/m",
+          "aliases": [
+            "波导传播常数"
+          ]
+        },
+        {
+          "id": "waveguide_mode_field",
+          "unit": "归一化依约定",
+          "aliases": [
+            "波导模态"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "eigenvalue"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_half_loaded_waveguide.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "与示例解析模式和网格收敛比较并排查伪模态。"
+    },
+    {
+      "id": "dolfinx.navier_stokes_dg",
+      "module": "Divergence conforming discontinuous Galerkin / Navier–Stokes",
+      "scope": "H(div) 速度和压力的不可压 Navier–Stokes 示例使用无量纲离散。用户须指定实际初边值、对流数值通量及参考尺度；若使用有量纲且已除以密度的形式，压力未知量为运动压力，按密度和参考压力恢复 Pa。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "模型无量纲坐标"
+        },
+        {
+          "id": "reynolds_number",
+          "unit": "1",
+          "aliases": [
+            "Reynolds number",
+            "雷诺数"
+          ]
+        },
+        {
+          "id": "flow_boundary_conditions",
+          "unit": "按边界类型"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "nondimensional_velocity",
+          "unit": "1",
+          "aliases": [
+            "nondimensional velocity",
+            "无量纲速度"
+          ]
+        },
+        {
+          "id": "nondimensional_pressure",
+          "unit": "1",
+          "aliases": [
+            "nondimensional pressure",
+            "无量纲压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "incompressible_fluid",
+        "nondimensional"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_navier-stokes.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "与制造解或公开流动基准比较速度、压力及散度并做网格收敛。",
+      "couplings": [
+        {
+          "from_field": "压力",
+          "to_field": "速度",
+          "quantity": "压力梯度",
+          "unit": "1（示例无量纲）",
+          "transfer": "混合弱式中压力进入动量方程",
+          "implementation": "custom",
+          "custom_work": "用户配置压力基准、离散弱式和参考尺度；按参考密度及速度恢复有量纲压力。"
+        },
+        {
+          "from_field": "速度",
+          "to_field": "压力",
+          "quantity": "速度散度",
+          "unit": "1（示例无量纲）",
+          "transfer": "混合弱式施加不可压约束",
+          "implementation": "custom",
+          "custom_work": "需选择稳定元和数值通量并处理压力零空间。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.biharmonic",
+      "module": "Biharmonic equation",
+      "scope": "用户用连续内罚弱式求四阶双调和方程；惩罚参数、边界与物理解读须自行指定。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "由模型定义"
+        },
+        {
+          "id": "source_term",
+          "unit": "由模型定义"
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "由模型定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "biharmonic_solution",
+          "unit": "由模型定义",
+          "aliases": [
+            "双调和方程解"
+          ]
+        }
+      ],
+      "conditions": [
+        "fourth_order_elliptic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_biharmonic.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用解析制造解核对网格收敛及边界条件。"
+    },
+    {
+      "id": "dolfinx.static_condensation",
+      "module": "Static condensation of linear elasticity",
+      "scope": "Cook 平面应力梁例使用混合应力与位移弱式，静态凝聚内部应力自由度；需用户编写本构、消元核及边界。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "长度单位由模型定义"
+        },
+        {
+          "id": "young_modulus",
+          "unit": "Pa"
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1"
+        },
+        {
+          "id": "surface_traction",
+          "unit": "Pa"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "small_strain",
+        "plane_stress"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_static-condensation.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较未凝聚混合系统和凝聚系统的位移、平衡与网格收敛。"
+    },
+    {
+      "id": "dolfinx.poisson_matrix_free",
+      "module": "Matrix-free conjugate gradient solver for the Poisson equation",
+      "scope": "示例通过算子作用而非装配完整矩阵求解泊松问题；仍需构造弱式、边界和合适的迭代方法。",
+      "inputs": [
+        {
+          "id": "dolfinx_mesh",
+          "unit": "由模型定义"
+        },
+        {
+          "id": "source_term",
+          "unit": "由模型定义"
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "由模型定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "scalar_solution",
+          "unit": "由模型定义",
+          "aliases": [
+            "无矩阵泊松解"
+          ]
+        }
+      ],
+      "conditions": [
+        "scalar_elliptic",
+        "matrix_free"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_poisson_matrix_free.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "与装配矩阵求解同一问题比较误差和残差。"
+    },
+    {
+      "id": "dolfinx.basix_custom_tnt_element",
+      "module": "Creating TNT elements using Basix’s custom element interface",
+      "scope": "示例通过 Basix 自定义多项式、插值矩阵与自由度构建 TNT 元；该记录是离散工具而非物理求解器。",
+      "inputs": [
+        {
+          "id": "reference_cell",
+          "unit": "参考单元"
+        },
+        {
+          "id": "element_definition",
+          "unit": "多项式及插值自由度"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "custom_finite_element",
+          "unit": "Basix 元",
+          "aliases": [
+            "自定义有限元"
+          ]
+        }
+      ],
+      "conditions": [
+        "custom_finite_element"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_tnt-elements.html",
+            "scope": "DOLFINx 0.10.0.post3 对应示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "验证插值基的对偶性、多项式复现及网格上单元方向。"
+    },
+    {
+      "id": "dolfinx.mpi_index_map_communication_graph",
+      "module": "Parallel communication analysis",
+      "scope": "诊断工具。通过自由度 IndexMap 计算 owner 到 ghost rank 的有向图，集合调用且数据在 rank 0 汇总。边权表示所需传送的数据规模，不能直接当成实测 MPI 字节率。",
+      "inputs": [
+        {
+          "id": "dolfinx_distributed_dof_index_map",
+          "unit": "DOLFINx IndexMap",
+          "aliases": [
+            "并行自由度所有权及幽灵索引"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mpi_dof_communication_graph",
+          "unit": "JSON/NetworkX graph",
+          "aliases": [
+            "MPI 自由度通信图"
+          ]
+        },
+        {
+          "id": "mpi_neighbor_degree",
+          "unit": "1",
+          "aliases": [
+            "进程邻接边数"
+          ]
+        }
+      ],
+      "conditions": [
+        "collective_mpi_call",
+        "distributed_function_space",
+        "rank_zero_graph_analysis"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_comm-pattern.html",
+            "scope": "发布示例代码：comm_graph、comm_graph_data、comm_to_json 及节点权重统计"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用两进程小网格逐项比对各进程 ghost 的拥有者与图中边方向和计数，再检查图的 JSON 重读一致性。"
+    },
+    {
+      "id": "dolfinx.assemble_matrix_api",
+      "module": "Python API reference / dolfinx.fem.assemble_matrix",
+      "scope": "装配有限元双线性形式为矩阵；物理方程、量纲、约束和矩阵最终组装由调用者负责。",
+      "inputs": [
+        {
+          "id": "bilinear_form_and_bcs",
+          "unit": "UFL 双线性形式及自由度约束",
+          "aliases": [
+            "双线性形式与边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "assembled_matrix",
+          "unit": "量纲由弱式决定",
+          "aliases": [
+            "有限元矩阵"
+          ]
+        }
+      ],
+      "conditions": [
+        "valid_compiled_form",
+        "consistent_units",
+        "parallel_assembly_protocol"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/generated/dolfinx.fem.html#dolfinx.fem.assemble_matrix",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "dolfinx.dirichletbc_api",
+      "module": "Python API reference / dolfinx.fem.dirichletbc",
+      "scope": "由指定自由度及数值构造强制 Dirichlet 条件；边界识别与分量选择需由用户定义。",
+      "inputs": [
+        {
+          "id": "value_and_dofs",
+          "unit": "场变量单位、自由度索引",
+          "aliases": [
+            "边界值与自由度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "dirichlet_bc",
+          "unit": "场变量单位",
+          "aliases": [
+            "Dirichlet 边界条件"
+          ]
+        }
+      ],
+      "conditions": [
+        "valid_dof_indices",
+        "value_space_compatible"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/generated/dolfinx.fem.html#dolfinx.fem.dirichletbc",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "dolfinx.interpolate_function_api",
+      "module": "Python API reference / dolfinx.fem.Function.interpolate",
+      "scope": "将表达式或兼容函数插值至有限元空间；单元映射和目标空间的适用性须验证。",
+      "inputs": [
+        {
+          "id": "expression_and_cells",
+          "unit": "场变量单位、单元索引",
+          "aliases": [
+            "待插值场与目标单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interpolated_function",
+          "unit": "场变量单位",
+          "aliases": [
+            "插值函数"
+          ]
+        }
+      ],
+      "conditions": [
+        "compatible_element_and_domain",
+        "verify_interpolation_error"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/generated/dolfinx.fem.html#dolfinx.fem.Function.interpolate",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "source_function_or_expression",
+          "to_field": "target_finite_element_space",
+          "quantity": "interpolated_function",
+          "unit": "场变量单位",
+          "transfer": "通过目标有限元空间的自由度插值函数或表达式。",
+          "implementation": "configured",
+          "custom_work": "确定空间、映射、选定单元、分量与数值类型。验证边界或非连续场的约定和误差。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.interpolate_nonmatching_api",
+      "module": "Python API reference / dolfinx.fem.Function.interpolate_nonmatching",
+      "scope": "在给定插值数据下对非匹配网格插值；不保证守恒，需检查源目标覆盖与误差。",
+      "inputs": [
+        {
+          "id": "source_and_interpolation_data",
+          "unit": "场变量单位、网格映射",
+          "aliases": [
+            "源场与跨网格插值数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_function",
+          "unit": "场变量单位",
+          "aliases": [
+            "目标网格函数"
+          ]
+        }
+      ],
+      "conditions": [
+        "valid_nonmatching_interpolation_data",
+        "domain_coverage_verified"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/generated/dolfinx.fem.html#dolfinx.fem.Function.interpolate_nonmatching",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "source_mesh_field",
+          "to_field": "target_mesh_field",
+          "quantity": "target_function",
+          "unit": "场变量单位",
+          "transfer": "先按目标单元和搜索容差建立插值数据，再在源场对应位置取值并写入目标有限元空间。",
+          "implementation": "configured",
+          "custom_work": "准备源/目标网格、源目标空间和并行覆盖。验证目标点是否在源域、元素族兼容性和误差。该插值不承诺守恒。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.axisymmetric_maxwell_sphere_scattering",
+      "module": "Time-harmonic Maxwell / radial PML",
+      "scope": "Axisymmetric sphere scattering. Solve a frequency-domain Maxwell curl-curl weak problem with a prescribed incident field and radial PML. Complex-scalar PETSc and compatible Gmsh physical tags are required. User configures the exterior region, mesh and material model and verifies normalization of scattering, absorption and extinction.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "vacuum_wavelength",
+          "unit": "m"
+        },
+        {
+          "id": "incident_field",
+          "unit": "V/m"
+        },
+        {
+          "id": "relative_permittivity",
+          "unit": "1 complex"
+        },
+        {
+          "id": "scattering_geometry_radius",
+          "unit": "m"
+        },
+        {
+          "id": "exterior_region_definition",
+          "unit": "DOLFINx MeshTags"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electromagnetic_field",
+          "unit": "V/m",
+          "aliases": [
+            "电场"
+          ]
+        },
+        {
+          "id": "scattering_efficiency",
+          "unit": "1",
+          "aliases": [
+            "散射效率"
+          ]
+        },
+        {
+          "id": "absorption_efficiency",
+          "unit": "1",
+          "aliases": [
+            "吸收效率"
+          ]
+        },
+        {
+          "id": "extinction_efficiency",
+          "unit": "1",
+          "aliases": [
+            "消光效率"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "scattering",
+        "axisymmetric"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_axis.html",
+            "scope": "Official fixed-version demo gives the weak Maxwell formulation, radial PML and efficiency readback."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare with the Mie sphere benchmark, repeat with mesh refinement and check the extinction balance."
+    },
+    {
+      "id": "dolfinx.wire_maxwell_pml_scattering",
+      "module": "Time-harmonic Maxwell / complex-coordinate PML",
+      "scope": "Two-dimensional wire cross-section scattering. Solve a frequency-domain Maxwell curl-curl weak problem with a prescribed incident field and complex-coordinate PML. Complex-scalar PETSc and compatible Gmsh physical tags are required. User configures the exterior region, mesh and material model and verifies normalization of scattering, absorption and extinction.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "vacuum_wavelength",
+          "unit": "m"
+        },
+        {
+          "id": "incident_field",
+          "unit": "V/m"
+        },
+        {
+          "id": "relative_permittivity",
+          "unit": "1 complex"
+        },
+        {
+          "id": "scattering_geometry_radius",
+          "unit": "m"
+        },
+        {
+          "id": "exterior_region_definition",
+          "unit": "DOLFINx MeshTags"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electromagnetic_field",
+          "unit": "V/m",
+          "aliases": [
+            "电场"
+          ]
+        },
+        {
+          "id": "scattering_efficiency",
+          "unit": "1",
+          "aliases": [
+            "散射效率"
+          ]
+        },
+        {
+          "id": "absorption_efficiency",
+          "unit": "1",
+          "aliases": [
+            "吸收效率"
+          ]
+        },
+        {
+          "id": "extinction_efficiency",
+          "unit": "1",
+          "aliases": [
+            "消光效率"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "scattering",
+        "wire_geometry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_pml.html",
+            "scope": "Official fixed-version demo gives the weak Maxwell formulation, complex-coordinate PML and efficiency readback."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare with the cylindrical scattering benchmark, repeat with mesh refinement and check the extinction balance."
+    },
+    {
+      "id": "dolfinx.wire_maxwell_radiation_boundary",
+      "module": "Time-harmonic Maxwell / scattering boundary condition",
+      "scope": "Two-dimensional wire cross-section scattering. Solve a frequency-domain Maxwell curl-curl weak problem with a prescribed incident field and scattering boundary condition. Complex-scalar PETSc and compatible Gmsh physical tags are required. User configures the exterior region, mesh and material model and verifies normalization of scattering, absorption and extinction.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "vacuum_wavelength",
+          "unit": "m"
+        },
+        {
+          "id": "incident_field",
+          "unit": "V/m"
+        },
+        {
+          "id": "relative_permittivity",
+          "unit": "1 complex"
+        },
+        {
+          "id": "scattering_geometry_radius",
+          "unit": "m"
+        },
+        {
+          "id": "exterior_region_definition",
+          "unit": "DOLFINx facet tags"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electromagnetic_field",
+          "unit": "V/m",
+          "aliases": [
+            "电场"
+          ]
+        },
+        {
+          "id": "scattering_efficiency",
+          "unit": "1",
+          "aliases": [
+            "散射效率"
+          ]
+        },
+        {
+          "id": "absorption_efficiency",
+          "unit": "1",
+          "aliases": [
+            "吸收效率"
+          ]
+        },
+        {
+          "id": "extinction_efficiency",
+          "unit": "1",
+          "aliases": [
+            "消光效率"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "scattering",
+        "wire_geometry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_scattering_boundary_conditions.html",
+            "scope": "Official fixed-version demo gives the weak Maxwell formulation, scattering boundary condition and efficiency readback."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare with the cylindrical scattering benchmark, repeat with mesh refinement and check the extinction balance."
+    },
+    {
+      "id": "dolfinx.mixed_topology_poisson",
+      "module": "Mixed-topology Poisson / per-cell-type forms",
+      "scope": "Solve the scalar Poisson problem on one mesh with heterogeneous cell types using separate finite-element data and forms for the cell types. User prepares conforming interfaces, cell-wise geometry elements and a consistent continuous space.",
+      "inputs": [
+        {
+          "id": "mixed_cell_mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "cell_type_forms",
+          "unit": "UFL forms per cell type"
+        },
+        {
+          "id": "poisson_source",
+          "unit": "field unit/m^2"
+        },
+        {
+          "id": "dirichlet_data",
+          "unit": "field unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "scalar_solution",
+          "unit": "field unit",
+          "aliases": [
+            "标量有限元解"
+          ]
+        },
+        {
+          "id": "solution_dof_vector",
+          "unit": "field unit",
+          "aliases": [
+            "求解自由度向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "mixed_topology",
+        "poisson"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_mixed-topology.html",
+            "scope": "The fixed-version example assembles the heterogeneous-cell Poisson operator for hexahedra and prisms with per-cell stiffness contributions."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check continuity and a manufactured solution across mixed cell interfaces."
+    },
+    {
+      "id": "dolfinx.lagrange_variant_interpolation",
+      "module": "Basix Lagrange variants / interpolation",
+      "scope": "Compare interpolation of a known scalar function with distinct high-degree Lagrange point variants. Requires Basix element variants and a defined interpolation error measure. Geometry, field units and selection criteria are model-specific.",
+      "inputs": [
+        {
+          "id": "lagrange_degree",
+          "unit": "1"
+        },
+        {
+          "id": "lagrange_variant",
+          "unit": "Basix enum"
+        },
+        {
+          "id": "target_function",
+          "unit": "field unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interpolated_field",
+          "unit": "field unit",
+          "aliases": [
+            "插值场"
+          ]
+        },
+        {
+          "id": "interpolation_error",
+          "unit": "field unit",
+          "aliases": [
+            "插值误差"
+          ]
+        }
+      ],
+      "conditions": [
+        "interpolation",
+        "lagrange"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_lagrange_variants.html",
+            "scope": "Official example compares distinct interpolation point variants and their interpolants."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check polynomial reproduction at supported degree, then compare maximum error for a non-polynomial reference.",
+      "couplings": [
+        {
+          "from_field": "analytic_scalar_field",
+          "to_field": "lagrange_finite_element_field",
+          "quantity": "interpolated_field",
+          "unit": "field unit",
+          "transfer": "依据选择的 Basix Lagrange 变体在插值点评价解析函数并构造有限元场。",
+          "implementation": "configured",
+          "custom_work": "选择阶次、点集和参考函数，验证多项式再现与非多项式误差。"
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.poisson_elasticity_scipy_pyamg",
+      "module": "DOLFINx CSR / PyAMG Poisson and linear elasticity",
+      "scope": "Use DOLFINx assembly and SciPy sparse matrix conversion with an external PyAMG solver for Poisson and linearized elasticity. Requires compatible sparse-array and PyAMG versions. For elasticity, configure rigid-body candidates when using near-nullspace information.",
+      "inputs": [
+        {
+          "id": "sparse_operator",
+          "unit": "CSR"
+        },
+        {
+          "id": "load_vector",
+          "unit": "weak-form unit"
+        },
+        {
+          "id": "near_nullspace",
+          "unit": "basis vectors"
+        },
+        {
+          "id": "solver_tolerance",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solution_vector",
+          "unit": "field unit",
+          "aliases": [
+            "求解向量"
+          ]
+        },
+        {
+          "id": "solver_residual",
+          "unit": "weak-form unit",
+          "aliases": [
+            "求解残差"
+          ]
+        }
+      ],
+      "conditions": [
+        "poisson",
+        "sparse_solver"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_pyamg.html",
+            "scope": "The documented examples solve Poisson and linearized elasticity using PyAMG on DOLFINx-built operators."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare against a direct solve on a reduced case, and record independent relative residual and scaling."
+    },
+    {
+      "id": "dolfinx.vtk_mesh_field_visualization",
+      "module": "dolfinx.plot.vtk_mesh / PyVista figure",
+      "scope": "Construct VTK connectivity and point/cell payload for supported meshes or degree-of-freedom spaces and visualize with external PyVista. User selects scalar or vector projection and handles complex field component and display sampling.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "discrete_field",
+          "unit": "field unit"
+        },
+        {
+          "id": "plot_geometry",
+          "unit": "coordinates and connectivity"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "vtk_grid",
+          "unit": "VTK unstructured grid",
+          "aliases": [
+            "VTK 非结构网格"
+          ]
+        },
+        {
+          "id": "plot_field",
+          "unit": "field unit",
+          "aliases": [
+            "可视化场"
+          ]
+        }
+      ],
+      "conditions": [
+        "visualization",
+        "vtk"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_pyvista.html",
+            "scope": "The fixed-version demo constructs PyVista grids from VTK topology and attaches discrete fields."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check cell/point counts, coordinates and known field values in the supplied VTK arrays."
+    },
+    {
+      "id": "dolfinx.scalar_precision_poisson_helmholtz",
+      "module": "Scalar dtype / Poisson",
+      "scope": "Select a compatible mesh geometry, form, discrete function and solver scalar dtype in the demonstrated Poisson case. Backend support controls viable real and complex combinations. A user-selected precision needs its own error threshold and tolerance.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "scalar_dtype",
+          "unit": "real or complex dtype"
+        },
+        {
+          "id": "source_term",
+          "unit": "field unit/m^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "scalar_solution",
+          "unit": "field unit",
+          "aliases": [
+            "标量有限元解"
+          ]
+        },
+        {
+          "id": "solution_dof_vector",
+          "unit": "field unit",
+          "aliases": [
+            "求解自由度向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "scalar_dtype",
+        "finite_element"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos/demo_types.html",
+            "scope": "The tagged script solves Poisson with float32, float64, complex64 and complex128 where supported."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare error and residual for each supported dtype; verify field arrays and assembled operator dtypes."
+    },
+    {
+      "id": "dolfinx.neo_hookean_hyperelasticity_cpp",
+      "module": "C++ Hyperelasticity / UFL Jacobian",
+      "scope": "Finite-deformation compressible neo-Hookean solid equilibrium using displacement only, the documented logarithmic-J strain energy, reference body force and traction. Strict incompressibility (J=1) with mixed displacement-pressure is not implemented by this demo and requires a custom stable mixed formulation, pressure gauge/constraints and independent verification. Temperature-dependent constitutive response and thermoelastic coupling are not demonstrated; they require a custom thermal field, constitutive law and transfer. Near-incompressible displacement-only performance and locking are not established. Define geometry, boundary conditions, material and nonlinear controls and validate each case.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "elastic_modulus",
+          "unit": "Pa"
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1"
+        },
+        {
+          "id": "prescribed_displacement",
+          "unit": "m"
+        },
+        {
+          "id": "reference_traction",
+          "unit": "Pa"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "cauchy_stress",
+          "unit": "Pa",
+          "aliases": [
+            "柯西应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "hyperelastic",
+        "finite_deformation",
+        "static"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/FEniCS/dolfinx/tree/v0.10.0.post3/cpp/demo/hyperelasticity",
+            "scope": "Fixed tag hyperelasticity.py defines compressible neo-Hookean strain energy and Cauchy stress. Main.cpp assembles the residual and tangent for the Newton solve and exports Cauchy stress."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify tangent consistency and load–displacement response against a large-strain benchmark; separately check volume change, mesh convergence and locking near incompressibility. Strictly incompressible or thermoelastic extensions require independent formulation and benchmark evidence.",
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "solid constitutive response",
+          "quantity": "temperature field and material thermal response",
+          "unit": "K",
+          "transfer": "A compatible temperature field must be provided and included in the constitutive weak form.",
+          "implementation": "custom",
+          "custom_work": "Specify thermal expansion or temperature-dependent energy, reference temperature, transfer/interpolation and validation; the cited hyperelastic demo does not implement thermal coupling."
+        }
+      ]
+    },
+    {
+      "id": "dolfinx.custom_p1_cell_kernel_assembly_cpp",
+      "module": "C++ custom cell kernel / P1",
+      "scope": "Manually supply an affine-triangle P1 mass-matrix and load kernel, assemble into DOLFINx CSR and vector data structures, then accumulate ghost contributions. Custom kernels, mesh Jacobian convention, basis ordering and orientation for other elements require independent implementation.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "cell_integration_indices",
+          "unit": "local cell indices"
+        },
+        {
+          "id": "basis_tabulation",
+          "unit": "dimensionless basis times quadrature"
+        },
+        {
+          "id": "element_kernel",
+          "unit": "compiled C++ callable"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mass_matrix",
+          "unit": "m^2",
+          "aliases": [
+            "质量矩阵"
+          ]
+        },
+        {
+          "id": "load_vector",
+          "unit": "m^2 for unit source",
+          "aliases": [
+            "载荷向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "custom_kernel",
+        "assembly",
+        "p1_triangle"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/cpp/demos/demo_custom_kernel.html",
+            "scope": "Official C++ documentation lists the executable demo code for a hand-written P1 mass and RHS cell kernel."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare each assembled value with the same UFL mass and load forms, including shared entities on a partition."
+    },
+    {
+      "id": "dolfinx.codim_zero_mixed_mass_assembly_cpp",
+      "module": "C++ codim-0 mixed mass assembly / EntityMap",
+      "scope": "Assemble quadrilateral P1 mass operator with trial space on a same-dimensional cell submesh and test space on the parent mesh. Integrate over marked cells on the parent using the submesh EntityMap. Custom couplings require their own variational forms and correct subdomain-to-space maps.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "DOLFINx mesh"
+        },
+        {
+          "id": "marked_cells",
+          "unit": "cell indices"
+        },
+        {
+          "id": "submesh_entity_map",
+          "unit": "DOLFINx EntityMap"
+        },
+        {
+          "id": "mixed_ufl_form",
+          "unit": "UFL form"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mixed_mass_matrix",
+          "unit": "m^2",
+          "aliases": [
+            "混合网格质量矩阵"
+          ]
+        }
+      ],
+      "conditions": [
+        "assembly",
+        "mixed_mesh",
+        "codimension_zero"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/FEniCS/dolfinx/tree/v0.10.0.post3/cpp/demo/codim_0_assembly",
+            "scope": "Fixed tag cpp/demo/codim_0_assembly/main.cpp creates marked quadrilateral submesh and EntityMap, and mixed_codim0.py defines the restricted parent-domain mass integral."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare the mixed matrix to the corresponding standalone submesh mass matrix after applying row/entity mappings, including shared-facet MPI ownership."
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "PDEs (introductory)",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.poisson_demo",
+        "dolfinx.helmholtz",
+        "dolfinx.waveguide_eigenmodes",
+        "dolfinx.axisymmetric_maxwell_sphere_scattering",
+        "dolfinx.wire_maxwell_pml_scattering",
+        "dolfinx.wire_maxwell_radiation_boundary"
+      ],
+      "gaps": [
+        "电磁散射的不同边界和 PML 示例尚未逐项收录。"
+      ]
+    },
+    {
+      "module": "PDEs (advanced)",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.linear_elasticity",
+        "dolfinx.mixed_poisson",
+        "dolfinx.hdg_cell_facet_assembly",
+        "dolfinx.stokes_demo",
+        "dolfinx.cahn_hilliard",
+        "dolfinx.navier_stokes_dg",
+        "dolfinx.biharmonic",
+        "dolfinx.static_condensation",
+        "dolfinx.poisson_matrix_free",
+        "dolfinx.mixed_topology_poisson",
+        "dolfinx.poisson_elasticity_scipy_pyamg",
+        "dolfinx.scalar_precision_poisson_helmholtz",
+        "dolfinx.custom_p1_cell_kernel_assembly_cpp",
+        "dolfinx.codim_zero_mixed_mass_assembly_cpp"
+      ],
+      "gaps": [
+        "各预条件器、求解器和标量类型组合尚未逐项验证。"
+      ]
+    },
+    {
+      "module": "Nonlinear problems",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.cahn_hilliard",
+        "dolfinx.neo_hookean_hyperelasticity_cpp"
+      ],
+      "gaps": [
+        "其他非线性本构和收敛策略需针对方程编写并验证。",
+        "严格不可压固体的混合位移-压力弱式、稳定元和压力约束需自研及独立验证；Stokes 和 Cahn-Hilliard 示例不能证明固体本构实现。",
+        "温度场到固体本构的热弹耦合需自研及独立验证；现有超弹示例不包含热场。"
+      ]
+    },
+    {
+      "module": "Mesh generation",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.gmsh_io"
+      ],
+      "gaps": [
+        "网格分区与其他输入来源尚未逐项建模。"
+      ]
+    },
+    {
+      "module": "Interpolation, IO and visualisation",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.interpolation_io",
+        "dolfinx.gmsh_io",
+        "dolfinx.vtk_mesh_field_visualization"
+      ],
+      "gaps": [
+        "各文件格式、并行输出限制和 PyVista 绘图尚未逐项验证。"
+      ]
+    },
+    {
+      "module": "User-defined and advanced finite elements",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.basix_custom_tnt_element",
+        "dolfinx.lagrange_variant_interpolation"
+      ],
+      "gaps": [
+        "其他 Lagrange 变体及自定义元需按具体元素核验。"
+      ]
+    },
+    {
+      "module": "Parallel communication analysis",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/demos.html",
+      "records": [
+        "dolfinx.mpi_index_map_communication_graph"
+      ],
+      "gaps": [],
+      "gap_assessments": []
+    },
+    {
+      "module": "Python API reference",
+      "source": "https://docs.fenicsproject.org/dolfinx/v0.10.0.post3/python/api.html",
+      "records": [
+        "dolfinx.gmsh_io",
+        "dolfinx.interpolation_io",
+        "dolfinx.assemble_matrix_api",
+        "dolfinx.dirichletbc_api",
+        "dolfinx.interpolate_function_api",
+        "dolfinx.interpolate_nonmatching_api"
+      ],
+      "gaps": [
+        "common、fem、geometry、graph、io、jit、la、mesh、nls、pkgconfig、plot 等 API 及底层 C++ 接口尚未逐函数建模。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "dolfinx.basix_custom_tnt_element",
+      "dolfinx.biharmonic",
+      "dolfinx.cahn_hilliard",
+      "dolfinx.gmsh_io",
+      "dolfinx.hdg_cell_facet_assembly",
+      "dolfinx.helmholtz",
+      "dolfinx.interpolation_io",
+      "dolfinx.linear_elasticity",
+      "dolfinx.mixed_poisson",
+      "dolfinx.mpi_index_map_communication_graph",
+      "dolfinx.navier_stokes_dg",
+      "dolfinx.poisson_demo",
+      "dolfinx.poisson_matrix_free",
+      "dolfinx.static_condensation",
+      "dolfinx.stokes_demo",
+      "dolfinx.waveguide_eigenmodes"
+    ]
+  }
+}

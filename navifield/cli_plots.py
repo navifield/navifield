@@ -1,8 +1,8 @@
-"""Optional charts from the selected CLI run's retained log and numeric tables."""
+﻿"""Optional charts from the selected CLI run's retained log and numeric tables."""
 from pathlib import Path
 
 from . import project
-from .live_monitor import _follower, case_tables
+from .live_monitor import _follower, run_tables
 from .postprocess import EngineeringReport, ReportFigure, ReportParagraph, ReportSection, _digest, _html
 
 
@@ -15,7 +15,7 @@ def generate(root, rid):
     root = Path(root).resolve()
     follower, run, _ = _follower(root, rid)
     follower.poll()
-    tables = case_tables(project.resolve_path(root, run['execution_case_path'])) if run.get('execution_case_path') else []
+    tables, source = run_tables(root, run)
     charts = []
     if follower.order:
         charts.append(('Initial residuals (OpenFOAM-style log)', [(key, follower.series[key]) for key in follower.order[:8]], True))
@@ -37,12 +37,18 @@ def generate(root, rid):
         relative = f'report/{rid}/plot-{index+1:02d}.png'; path = project.resolve_path(root, relative)
         figure.savefig(path)
         blocks.append(ReportFigure(relative_path=relative, sha256=_digest(path), caption=title, alt_text=title))
-    note = (f'Residuals are read from the selected run log. Numeric tables are the current contents '
-            f'of its case directory at report generation; they may have changed during later runs. '
+    descriptions = {
+        'run': 'Numeric tables are the copies kept with this run.',
+        'run_partial': 'The run table copy is incomplete; only available retained tables are shown, without filling gaps from the current case.',
+        'run_unavailable': 'The run table copy is unavailable; current case tables are not substituted.',
+        'case': 'This legacy run has no table copy; numeric tables are the current contents of its case directory and may have changed during later runs.',
+        None: 'No numeric table source is available for this run.',
+    }
+    note = (f'Residuals are read from the selected run main log. {descriptions[source]} '
             f'Shown {min(len(charts), 24)} of {len(charts)} available charts. '
             'Units and physical interpretation are not inferred. '
             'Residual thresholds do not establish engineering acceptance.')
-    report = EngineeringReport(summary=f'Run {rid}: selected run log and current case tables', sections=(
+    report = EngineeringReport(summary=f'Run {rid}: selected run log and numeric tables ({source or "unavailable"})', sections=(
         ReportSection(key='charts', title='Recorded histories', blocks=tuple(blocks)),
         ReportSection(key='scope', title='Scope', blocks=(ReportParagraph(text=note),)),))
     output = output_dir / 'plots.html'

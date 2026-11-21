@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import threading
 import time
+from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlparse
 
 from . import execution, project
@@ -68,6 +69,7 @@ class LogFollower:
         self._tail = ''
         self._fatal_line = ''
         self.recent = []
+        self.stage_logs = []
 
     def _reset(self):
         self.__init__(self.path)
@@ -105,6 +107,11 @@ class LogFollower:
             self._fatal_line = complete.pop()[-65536:]
             for line in complete:
                 self._check_float_line(line)
+                match = re.fullmatch(r'simpleFoam: (.+[\\/]simpleFoam\.log)\s*', line.strip())
+                if match:
+                    try:name = match.group(1).encode('latin-1').decode('utf-8')
+                    except UnicodeError:continue
+                    if name not in self.stage_logs:self.stage_logs.append(name)
             lines = text.splitlines()
             self.recent = [line[:300] for line in (self.recent + lines)[-12:]]
             self._tail = text[-80:]
@@ -145,9 +152,45 @@ class LogFollower:
         return {'generation': self.generation, 'keys': list(self.order), 'reset': fresh, 'points': points}
 
 
+def _column_names(headers, width):
+    """Expand grouped OpenFOAM headers without confusing metadata with names."""
+    import re
+    for index, header in reversed(list(enumerate(headers))):
+        if not re.match(r'^Time(?:\s|$)', header, re.I):
+            continue
+        for candidate in (header, ' '.join(headers[index:])):
+            plain = candidate.split()
+            if len(plain) == width and not any(token in ('(', ')') for token in plain):
+                return plain
+            tokens = re.findall(r'[^\s()]+|[()]', candidate)
+            stack, leaves = [], []
+            for position, token in enumerate(tokens):
+                if token == '(':
+                    continue
+                if token == ')':
+                    if stack:
+                        stack.pop()
+                    continue
+                if position + 1 < len(tokens) and tokens[position + 1] == '(':
+                    stack.append(token)
+                else:
+                    leaves.append('.'.join([*stack, token]))
+            if len(leaves) == width:
+                return leaves
+            if leaves and 1 + 3 * (len(leaves) - 1) == width:
+                return [leaves[0]] + [name + '.' + axis for name in leaves[1:] for axis in 'xyz']
+    probes = [match.group(1) for header in headers
+              if (match := re.match(r'^Probe\s+(\d+)\s+\(', header))]
+    if probes and width == 1 + len(probes):
+        return ['Time'] + ['probe_' + probe for probe in probes]
+    if probes and width == 1 + 3 * len(probes):
+        return ['Time'] + ['probe_' + probe + '.' + axis for probe in probes for axis in 'xyz']
+    return ['Time'] + [f'column {column + 1}' for column in range(1, width)]
+
+
 def _table(path, limit=1500):
     """Numeric columns of one function-object table; the first column is the axis."""
-    names, rows = None, []
+    headers, rows = [], []
     try:
         with open(path, encoding='latin-1') as stream:
             for line in stream:
@@ -155,7 +198,8 @@ def _table(path, limit=1500):
                 if not text:
                     continue
                 if text.startswith('#'):
-                    names = text.lstrip('#').split()
+                    if not rows:
+                        headers.append(text.lstrip('#').strip())
                     continue
                 try:
                     row = [float(token) for token in text.replace('(', ' ').replace(')', ' ').split()]
@@ -172,20 +216,44 @@ def _table(path, limit=1500):
         return []
     stride = max(1, len(rows) // limit)
     rows = rows[::stride] + ([rows[-1]] if (len(rows) - 1) % stride else [])
-    labels = names if names and len(names) == width else None
+    labels = _column_names(headers, width)
     result = []
-    for column in range(1, min(width, 7)):
-        label = labels[column] if labels else f'column {column + 1}'
+    for column in range(1, width):
+        label = labels[column]
         result.append({'label': label, 'points': [(row[0], row[column]) for row in rows]})
     return result
 
 
-def case_tables(case, limit_files=12):
-    """Latest function-object tables under the run's case, without solver-specific knowledge."""
-    base = Path(case) / 'postProcessing'
+def run_tables(root, run, limit=1500):
+    """Tables kept with the run when it ended ('run'); otherwise the case folder as it is now ('case')."""
+    kept = run.get('monitor_tables') or {}
+    if 'monitor_tables' in run:
+        try:
+            base = project.resolve_path(root, kept['path'])
+            missing = any(not project.resolve_path(root, kept['path'] + '/' + name).is_file()
+                          for name in kept.get('copied', []))
+            tables = _tables_under(base, limit_files=None, limit=limit) if kept.get('copied') else []
+            return tables, 'run_partial' if kept.get('skipped') or missing else 'run'
+        except (KeyError, ValueError):
+            return [], 'run_unavailable'
+    case = run.get('execution_case_path')
+    if not case:
+        return [], None
+    return case_tables(project.resolve_path(root, case), limit=limit), 'case'
+
+
+def case_tables(case, limit_files=None, limit=1500):
+    """Latest function-object tables under a case, without solver-specific knowledge."""
+    return _tables_under(Path(case) / 'postProcessing', limit_files, limit)
+
+
+def _tables_under(base, limit_files=None, limit=1500):
+    base = Path(base)
     found = {}
     try:
-        for path in sorted(base.glob('*/*/*.dat')):
+        for path in sorted(base.glob('*/*/*')):
+            if not path.is_file() or path.suffix not in ('', '.dat'):
+                continue
             key = (path.parts[-3], path.name)
             if key not in found or path.stat().st_mtime >= found[key].stat().st_mtime:
                 found[key] = path
@@ -193,7 +261,7 @@ def case_tables(case, limit_files=12):
         return []
     tables = []
     for (name, filename), path in list(found.items())[:limit_files]:
-        columns = _table(path)
+        columns = _table(path, limit)
         if columns:
             tables.append({'name': name + '/' + filename, 'columns': columns})
     return tables
@@ -207,6 +275,29 @@ def _follower(root, rid):
 
 def _round(value):
     return float(f'{value:.3g}')
+
+
+def _stages(root, rid, run_state=None):
+    relative = f'result/{rid}/stages.json'
+    try:
+        data = json.loads(project.resolve_path(root, relative).read_text(encoding='utf-8'))
+        if data.get('version') != 1 or not isinstance(data.get('stages'), list):
+            return None
+        rows = []
+        for item in data['stages']:
+            if not isinstance(item, dict) or not isinstance(item.get('name'), str):
+                return None
+            row = dict(item)
+            if row.get('state') == 'running':
+                if run_state in TERMINAL:
+                    row['state'] = 'unfinished'
+                else:
+                    started = datetime.fromisoformat(row['started_at'].replace('Z', '+00:00'))
+                    row['elapsed_seconds'] = max(0., (datetime.now(timezone.utc)-started).total_seconds())
+            rows.append(row)
+        return {'path': relative, 'steps': rows}
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        return None
 
 
 def wait(root, rid, *, timeout=None, residual_below=None, stop_on_divergence=False, then_stop=False,
@@ -250,8 +341,8 @@ def wait(root, rid, *, timeout=None, residual_below=None, stop_on_divergence=Fal
         sleep(poll_seconds)
     run = project.read_run(root, rid)
     monitors = {}
-    if run.get('execution_case_path'):
-        for table in case_tables(project.resolve_path(root, run['execution_case_path'])):
+    if True:
+        for table in run_tables(root, run)[0]:
             monitors[table['name']] = {column['label']: {'axis': column['points'][-1][0],
                                                        'value': column['points'][-1][1]}
                                        for column in table['columns']}
@@ -260,7 +351,7 @@ def wait(root, rid, *, timeout=None, residual_below=None, stop_on_divergence=Fal
                'last_step': follower.last_axis,
                'residuals': {key: _round(value) for key, value in follower.latest().items()},
                'fatal': follower.fatal, 'stop_requested': stop_sent, 'log': log_relative,
-               'monitors': monitors}
+               'monitors': monitors, 'stages': _stages(root, rid, state)}
     return summary
 
 
@@ -299,27 +390,49 @@ class _Monitor:
                          'program': request.get('program'), 'started_at': state.get('started_at')})
         return rows
 
-    def run(self, rid, generation, have):
+    def run(self, rid, generation, have, source=None):
         with self.lock:
             if rid not in self.followers:
                 self.followers[rid] = _follower(self.root, rid)
-            follower, _, log_relative = self.followers[rid]
-            follower.poll()
+            main, run, main_relative = self.followers[rid]
+            main.poll()
+            sources = [main_relative]
+            case = project.resolve_path(self.root, run['execution_case_path'])
+            for name in main.stage_logs:
+                relative = name.replace('\\', '/').removeprefix('./')
+                try:
+                    path = project.resolve_path(self.root, relative)
+                    if path.is_relative_to(case) and path.is_file() and relative not in sources:
+                        sources.append(relative)
+                except ValueError:
+                    continue
+            if source is not None and source not in sources:
+                raise ValueError('unknown log source')
+            log_relative = source or sources[-1]
+            if log_relative == main_relative:
+                follower = main
+            else:
+                key = (rid, log_relative)
+                if key not in self.followers:
+                    self.followers[key] = (LogFollower(project.resolve_path(self.root, log_relative)), run, log_relative)
+                follower = self.followers[key][0]
+                follower.poll()
             if observed_status(self.root, rid).get('data', {}).get('state') in TERMINAL:
                 follower.finish()
             residuals = follower.increment(generation, have)
-            fatal, recent, last = follower.fatal, list(follower.recent), follower.last_axis
+            fatal, recent, last = main.fatal or follower.fatal, list(follower.recent), follower.last_axis
         status = observed_status(self.root, rid)
         run = project.read_run(self.root, rid)
         state = run.get('execution_state') or {}
-        tables = []
-        if run.get('execution_case_path'):
-            tables = case_tables(project.resolve_path(self.root, run['execution_case_path']))
+        tables, tables_source = run_tables(self.root, run)
         return {'rid': rid, 'state': status.get('data', {}).get('state'), 'fatal': fatal, 'last_step': last,
                 'program': (run.get('execution_request') or {}).get('program'),
                 'started_at': state.get('started_at'), 'finished_at': state.get('finished_at'),
                 'exit_code': state.get('exit_code'), 'log': log_relative, 'recent': recent,
-                'residuals': residuals, 'tables': tables}
+                'case': run.get('execution_case_path'), 'tables_source': tables_source,
+                'tables_skipped': (run.get('monitor_tables') or {}).get('skipped', []),
+                'residuals': residuals, 'tables': tables, 'log_sources': sources,
+                'stages': _stages(self.root, rid, status.get('data', {}).get('state'))}
 
 
 def _handler(monitor, page):
@@ -352,7 +465,7 @@ def _handler(monitor, page):
                         return self._send(400, b'invalid run id', 'text/plain')
                     generation = int(query['gen'][0]) if query.get('gen') else None
                     have = [int(item) for item in query.get('have', [''])[0].split(',') if item]
-                    body = monitor.run(rid, generation, have)
+                    body = monitor.run(rid, generation, have, query.get('source', [None])[0])
                 else:
                     return self._send(404, b'not found', 'text/plain')
             except (OSError, ValueError, KeyError, TypeError) as error:

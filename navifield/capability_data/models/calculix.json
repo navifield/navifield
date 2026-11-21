@@ -1,0 +1,239 @@
+{
+  "domain": "solid_mechanics",
+  "solver": "calculix",
+  "version": "2.22",
+  "models": [
+    {
+      "id": "isotropic_linear_static",
+      "label": "各向同性小变形线弹性静力",
+      "capability_ids": [
+        "calculix.linear_static"
+      ],
+      "mechanisms": [
+        "elasticity"
+      ],
+      "goals": [
+        "displacement",
+        "stress"
+      ],
+      "conditions": {
+        "thermal_feedback": [
+          "none"
+        ],
+        "geometry": [
+          "solid"
+        ],
+        "analysis": [
+          "quasistatic"
+        ],
+        "material_response": [
+          "linear_elastic"
+        ],
+        "deformation": [
+          "small"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "elastic_modulus",
+          "meaning": "弹性模量，单位 Pa 或一致单位制的应力单位。"
+        },
+        {
+          "key": "poisson_ratio",
+          "meaning": "泊松比，无量纲。"
+        },
+        {
+          "key": "supports",
+          "meaning": "约束自由度和支承位置。"
+        },
+        {
+          "key": "mechanical_load",
+          "meaning": "力、压力或规定非零位移及其作用位置。"
+        }
+      ],
+      "outputs": [
+        "位移矢量",
+        "应力张量，可按指定区域计算 von Mises 等效应力"
+      ],
+      "assumptions": [
+        "载荷变化足够慢可忽略惯性，变形对刚度影响可忽略。"
+      ],
+      "limitations": [
+        "无法给出屈服卸载后的残余应变；约束、尖角和载荷集中会影响局部峰值。"
+      ],
+      "basis": "关心小挠度、弹性载荷下的静态响应时，由刚度、载荷和支承即可求位移与应力。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§5.1 Cantilever beam；*ELASTIC、*STATIC、*NODE FILE、*EL FILE",
+          "claim": "官方悬臂梁示例包含材料、支承、载荷和位移应力输出。"
+        }
+      ],
+      "couplings": []
+    },
+    {
+      "id": "incremental_metal_plasticity",
+      "label": "金属增量弹塑性",
+      "capability_ids": [
+        "calculix.nonlinear_static_plasticity"
+      ],
+      "mechanisms": [
+        "elasticity",
+        "plasticity"
+      ],
+      "goals": [
+        "displacement",
+        "stress",
+        "plastic_strain"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "analysis": [
+          "quasistatic"
+        ],
+        "material_response": [
+          "yielding_metal"
+        ],
+        "deformation": [
+          "small",
+          "large"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "elastic_modulus",
+          "meaning": "弹性模量，单位 Pa 或一致单位制的应力单位。"
+        },
+        {
+          "key": "poisson_ratio",
+          "meaning": "泊松比，无量纲。"
+        },
+        {
+          "key": "supports",
+          "meaning": "约束自由度和支承位置。"
+        },
+        {
+          "key": "load_history",
+          "meaning": "分步加载与卸载路径、载荷大小和位置。"
+        },
+        {
+          "key": "hardening_curve",
+          "meaning": "与硬化规律一致的真屈服应力–等效塑性应变曲线，应力单位与模型一致。"
+        }
+      ],
+      "outputs": [
+        "位移、应力及等效塑性应变；卸载步可读回永久变形"
+      ],
+      "assumptions": [
+        "按材料试验选硬化规律；大变形时开启几何非线性，并检查增量和收敛。"
+      ],
+      "limitations": [
+        "超出材料曲线标定范围及多轴循环条件须另行验证。曲线原始工程应变需先转换。"
+      ],
+      "basis": "需求涉及屈服与永久变形，须显式计算载荷历程及塑性内变量。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "§6.8.9 Incremental plasticity，印刷页 260–261；*PLASTIC、*STATIC",
+          "claim": "硬化数据要求 von Mises 真应力与等效塑性对数应变。弹性属性与塑性模型共同定义。"
+        }
+      ],
+      "couplings": []
+    },
+    {
+      "id": "one_way_thermal_expansion",
+      "label": "给定温度场驱动的线弹性热应力",
+      "capability_ids": [
+        "calculix.linear_static",
+        "calculix.coupled_thermomechanical"
+      ],
+      "mechanisms": [
+        "elasticity",
+        "thermal_expansion"
+      ],
+      "goals": [
+        "stress",
+        "displacement",
+        "thermal_strain"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "analysis": [
+          "quasistatic"
+        ],
+        "material_response": [
+          "linear_elastic"
+        ],
+        "deformation": [
+          "small"
+        ],
+        "thermal_feedback": [
+          "one_way"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "elastic_modulus",
+          "meaning": "弹性模量，单位 Pa 或一致单位制的应力单位。"
+        },
+        {
+          "key": "poisson_ratio",
+          "meaning": "泊松比，无量纲。"
+        },
+        {
+          "key": "supports",
+          "meaning": "约束自由度和支承位置。"
+        },
+        {
+          "key": "temperature_field",
+          "meaning": "结构节点温度分布，温标和上游结果须一致。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度，均匀值或初始节点场。"
+        },
+        {
+          "key": "expansion_coefficient",
+          "meaning": "线膨胀系数 1/K；温变表应符合软件总膨胀系数定义。"
+        },
+        {
+          "key": "reference_temperature",
+          "meaning": "与材料膨胀表一致的参考温度。"
+        }
+      ],
+      "outputs": [
+        "由热应变驱动的位移、应力；均匀升温且自由膨胀时可有位移而应力近零。"
+      ],
+      "assumptions": [
+        "小变形线弹性；温度场已知；约束形式决定热膨胀是否产生应力。"
+      ],
+      "limitations": [
+        "此路线没有位移对温度的迭代反馈；热接触或几何变形影响热流须另行建模。"
+      ],
+      "basis": "温度或温度梯度已知且结构变形对温度影响可忽略时，先传递节点温度，再用热应变求受约束结构的变形与应力。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "*EXPANSION、*TEMPERATURE、*INITIAL CONDITIONS, TYPE=TEMPERATURE、*STATIC",
+          "claim": "原生材料热膨胀与节点温度载荷可用于结构热应变；初态和膨胀系数的参考温度均影响热应变定义。"
+        }
+      ],
+      "couplings": [
+        {
+          "from_field": "温度场",
+          "to_field": "结构位移与应力场",
+          "quantity": "节点温度（K 或与材料表一致的温标）",
+          "transfer": "同网格可沿用节点温度，指定初温和温度载荷，以膨胀关系产生热应变。",
+          "custom_work": "不同网格或外部热求解器需建立节点对应或空间插值，核对温标、边界及映射误差。"
+        }
+      ]
+    }
+  ]
+}

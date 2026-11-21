@@ -1,0 +1,187 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "chains": [
+    {
+      "id": "enclosed_air_natural_convection",
+      "status": "custom",
+      "scope": "OpenCFD OpenFOAM v2606；密闭空气腔、差温浮力、单流体域。稳态 RANS 或瞬态后取均值；标准 k–ε 和壁函数是指定对照候选，需核验 Ra 与近壁网格。冻结论文边界已在 Windows 工作站完成双网格原生运行和腔内温度对照；稳态残差未达到准则，实验验收仍待核实。其他客户几何和瞬态工况需独立建模。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "thermal_buoyancy_model",
+          "operation": "选择稳态 SIMPLE 或瞬态 PIMPLE 与密度模型",
+          "equation": "解质量、动量和能量；Boussinesq 仅浮力用 ρ≈ρ_ref[1−β(T−T_ref)]，其余采用参考物性；需要显著温变时由热物性和状态方程求 ρ(T,p)。",
+          "receives": [
+            "左右差温、顶底曲线或其他热边界、重力和流体热物性"
+          ],
+          "produces": [
+            "Boussinesq：稳态 buoyantBoussinesqSimpleFoam / 瞬态 buoyantBoussinesqPimpleFoam。",
+            "变密度：稳态 buoyantSimpleFoam / 瞬态 buoyantPimpleFoam。"
+          ],
+          "depends_on": [],
+          "implementation": "custom",
+          "evidence": [
+            "boussinesq_steady",
+            "boussinesq_transient",
+            "density_steady",
+            "density_transient"
+          ]
+        },
+        {
+          "id": "wall_rans",
+          "operation": "配置湍流及热壁面处理并核验",
+          "equation": "标准 k–ε 用涡黏闭合；热湍扩散取所选求解器一致 Prt 定义。水平面可给固定温度曲线；绝热仅在用户已确认时采用。",
+          "receives": [
+            "Ra、近壁网格和首层 y+、no-slip、k/ε 初值、壁面函数及热边界"
+          ],
+          "produces": [
+            "稳态收敛场或达到统计稳态的 U/T/p_rgh 场；按需要输出热通量"
+          ],
+          "depends_on": [
+            "thermal_buoyancy_model"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "k_epsilon",
+            "wall_functions",
+            "hotroom_vendor_case"
+          ]
+        },
+        {
+          "id": "sample_temperature",
+          "operation": "腔内温度剖面采样",
+          "equation": "θ=(T−T_c)/(T_h−T_c)；与实验取同坐标和统计量。",
+          "receives": [
+            "内部采样坐标、时均/稳态定义、局部 T"
+          ],
+          "produces": [
+            "内部 T [K]、指定剖面的 θ [1]"
+          ],
+          "depends_on": [
+            "wall_rans"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "boussinesq_steady"
+          ]
+        },
+        {
+          "id": "sample_velocity",
+          "operation": "腔内速度分量采样",
+          "equation": "沿指定坐标方向投影 U 并按指定时间窗统计。",
+          "receives": [
+            "内部采样坐标、分量方向与符号、U"
+          ],
+          "produces": [
+            "有符号分量 [m/s] 或采用实验一致无量纲尺度"
+          ],
+          "depends_on": [
+            "wall_rans"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "density_steady"
+          ]
+        },
+        {
+          "id": "wall_heat_transfer",
+          "operation": "分边界报告局部或积分对流热流",
+          "equation": "按法向定义 qʺ，对流热流与辐射/固体传导通量的测量定义分别核对。",
+          "receives": [
+            "指定壁面、热通量或法向梯度、积分范围及参考状态"
+          ],
+          "produces": [
+            "局部 W/m²、积分 W 或按指定尺度的 Nu"
+          ],
+          "depends_on": [
+            "wall_rans"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "density_steady"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "湍流和壁函数适用性",
+          "relation": "核对 kEpsilon、kqRWallFunction、epsilonWallFunction、nutkWallFunction 和可用热通量闭合、Prt 与浮力湍流源。 buoyancyTurbSource 是可配置的湍流输运浮力源，与动量浮力不同。",
+          "applicability": "所选壁函数的近壁 y+ 与流态一致；OpenFOAM 模型及常数向 Fluent 项目核对，不保证壁函数等价。 Pachera 未完整公布 Fluent 的湍流浮力产项和热壁面通量配置。",
+          "implementation": "custom",
+          "evidence": [
+            "k_epsilon",
+            "wall_functions",
+            "buoyancy_turbulence_source"
+          ]
+        }
+      ],
+      "custom_work": [
+        "按选中的密度模型冻结物性和压力参考，映射四壁；实验顶底壁温曲线只在相同工况下作为边界。",
+        "采样对齐深度、冷热方向和温度归一，明确稳态迭代不等同物理时间。"
+      ],
+      "checks": [
+        "核验各壁热量闭合、网格/壁面 y+、残差及内部监测量；瞬态另核验时间步和统计窗。",
+        "只将内部同坐标实验点作为独立温度对照；Pachera Fluent 图应单独数字化并保留读图误差。"
+      ],
+      "sources": [
+        {
+          "id": "boussinesq_steady",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/buoyantBoussinesqSimpleFoam.C",
+          "locator": "OpenFOAM-v2606 buoyantBoussinesqSimpleFoam；TEqn.H 与压力/重力项",
+          "claim": "稳态 Boussinesq 承载单流体温度浮力方程。"
+        },
+        {
+          "id": "boussinesq_transient",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/buoyantBoussinesqPimpleFoam.C",
+          "locator": "OpenFOAM-v2606 buoyantBoussinesqPimpleFoam",
+          "claim": "瞬态 Boussinesq。"
+        },
+        {
+          "id": "density_steady",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/buoyantSimpleFoam.C",
+          "locator": "OpenFOAM-v2606 buoyantSimpleFoam 与 rhoThermo",
+          "claim": "稳态变密度热物性。"
+        },
+        {
+          "id": "density_transient",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantPimpleFoam/buoyantPimpleFoam.C",
+          "locator": "OpenFOAM-v2606 buoyantPimpleFoam",
+          "claim": "瞬态变密度热物性。"
+        },
+        {
+          "id": "k_epsilon",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/TurbulenceModels/turbulenceModels/RAS/kEpsilon/kEpsilon.C",
+          "locator": "OpenFOAM-v2606 RAS kEpsilon 实现",
+          "claim": "标准 k–ε 模型实现。"
+        },
+        {
+          "id": "wall_functions",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.H",
+          "locator": "OpenFOAM-v2606 nutkWallFunction 与对应 k、ε 壁函数",
+          "claim": "核对近壁模型与湍流字段。"
+        },
+        {
+          "id": "hotroom_vendor_case",
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/heatTransfer/buoyantBoussinesqSimpleFoam/hotRoom",
+          "locator": "v2606 hotRoom, constant/turbulenceProperties and 0.orig/{k,epsilon,nut,alphat}",
+          "claim": "v2606 随安装发布的 hotRoom 使用 kEpsilon、kqRWallFunction、epsilonWallFunction、nutkWallFunction、alphatJayatillekeWallFunction；仅作字段/壁函数字典示例。"
+        },
+        {
+          "id": "buoyancy_turbulence_source",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/fvOptions/sources/derived/buoyancyTurbSource/buoyancyTurbSource.H",
+          "locator": "OpenFOAM-v2606 fvOptions buoyancyTurbSource",
+          "claim": "湍流输运附加浮力源与动量方程的重力浮力有独立配置；是否采用及源项等价需要验证。"
+        }
+      ]
+    }
+  ]
+}

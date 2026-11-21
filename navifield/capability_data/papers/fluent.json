@@ -1,0 +1,928 @@
+[
+  {
+    "id": "fluent-orc-recuperator-2026",
+    "doi": "10.3390/en19184278",
+    "title": "Domain-Reduced CFD of a Brazed-Plate Recuperator for Organic Rankine Cycles: Validation and Heat-Transfer Correlations",
+    "authors": "Saverio Ottaviano, Filippo Monaco, Andrea De Pascale",
+    "year": 2026,
+    "software_version": "2024 R1",
+    "industry": "工业余热回收与有机朗肯循环",
+    "targets": [
+      "temperature",
+      "heat_rate",
+      "pressure_drop",
+      "heat_transfer_coefficient"
+    ],
+    "source_url": "https://www.mdpi.com/1996-1073/19/18/4278",
+    "source_locator": "§2 图1/表1；§3.1–3.2；§4.1–4.4；§5.1 图12/表6；§5.2 表7；Data Availability Statement",
+    "conditions": [
+      "16板 ONDA S202，R134a 热侧蒸气、冷侧液体",
+      "五个稳态工况，整机质量流量 0.08–0.22 kg/s，Re 约 500–18,500"
+    ],
+    "model_chain": [
+      "从整机提取一对冷热侧波纹流道与其间传热板，沿轴向截取充分发展段并使用纵向对称",
+      "使用 Fluent Meshing 生成多面体与近壁棱柱网格，约449万单元",
+      "各侧质量流量入口和压力出口，外壁绝热，稳态压力基 coupled，SST k–ω",
+      "用 ε–NTU 和压损重建把整机端口值映射至计算段；使用局部换热系数拟合单相 Nu 相关式"
+    ],
+    "required_inputs": [
+      "冷热流道与隔板几何、材料及波纹参数",
+      "实测冷热端温度、绝对压力、整机质量流量",
+      "通道数及对称缩放，端口局部损失关联式",
+      "R134a 热物性及测量不确定度"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "整机端口温度、压力及质量流量",
+        "detail": "作者在博洛尼亚大学微型 ORC 台架测得；热电偶标称 ±0.5 °C，热侧与冷侧压力传感器分别 ±0.025 和 ±0.075 bar。",
+        "locator": "§2 图1"
+      },
+      {
+        "kind": "derived",
+        "quantity": "heat_rate",
+        "detail": "由整机质量流量和温变构造换热功率基准，再按有效度换算至缩减域；计算段以侧别温变比较，1–10% 是温变误差。",
+        "locator": "§3.1，§5.1 表 6"
+      },
+      {
+        "kind": "derived",
+        "quantity": "缩减域温差与通道压降基准",
+        "detail": "温差由 ε–NTU 从整机实测端口状态映射；总压降扣除相关式估计的局损，再按线性轴向分布分配至模型段。",
+        "locator": "§3.1–3.2"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "冷热侧温变与进口压力",
+        "detail": "五个工况温变误差约 1–10%，热侧绝对进口压力与派生基准误差低于1%。",
+        "locator": "§5.1 表6、图12"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "局部温度、压力和流速",
+        "detail": "对应第四个试验工况的场量图出自 CFD。",
+        "locator": "§5.1 图9–11"
+      }
+    ],
+    "limitations": [
+      "冷侧通道压降低于传感器不确定度，尚未验证",
+      "波纹节距和人字角由文献估算；局部场缺少实测对照",
+      "原始数据按需向通讯作者索取，未见可直接下载的完整 Fluent 工程"
+    ],
+    "provenance": "出版商开放原始研究，页面刊载日期 2026-09-09，早于工作区 2026-11-20。整机台架为作者团队实验。",
+    "software": "Fluent"
+  },
+  {
+    "id": "fluent-lfp-pack-air-cooling-2024",
+    "doi": "10.3390/en17143504",
+    "title": "Research on the Design of a MIMO Management System for Lithium-Ion Batteries Based on Radiation–Conductivity–Convection Coupled Thermal Analysis",
+    "authors": "Qian Wang, Linbin Yan, Lushi Yang, Jianxiao Wang",
+    "year": 2024,
+    "software_version": "2022 R1",
+    "industry": "储能电池热管理",
+    "targets": [
+      "temperature",
+      "wall_temperature",
+      "probe_temperature"
+    ],
+    "source_url": "https://www.mdpi.com/1996-1073/17/14/3504",
+    "source_locator": "摘要；§2.3 图2–3；§2.4 图4–5；§4 图16/表3；Data Availability Statement",
+    "conditions": [
+      "磷酸铁锂电池包基线放电 1C、1.5C、2C",
+      "模拟入口空气 2 m/s、298.15 K，出口为压力边界"
+    ],
+    "model_chain": [
+      "简化电池包内部结构，建立实体电芯、箱体和空气域",
+      "压力基瞬态 SIMPLEC，二阶迎风，S2S 辐射及流固表面耦合换热",
+      "用 DS18B20 监测台架电芯温度，再用优化样机检验风道与变速风扇控制"
+    ],
+    "required_inputs": [
+      "电芯、箱体与空气通道实体几何",
+      "各材料热物性及表面发射率",
+      "放电倍率与发热模型、入口风速和温度",
+      "温度测点坐标、风扇转速策略和环境温度",
+      "传感器至电芯及表面位置、采样时刻和放电状态，以及完整测量不确定度",
+      "入口截面积/风机曲线与实验实测流量；电芯各向异性热物性与界面热阻",
+      "每个倍率的体积发热率或独立的电流、电压、开路电压和熵热数据"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "电池包基线温度",
+        "detail": "作者台架使用 DS18B20 温度传感器，精度 ±0.5 K。",
+        "locator": "§2.4 图4–5"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "电芯温度",
+        "detail": "三种放电倍率下，作者报告测点温度对照误差为 1.5–2.72 K。",
+        "locator": "§2.4 图5"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "温度分布",
+        "detail": "2C 时各电芯温度范围为 305.28–317.30 K。",
+        "locator": "§2.3 图2–3"
+      },
+      {
+        "kind": "derived",
+        "quantity": "包间最高温差",
+        "detail": "对作者台架温度数据计算，优化前不同包的最高温度差可达 7 K，优化后报告为 3.33 K。",
+        "locator": "§4 图16、表3"
+      }
+    ],
+    "limitations": [
+      "恒定热源忽略放电后段内阻和发热变化",
+      "流场云图属于模拟，实验依据为温度测点",
+      "数据声明指向正文，未见可下载的工程文件或原始温度时序",
+      "Fig 5 是按传感器编号的二维图形读数，不是原始时间序列；传感器编号不能自动映射为图1电芯编号。",
+      "当前数据无法构成可复建的风冷温度场或全场验证；额定倍率电流换算不是热求解。"
+    ],
+    "provenance": "出版商开放原始研究。基线测点与优化样机数据来自作者实验。",
+    "software": "Fluent",
+    "reproduction": {
+      "status": "not_run",
+      "scope": "原始风冷电池包的热场尚未复建；仅冻结图 5 传感器图形读数和单电芯额定电流换算，不构成温度或CFD验证。",
+      "routes": [
+        {
+          "chain": "internally_heated_forced_cht",
+          "solver": "openfoam_opencfd",
+          "version": "v2606",
+          "requires_explicit_doi": true
+        }
+      ],
+      "cases": [],
+      "brief_results": [
+        {
+          "kind": "published_sensor_graph_comparison",
+          "conditions": "Fig. 5(a–c) 的 1C/1.5C/2C 各 10 个编号，红圆点实验图读共 30 项、黑方块作者仿真图读共 30 项。50/75/100 A 仅由额定 50 Ah 与倍率换算，未执行热求解，现有输入不能预测实际温度；测点坐标、时刻及总不确定度未知。",
+          "measurements": [
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 1,
+              "value": 303.52,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 2,
+              "value": 311.29,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 3,
+              "value": 304.25,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 4,
+              "value": 312.25,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 5,
+              "value": 304.43,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 6,
+              "value": 312.65,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 7,
+              "value": 304.04,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 8,
+              "value": 312.17,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 9,
+              "value": 304.3,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 10,
+              "value": 311.37,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 1,
+              "value": 305.6,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 2,
+              "value": 316.15,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 3,
+              "value": 306.14,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 4,
+              "value": 316.79,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 5,
+              "value": 306.96,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 6,
+              "value": 316.03,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 7,
+              "value": 306.02,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 8,
+              "value": 316.0,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 9,
+              "value": 306.19,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 10,
+              "value": 315.87,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 1,
+              "value": 307.45,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 2,
+              "value": 317.24,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 3,
+              "value": 308.54,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 4,
+              "value": 319.57,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 5,
+              "value": 308.54,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 6,
+              "value": 320.03,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 7,
+              "value": 308.94,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 8,
+              "value": 319.27,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 9,
+              "value": 308.02,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "experimental_sensor_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 10,
+              "value": 319.01,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 1,
+              "value": 301.84,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 2,
+              "value": 309.53,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 3,
+              "value": 302.47,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 4,
+              "value": 310.52,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 5,
+              "value": 302.86,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 6,
+              "value": 310.71,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 7,
+              "value": 302.48,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 8,
+              "value": 310.43,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 9,
+              "value": 302.62,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.0,
+              "sensor_number": 10,
+              "value": 309.87,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 1,
+              "value": 303.57,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 2,
+              "value": 314.25,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 3,
+              "value": 303.96,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 4,
+              "value": 314.73,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 5,
+              "value": 304.58,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 6,
+              "value": 314.13,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 7,
+              "value": 304.06,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 8,
+              "value": 313.92,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 9,
+              "value": 304.48,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 1.5,
+              "sensor_number": 10,
+              "value": 314.25,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 1,
+              "value": 305.3,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 2,
+              "value": 314.55,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 3,
+              "value": 306.1,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 4,
+              "value": 317.06,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 5,
+              "value": 306.98,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 6,
+              "value": 317.31,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 7,
+              "value": 306.62,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 8,
+              "value": 317.26,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 9,
+              "value": 305.82,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            },
+            {
+              "quantity": "probe_temperature",
+              "kind": "author_simulation_graph_readback",
+              "rate_C": 2.0,
+              "sensor_number": 10,
+              "value": 316.33,
+              "unit": "K",
+              "graphical_halfwidth_K": 0.15,
+              "locator": "Fig 5(a-c)"
+            }
+          ],
+          "nominal_current_context": {
+            "basis": "额定单电芯容量 50 Ah × 倍率，仅代数换算",
+            "rates_C": [
+              1,
+              1.5,
+              2
+            ],
+            "nominal_current_A": [
+              50,
+              75,
+              100
+            ],
+            "thermal_reproduction": "NOT_RUN"
+          }
+        },
+        {
+          "kind": "nominal_c_rate_algebra",
+          "conditions": "单电芯额定50 Ah，倍率定义；为派生电流，不是实测电流历程或发热输入。",
+          "measurements": [
+            {
+              "rate_C": 1,
+              "nominal_cell_current_A": 50,
+              "quantity": "nominal_cell_current",
+              "unit": "A",
+              "value": 50
+            },
+            {
+              "rate_C": 1.5,
+              "nominal_cell_current_A": 75.0,
+              "quantity": "nominal_cell_current",
+              "unit": "A",
+              "value": 75.0
+            },
+            {
+              "rate_C": 2,
+              "nominal_cell_current_A": 100,
+              "quantity": "nominal_cell_current",
+              "unit": "A",
+              "value": 100
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "图5传感器至电芯与表面坐标、采样时刻、SOC、重复试验和总不确定度不明；±0.5 K是论文报告的传感器精度。",
+        "体热源数值及历史、各向异性热物性、几何间距、辐射率、接触、风机与实测流量等缺失；2 m/s入口不是总流量。"
+      ],
+      "source_evidence": {
+        "publisher_pdf_sha256": "9ceadc65a5e2270f66266d37be180ae784cddbfe6796c8484c31d20fa032d4c3",
+        "figure5_sha256": "d365322d337cbb5819508e2d325cae61d440e61a3d3c3cd1bb3dccd9d84b4fa6",
+        "frozen_input_sha256": "2ecb4d91479e4a16ea85f118a7d71df8b5554a9516d6007f8db55f36dcddb045",
+        "experiment_holdout_sha256": "dcfa067eb9e9c78d55b09c7c713ae9d294090a7e081b7569d8bf347e20ac54fc",
+        "author_simulation_holdout_sha256": "2c5225ff3266c5117489cad0be8ddf860473d596a6fd093b6ee47db54e2e8808",
+        "digitization_script_sha256": "28f4c3a7fe8257cb898cd86e0869bfef75ead984dd53c0b5676b5508ab3e3bc4"
+      }
+    }
+  },
+  {
+    "id": "fluent-solenoid-valve-sensor-2021",
+    "doi": "10.3390/s21248287",
+    "title": "The Computational Fluid Dynamics (CFD) Analysis of the Pressure Sensor Used in Pulse-Operated Low-Pressure Gas-Phase Solenoid Valve Measurements",
+    "authors": "Dariusz Szpica, Grzegorz Mieczkowski, Andrzej Borawski, Vitalis Leisis, Saulius Diliunas, Tilmute Pilkaite",
+    "year": 2021,
+    "software_version": null,
+    "industry": "车辆燃气供给与阀门传感器",
+    "targets": [
+      "pressure_transient",
+      "response_time"
+    ],
+    "source_url": "https://www.mdpi.com/1424-8220/21/24/8287",
+    "source_locator": "摘要；§2.3 图3；§3.1 图4/6；§3.3 图10–12/表4–5；Data Availability Statement",
+    "conditions": [
+      "Valtek Rail Type-30 低压气相喷射阀，试验介质为空气",
+      "8档入口–出口压差 25–200 kPa，间隔25 kPa，出口为环境条件"
+    ],
+    "model_chain": [
+      "建立喷射阀和压力传感器连通流道，四面体网格转多面体，壁面无滑移",
+      "SST k–ω、压力基 SIMPLE；实测柱塞位移输入动网格，使用平滑、分层和重构",
+      "从试验与模拟的传感器平板压力时序识别全开与全关时间"
+    ],
+    "required_inputs": [
+      "阀门、传感器和连接流道的尺寸或 CAD",
+      "供气压差、空气物性和脉冲持续时间",
+      "柱塞位移时序、压力传感器采集时序及测点位置"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "柱塞位移与传感器压力时序",
+        "detail": "作者台架采集；柱塞位移按 0.1 ms 取样并经样条插值输入动网格，压力为独立测量响应。",
+        "locator": "§3.1 图4、6；§3.3 图10"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "传感器板压力时序",
+        "detail": "由指定柱塞位移驱动的瞬态 CFD 预测，通过压力特征识别开闭时刻。",
+        "locator": "§3.2 图7；§3.3 图10"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "全开与全关时间",
+        "detail": "全开在 75/100/125/175 kPa 一致，其余差异不超过3%；全关 CFD 与实测压力法差异最大21%，25 kPa 工况差异低于10%。",
+        "locator": "§3.3 图10–12、表4–5"
+      }
+    ],
+    "limitations": [
+      "Fluent 版本未报告；参考文献教程的版本不能视为运行版本",
+      "动网格详细设置未刊出，未见可下载的原始时序与工程文件",
+      "图10 图注重复标注压差，八档以正文与表格为准"
+    ],
+    "provenance": "出版商开放原始研究。位移测量、压力测量与台架来自作者团队。",
+    "software": "Fluent"
+  },
+  {
+    "id": "fluent-shale-gas-elbow-erosion-2024",
+    "doi": "10.3390/pr12061231",
+    "title": "Simulation of Elbow Erosion of Gas–Liquid–Solid Three-Phase Shale Gas Gathering Pipeline Based on CFD-DEM",
+    "authors": "Yixuan Wang, Rui Tan, Bei Chang, Bin Chen, Junxiang Li, Qianli Lu, Tao Zhang",
+    "year": 2024,
+    "software_version": "2019 R2",
+    "industry": "页岩气集输管道",
+    "targets": [
+      "erosion"
+    ],
+    "source_url": "https://www.mdpi.com/2227-9717/12/6/1231",
+    "source_locator": "§2；§3.2–3.4 图4；§4.2 图13–16；参考文献4；Data Availability Statement",
+    "conditions": [
+      "外部环状流实验：316钢弯头内径 76.2 mm，曲率半径比 1.5，砂粒 300 μm，气速 27 m/s",
+      "液相表观速度 0.005、0.009、0.015、0.018、0.027 m/s"
+    ],
+    "model_chain": [
+      "气液两相由 Fluent VOF 求解，固体颗粒由 EDEM 2018.2 求解，使用流体与颗粒耦合",
+      "压力基瞬态 SIMPLE；速度入口、压力出口、静止无滑移管壁",
+      "依据颗粒撞击条件用 Oka 模型计算壁面冲蚀，与外部试验比较"
+    ],
+    "required_inputs": [
+      "弯头内径、弯曲半径及上下游直管尺寸",
+      "气液速度与物性、含水率、砂粒尺寸和颗粒进料条件",
+      "管壁材料、颗粒接触参数、冲蚀模型参数和实验测点"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "外部台架冲蚀率",
+        "detail": "Vieira 等在 27 m/s 气速与 0.005–0.027 m/s 液体表观速度下开展环状流试验，章节载明弯头探头位于45°。",
+        "locator": "§3.4 图4、参考文献4"
+      },
+      {
+        "kind": "comparison",
+        "quantity": "弯头冲蚀率",
+        "detail": "作者报告弯头出口偏差较大，其他位置差异较小。",
+        "locator": "§3.4 图4"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "外弯壁冲蚀区分布",
+        "detail": "含水率 1% 时模拟的严重冲蚀位置为外弯壁底部，3% 时向外弯壁中上部移动。",
+        "locator": "§4.2.1 图13"
+      }
+    ],
+    "limitations": [
+      "实验来自 Vieira 等他组研究，DOI 10.1016/j.powtec.2017.07.087",
+      "出口偏差较大，本记录不用于出口冲蚀定量验证",
+      "现场工况结果属于模拟；作者声明原始数据可按需提供"
+    ],
+    "provenance": "出版商开放原始 CFD–DEM 研究，使用文献4所列外部实验作为对照。",
+    "software": "Fluent"
+  }
+]

@@ -1,0 +1,512 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "chains": [
+    {
+      "id": "forced_duct_pressure_drop",
+      "status": "configured",
+      "scope": "复用 OpenCFD v2606 simpleFoam 的 pressure_drop 目标能力。给定定常流量、风机或泵只作域外送流、刚性单相内流与低速近不可压；病例配置和测站读回须本地确认，泵/风机自身性能需独立路线。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "fixed_flow_boundary",
+          "operation": "按给定流量配置入口和匹配的下游边界",
+          "equation": "Q=∫u·n_in dA；ṁ=∫ρu·n_in dA。指定入口流量及下游参考静压，质量流量须一致密度。",
+          "receives": [
+            "实流量 [m³/s] 或质量 [kg/s]、管段网格与 wall、入口流向、流体状态与下游边界"
+          ],
+          "produces": [
+            "v2606 flowRateInletVelocity 体积或质量约束、出口压力基准"
+          ],
+          "depends_on": [],
+          "implementation": "configured",
+          "evidence": [
+            "flow_rate_2606",
+            "simple_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "flow_rate",
+              "duct_geometry",
+              "fluid_state",
+              "outlet_boundary"
+            ],
+            "outputs": [
+              "flow_boundary_conditions"
+            ]
+          }
+        },
+        {
+          "id": "steady_internal_flow",
+          "operation": "OpenCFD v2606 simpleFoam 稳态不可压求解",
+          "equation": "∇·U=0，动量/压力由 SIMPLE 耦合，按流态使用层流或适当 RANS。",
+          "receives": [
+            "固定流量与下游/壁面边界、黏度/密度、网格和流态"
+          ],
+          "produces": [
+            "速度 U [m/s]、运动学压力 p [m²/s²]、面流量 φ [m³/s]"
+          ],
+          "depends_on": [
+            "fixed_flow_boundary"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "simple_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "flow_boundary_conditions"
+            ],
+            "outputs": [
+              "pressure",
+              "velocity",
+              "face_flux"
+            ]
+          }
+        },
+        {
+          "id": "map_stations",
+          "operation": "核对上/下游取压选区及原生压力计量",
+          "equation": "simpleFoam p_phys=ρ p_kin [Pa]（同一参考基准）；p₀=p_phys+½ρ|U|²，对每面先构造总压再按约定加权。 壁面静压孔按实际孔/点局部取样，不以截面均值代替。",
+          "receives": [
+            "当前流场的 p/量纲、密度与必要的 U；两个面/点、权重与正方向"
+          ],
+          "produces": [
+            "按同口径得到的上/下游压力 [Pa] 与带符号面通量"
+          ],
+          "depends_on": [
+            "steady_internal_flow"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "simple_2606",
+            "surface_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "pressure",
+              "velocity",
+              "pressure_stations"
+            ],
+            "outputs": [
+              "station_pressures",
+              "station_flux"
+            ]
+          }
+        },
+        {
+          "id": "ordered_delta_p",
+          "operation": "报告有符号的压差及取压条件",
+          "equation": "Δp=⟨p⟩_up−⟨p⟩_down；总压同理；有标高差按能量式明确静水项，整段压损与局部出口表压分列。 扩压段静压回升并不等于总压上升；分列两者。",
+          "receives": [
+            "上游和下游采用同一个静压/总压口径的读数与边界基准"
+          ],
+          "produces": [
+            "气路压差 [Pa]、两站面和单位、正向及平均定义"
+          ],
+          "depends_on": [
+            "map_stations"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "surface_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "station_pressures"
+            ],
+            "outputs": [
+              "pressure_drop"
+            ]
+          }
+        }
+      ],
+      "closures": [
+        {
+          "name": "测站加权和基准",
+          "relation": "面积权重、单点/取压孔或有符号/绝对通量权重依实验定义选用；核对回流面及面积已计入的面通量避免重复乘面积。",
+          "applicability": "测压口与计算选区同几何，同工况、同基准及同压差定义；局部 recirculation 或可压缩场不可直接套用常密度公式。",
+          "implementation": "configured",
+          "evidence": [
+            "surface_2606",
+            "simple_2606"
+          ]
+        }
+      ],
+      "custom_work": [
+        "本地生成/检查流道网格与边界、测站及采样权重；复用 pressure_drop 选型与原生测站后处理，用户尚未确认之前不启动求解。",
+        "若启用薄阻力片，按 v2606 porousBafflePressure 的 cyclic 面和 D/I/length 核验局部静压跳跃，单独读整个流道的测站总压损失；禁止以猜测的滤芯曲线代入。"
+      ],
+      "checks": [
+        "核对同一质量/体积口径的入口出口守恒、测面法向与回流、压力单位，做网格和测站敏感性检查；规整管段可用 Darcy–Weisbach 核对。"
+      ],
+      "sources": [
+        {
+          "id": "simple_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/simpleFoam.C",
+          "locator": "OpenCFD v2606 simpleFoam, solver Description and required fields",
+          "claim": "稳态不可压 SIMPLE；原生 p 是 p/rho [m²/s²]。"
+        },
+        {
+          "id": "flow_rate_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/finiteVolume/fields/fvPatchFields/derived/flowRateInletVelocity/flowRateInletVelocityFvPatchVectorField.H",
+          "locator": "v2606 flowRateInletVelocity, Description/Usage",
+          "claim": "体积流量输入为 m³/s，质量输入为 kg/s，入口正向；核对密度与速度入口剖面。"
+        },
+        {
+          "id": "surface_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.H",
+          "locator": "v2606 surfaceFieldValue, patch/faceZone and operation table",
+          "claim": "记录 areaAverage、weightedAverage、weightedAreaAverage 和绝对权重选项；面流量可用 sum 聚合。"
+        },
+        {
+          "id": "porous_baffle_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/porousBafflePressure/porousBafflePressureFvPatchField.H",
+          "locator": "OpenCFD v2606 porousBafflePressure, Description and Usage",
+          "claim": "基于 cyclic 的薄层压力跳跃，输入 D、I 和流向厚度；其跳跃量和两测站总压差为不同观测。"
+        }
+      ],
+      "benchmarks": [
+        {
+          "id": "ansys_vmfl003",
+          "title": "Ansys VMFL003 — Smooth circular pipe pressure loss",
+          "kind": "commercial_vendor_verification_case",
+          "source_url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/fbu_vm/Hlp_VMFL003.html",
+          "source_locator": "Ansys Verification Manual, v242, VMFL003; Input Data, Target, Results",
+          "native_status": "native_readback_residual_criterion_not_met",
+          "experiment_validation": "NOT_APPLICABLE",
+          "commercial_equivalence_tolerance": "NOT_SET",
+          "reference_pressure_drop_Pa": {
+            "Fluent": 21480,
+            "CFX": 21740,
+            "Moody": 21744
+          },
+          "reference_measurement": "Ansys Fluent 和 CFX 为厂商结果；Moody 为理论对照。量为入口减出口的静压差，单位 Pa。",
+          "case_input": {
+            "pipe_length_m": 2,
+            "pipe_radius_m": 0.002,
+            "rho_kg_m3": 1.225,
+            "dynamic_viscosity_Pa_s": 1.7894e-05,
+            "inlet_uniform_speed_m_s": 50,
+            "outlet_reference_pressure_Pa": 0,
+            "model": "OpenCFD v2606 simpleFoam，5° wedge、光滑壁、标准 k–ε、一阶网格通量离散；采用入口湍强度 5%、尺度 0.07D。",
+            "scope": "此工况与参数仅属冻结基准。厂商未给出完整专有入口剖面、网格和壁函数设置。"
+          },
+          "evidence": {
+            "source_commit": "9e440c88a5ccb46c5bd636207b46439a8558e029",
+            "input_archive_sha256": "23cc8c4311b186280c62709d70b97fb4597e4029e4b8238c07a4cfa91ecd7e60",
+            "station_executable_sha256": "6ec9eca60ecc3b36f5c1347aef77ae294a9b598cba53df6f4d931bd584e7d608",
+            "bundle_id": "station-9e440c88-r01",
+            "archive": {
+              "name": "results.tar.gz",
+              "sha256": "684c82437c72a14495d8f79607da6357aa5ae0d7f939e04d76deb5444f071d00"
+            },
+            "receipt": {
+              "member": "[internal evidence path withheld]",
+              "sha256": "af8ce0f21d59e3280af802508f80fbd339106fc0ada6681b690ae58507c2fc7a"
+            },
+            "comparison_receipt": {
+              "name": "comparison-9e440c88.json",
+              "sha256": "78c105d38f699221aeb9ecc7a75ef5176ebcf9a560f4ec80b7fde50d35ca5ea9"
+            },
+            "frozen_source_files": [
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "d46e6f5cf5aac95f64bad0764da1aa266ede839091423c174509ab67f7ef9b9b"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "ff0a1caece5fff48c69ec0d6961e9261240d2a308434ea9acc6b3c5a17a84717"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "7b463e6463fcb0d634719a01c6863f5be622c4ee0d6bef3abcb989d9d7dcd70f"
+              },
+              {
+                "path": "[internal evidence path withheld]",
+                "sha256": "e5223adaead9683c703123220acbabf193581b15d286e56d3a386441bce2930f"
+              }
+            ]
+          },
+          "comparisons": [
+            {
+              "mesh": "coarse",
+              "rid": "r003",
+              "archive_log_sha256": "d0acf10900ec2a88d3cfe6c55bcbfed6f7f2eedd18ee6f58782ea780c8698645",
+              "seconds": 91.99,
+              "last_solver_iteration": 5000,
+              "declared_convergence": false,
+              "terminal_initial_residuals": {
+                "Ux": 1.314464884e-08,
+                "Uy": 2.379409245e-07,
+                "Uz": 0.01006486903,
+                "p": 1.999725924e-08,
+                "epsilon": 9.380576733e-09,
+                "k": 4.313924878e-08
+              },
+              "yplus_final_min_max_avg": [
+                23.92879227,
+                32.12632878,
+                31.67045508
+              ],
+              "station_sample_times": [
+                4980.0,
+                4990.0,
+                5000.0
+              ],
+              "last_three_pressure_drop_Pa": [
+                20880.7632887,
+                20880.763004500004,
+                20880.764011450003
+              ],
+              "terminal_span_fraction": 4.822381010592385e-08,
+              "flux_imbalance_fraction": 5.62211857546288e-10,
+              "inlet_flux_m3_s": -8.7155742746e-06,
+              "outlet_flux_m3_s": 8.7155742697e-06,
+              "local_gradient_Pa_per_m": 10416.4975866,
+              "delta_Pa": {
+                "Fluent": -599.2359885499973,
+                "CFX": -859.2359885499973,
+                "Moody": -863.2359885499973
+              },
+              "delta_percent": {
+                "Fluent": -2.7897392390595774,
+                "CFX": -3.9523274542318183,
+                "Moody": -3.9699962681659184
+              },
+              "pressure_drop_Pa": 20880.764011450003,
+              "mesh_axial_radial": [
+                600,
+                6
+              ],
+              "run_artifacts": {
+                "native_log": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "d0acf10900ec2a88d3cfe6c55bcbfed6f7f2eedd18ee6f58782ea780c8698645"
+                },
+                "inletPressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "2eb89c13ca7a033af7a31434d64072fcd73b485a9ab8ad90dadd4b4477a99367"
+                },
+                "outletPressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "a6473c0437079908587906276c2242c6975cd051c58ff7fc5c688ab3c026f131"
+                },
+                "inletFlux": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "0c0d2fdd236eace89b562ebc8f11c5699eee9a10bba4d6c1af76013c7b8c763d"
+                },
+                "outletFlux": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "2d3c8f65fd5ea571766fb692da86d95bda43001b0e485b514910235e0d33f9ce"
+                },
+                "centrePressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "fb94f53fed49be0edf5b7e04973f127a534f8a83f2b11a513b155f3f408106f5"
+                },
+                "wallYplus": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "5a4cecc8c727eca615d41f9609d4957d9cf9c7d041ea2fdd77dffe2572d0bb6d"
+                }
+              }
+            },
+            {
+              "mesh": "fine",
+              "rid": "r006",
+              "archive_log_sha256": "ce90a3bbe257f993d1ae28ee5cc96dbd6b35b46fe9cb46e8f8b3b3c4f831839c",
+              "seconds": 256.732,
+              "last_solver_iteration": 5000,
+              "declared_convergence": false,
+              "terminal_initial_residuals": {
+                "Ux": 1.535095704e-08,
+                "Uy": 1.808488426e-06,
+                "Uz": 0.008459773451,
+                "p": 7.314949311e-08,
+                "epsilon": 8.537645038e-09,
+                "k": 5.655439001e-08
+              },
+              "yplus_final_min_max_avg": [
+                22.06970851,
+                33.29751083,
+                32.63807959
+              ],
+              "station_sample_times": [
+                4980.0,
+                4990.0,
+                5000.0
+              ],
+              "last_three_pressure_drop_Pa": [
+                20852.717890025,
+                20852.7179084,
+                20852.717957400004
+              ],
+              "terminal_span_fraction": 3.2309938611886536e-09,
+              "flux_imbalance_fraction": 5.73685846685015e-11,
+              "inlet_flux_m3_s": -8.7155742733e-06,
+              "outlet_flux_m3_s": 8.7155742728e-06,
+              "local_gradient_Pa_per_m": 10402.6419938,
+              "delta_Pa": {
+                "Fluent": -627.2820425999962,
+                "CFX": -887.2820425999962,
+                "Moody": -891.2820425999962
+              },
+              "delta_percent": {
+                "Fluent": -2.920307460893837,
+                "CFX": -4.081334142594279,
+                "Moody": -4.098979224613669
+              },
+              "pressure_drop_Pa": 20852.717957400004,
+              "mesh_axial_radial": [
+                1200,
+                8
+              ],
+              "run_artifacts": {
+                "native_log": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "ce90a3bbe257f993d1ae28ee5cc96dbd6b35b46fe9cb46e8f8b3b3c4f831839c"
+                },
+                "inletPressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "8bff785e0a8e03b8dd38991b22f644803b03304809e334d1b80d488dbe07ce38"
+                },
+                "outletPressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "f8ccf78d0fee1f5e6af4fe05973f8ea8be84d43185f2197a8fb7763eb82b0220"
+                },
+                "inletFlux": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "4a4eb3678d4c089d002eb91e7f1f76bd0a3078b4b90f5d9e8de4a0e83b583ac4"
+                },
+                "outletFlux": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "8cb39d640c7ed9844a954d829305e0c4a6d70d02dcab80917df07b68d5cac122"
+                },
+                "centrePressure": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "22e2cd64f259a73b7d16ad29c1caec04d77c60698ab456fd1dfbb4f5fcfa128b"
+                },
+                "wallYplus": {
+                  "member": "[internal evidence path withheld]",
+                  "sha256": "a75a202bae2f7550ce33a497b0efc6bcfc9032e4b43e7d24cfa0dae03753c512"
+                }
+              }
+            }
+          ],
+          "diagnostics": {
+            "two_grid_relative_difference": 0.0013449591610692757,
+            "two_grid_target_le_0p02": true,
+            "stationarity_le_0p005": [
+              true,
+              true
+            ],
+            "flux_closure_le_0p001": [
+              true,
+              true
+            ],
+            "note": "两个网格的 Uz 初始残差未达到阈值；均到 5000 迭代，没有宣告收敛。部分壁面 y+ 低于 30；仅有两个网格和两个轴向测点不能证明网格无关或充分发展。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "existing_duct_pressure_readback",
+      "status": "configured",
+      "scope": "已有原生压力场的局部读回候选。对 v2606 simpleFoam 场核对量纲、同运行输入、输出时刻与取压口；如已是物理静压，直接使用 Pa 并核对基准。",
+      "required_inputs": [],
+      "steps": [
+        {
+          "id": "map_stations",
+          "operation": "核对上/下游取压选区及原生压力计量",
+          "equation": "simpleFoam p_phys=ρ p_kin [Pa]（同一参考基准）；p₀=p_phys+½ρ|U|²，对每面先构造总压再按约定加权。",
+          "receives": [
+            "当前流场的 p/量纲、密度与必要的 U；两个面/点、权重与正方向"
+          ],
+          "produces": [
+            "按同口径得到的上/下游压力 [Pa] 与带符号面通量"
+          ],
+          "depends_on": [],
+          "implementation": "configured",
+          "evidence": [
+            "simple_2606",
+            "surface_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "pressure",
+              "velocity",
+              "pressure_stations"
+            ],
+            "outputs": [
+              "station_pressures",
+              "station_flux"
+            ]
+          }
+        },
+        {
+          "id": "ordered_delta_p",
+          "operation": "报告有符号的压差及取压条件",
+          "equation": "Δp=⟨p⟩_up−⟨p⟩_down；总压同理；有标高差按能量式明确静水项，整段压损与局部出口表压分列。",
+          "receives": [
+            "上游和下游采用同一个静压/总压口径的读数与边界基准"
+          ],
+          "produces": [
+            "气路压差 [Pa]、两站面和单位、正向及平均定义"
+          ],
+          "depends_on": [
+            "map_stations"
+          ],
+          "implementation": "configured",
+          "evidence": [
+            "surface_2606"
+          ],
+          "ports": {
+            "inputs": [
+              "station_pressures"
+            ],
+            "outputs": [
+              "pressure_drop"
+            ]
+          }
+        }
+      ],
+      "closures": [
+        {
+          "name": "测站加权和基准",
+          "relation": "面积权重、单点/取压孔或有符号/绝对通量权重依实验定义选用；核对回流面及面积已计入的面通量避免重复乘面积。",
+          "applicability": "测压口与计算选区同几何，同工况、同基准及同压差定义；局部 recirculation 或可压缩场不可直接套用常密度公式。",
+          "implementation": "configured",
+          "evidence": [
+            "surface_2606",
+            "simple_2606"
+          ]
+        }
+      ],
+      "custom_work": [
+        "本地核验字段、时刻和两个测站的对应关系，无需生成新几何或重新求解。"
+      ],
+      "checks": [
+        "先用一个已知网格/场同时核对两站的单位、选择集及差分方向，再复算工况压差。"
+      ],
+      "sources": [
+        {
+          "id": "simple_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/simpleFoam.C",
+          "locator": "OpenCFD v2606 simpleFoam, solver Description and required fields",
+          "claim": "稳态不可压 SIMPLE；原生 p 是 p/rho [m²/s²]。"
+        },
+        {
+          "id": "surface_2606",
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.H",
+          "locator": "v2606 surfaceFieldValue, patch/faceZone and operation table",
+          "claim": "记录 areaAverage、weightedAverage、weightedAreaAverage 和绝对权重选项；面流量可用 sum 聚合。"
+        }
+      ]
+    }
+  ]
+}

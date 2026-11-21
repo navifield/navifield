@@ -1,0 +1,13 @@
+{
+  "domain": "solid_mechanics",
+  "mechanisms": ["elasticity", "plasticity"],
+  "goals": ["displacement", "stress", "plastic_strain"],
+  "conditions": {
+    "geometry": "solid",
+    "analysis": "quasistatic",
+    "material_response": "yielding_metal",
+    "deformation": "small"
+  },
+  "known_inputs": ["elastic_modulus", "poisson_ratio", "supports", "load_history"],
+  "description": "A steel loading tab is pulled slowly past first yield and then unloaded. Determine peak stress, the extent of permanent strain, and residual displacement. The fixtures, load and unload history, and elastic constants are available."
+}

@@ -1,0 +1,449 @@
+{
+  "solver": "elmer",
+  "version": "9.0",
+  "models": [
+    {
+      "id": "standard_k_epsilon",
+      "label": "标准 k-ε",
+      "capability_id": null,
+      "flows": [
+        "充分湍流、附着或弱分离内流的平均速度和整体压降初选；以直管压降与速度型线比较建立本实现基准。"
+      ],
+      "targets": [
+        "平均速度",
+        "压降"
+      ],
+      "limitations": [
+        "强逆压梯度、分离和再附着、旋流、各向异性、转捩不宜仅凭标准 k-ε 定案；局部热流需单独验证湍流 Prandtl 数和热壁处理。",
+        "源码与手册支持存在性；未找到本 Elmer 9.0 直管压降实验精度证据。"
+      ],
+      "evidence": [
+        {
+          "id": "implementation",
+          "kind": "versioned_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/KESolver.F90",
+          "locator": "fem/src/modules/KESolver.F90",
+          "claim": "fem/src/modules/KESolver.F90；材料黏度模型和求解器必须成套配置。代码含 Noslip Wall BC、Epsilon Wall BC 和 Wall Law，不能仅从文件存在推断产品可用。"
+        },
+        {
+          "id": "manual",
+          "kind": "manual_unpinned",
+          "url": "https://mirrors.nic.funet.fi/index/Science/physics/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Navier–Stokes, wall law",
+          "claim": "Wall Law 使用 Reichardt 壁律，Boundary Layer Thickness 是网格边界到物理壁距离；在线手册版本须复核。"
+        },
+        {
+          "id": "nist_pipe",
+          "kind": "physical_reference",
+          "url": "https://nvlpubs.nist.gov/nistpubs/TechnicalNotes/NIST.TN.2294.pdf",
+          "locator": "§2 Measurement Principles, equation (1), page 3",
+          "claim": "充分发展直管压降采用 Darcy–Weisbach；不是 Elmer 验证。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "圆管：ρ U_b D / μ；U_b 为截面平均流速，D 为内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "平面扩压段：ρ U_b,in H_in / μ；H_in 为入口高度，U_b,in 为入口截面平均流速。"
+          },
+          {
+            "symbol": "Re_Dh",
+            "definition": "非圆截面：ρ U_b D_h / μ；D_h=4A/P_w，须注明采用的截面和湿周。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "ρ U_cl,in H_in / μ；U_cl,in 为入口中心线速度，需说明中心线位置，不能与平均速度定义直接等同。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "雷诺数依具体实验定义，必须报告特征长度、流速、物性和取值位置；空区间表示没有本版本验证的普适适用上下限。普通直圆管经验过渡区不能外推到扩压器。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "手册描述 Wall Law 使用 Reichardt 壁律；Boundary Layer Thickness 是网格边界到物理壁距离，非首层厚度的通用别名。另有 Epsilon Wall BC / Noslip Wall BC 路径；需验证各自边界、黏度与求解器组合，不套用其他软件壁函数。通用对数层 y+ 30–300 仅作为初步网格规划参考，不是 Elmer 保证范围；应实算 y+、网格和压降敏感性。",
+          "y_plus": null,
+          "note": "本实现尚无经核实的 y+ 数值范围；需检查壁律路径与网格敏感性。",
+          "evidence": [
+            "implementation",
+            "manual"
+          ]
+        },
+        {
+          "mode": "wall_resolved",
+          "treatment": "Epsilon Wall BC / Noslip Wall BC 在源码存在，需核对适用设置。",
+          "y_plus": null,
+          "note": "具体 y+ 范围尚无本版本依据。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "充分湍流附着流初选；需要 Elmer 自身与摩擦因子和网格比较。",
+          "evidence": [
+            "implementation",
+            "nist_pipe"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "逆压梯度分离及再附着不宜单凭本模型判断。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sst_k_omega",
+      "label": "SST k-ω",
+      "capability_id": "elmer.sst_k_omega_turbulence",
+      "flows": [
+        "有逆压梯度或可能分离的扩压器，关注壁面压力、分离/再附着位置和总压损失，可作为首个 RANS 候选，须与实验或其他模型比较。"
+      ],
+      "targets": [
+        "壁面压力",
+        "分离和再附着位置",
+        "总压损失"
+      ],
+      "limitations": [
+        "稳态 RANS 是平均模型，不保证大尺度非定常涡、分离和再附着位置；对入口湍流、上游边界层、壁面分辨率、三维与求解收敛敏感。源码粗糙壁相关代码标记 NOT IN USE，不可直接宣传粗糙壁 SST 支持。",
+        "9.0 上游 diffuser_sst 是二维稳态算例，入口取通道 restart，Noslip Wall BC，检查流场参考范数 9.98368、容差 1e-3；Step_sst-kw-wf 是偏移壁律台阶算例。二者是回归，不证明实验吻合，未运行。"
+      ],
+      "evidence": [
+        {
+          "id": "implementation",
+          "kind": "versioned_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/SSTKomega.F90",
+          "locator": "fem/src/modules/SSTKomega.F90",
+          "claim": "fem/src/modules/SSTKomega.F90；源码含 Wall Law 及 Noslip/Omega Wall BC。后者对壁邻内部节点使用 ω=6μ/(ρ×0.075×distance²)，Wall Law 调用 KEWall，并设 k、ω；距离场必须正确。"
+        },
+        {
+          "id": "manual",
+          "kind": "manual_unpinned",
+          "url": "https://mirrors.nic.funet.fi/index/Science/physics/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Navier–Stokes, wall law",
+          "claim": "Wall Law 使用 Reichardt 壁律，Boundary Layer Thickness 是网格边界到物理壁距离；在线手册版本须复核。"
+        },
+        {
+          "id": "diffuser",
+          "kind": "software_regression",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/diffuser_sst/diffuser_sst.sif",
+          "locator": "lines 28–55, 107–143",
+          "claim": "二维扩压段 SST 算例：入口取通道 restart，检查参考范数；非实验验证。"
+        },
+        {
+          "id": "nist_pipe",
+          "kind": "physical_reference",
+          "url": "https://nvlpubs.nist.gov/nistpubs/TechnicalNotes/NIST.TN.2294.pdf",
+          "locator": "§2 Measurement Principles, equation (1), page 3",
+          "claim": "充分发展直管压降采用 Darcy–Weisbach；不是 Elmer 验证。"
+        },
+        {
+          "id": "nasa_diffuser",
+          "kind": "model_family_other_implementation",
+          "url": "https://www.grc.nasa.gov/www/wind/valid/buice/buice02/buice02.html",
+          "locator": "Grid, Results, Conclusions",
+          "claim": "Wind 5.0 的 Buice–Eaton 扩压器研究使用入口第二网格点 y+≈1、15、30、60，SST 结果与实验比较：y+≈1 提前预测分离；此为另一软件单案例，不证明 Elmer 精度或普适 y+ 区间。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "圆管：ρ U_b D / μ；U_b 为截面平均流速，D 为内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "平面扩压段：ρ U_b,in H_in / μ；H_in 为入口高度，U_b,in 为入口截面平均流速。"
+          },
+          {
+            "symbol": "Re_Dh",
+            "definition": "非圆截面：ρ U_b D_h / μ；D_h=4A/P_w，须注明采用的截面和湿周。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "ρ U_cl,in H_in / μ；U_cl,in 为入口中心线速度，需说明中心线位置，不能与平均速度定义直接等同。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "雷诺数依具体实验定义，必须报告特征长度、流速、物性和取值位置；空区间表示没有本版本验证的普适适用上下限。普通直圆管经验过渡区不能外推到扩压器。"
+      },
+      "walls": [
+        {
+          "mode": "wall_resolved",
+          "treatment": "Noslip/Omega Wall BC 和壁距离场；对壁邻内部节点设置 omega=6μ/(ρ×0.075×distance²)。",
+          "y_plus": {
+            "min": null,
+            "max": null,
+            "target": 1
+          },
+          "note": "约 1 为其他求解器的单案例网格参考，非 Elmer 保证；检查 y+ 分布、网格收敛及实验吻合。",
+          "evidence": [
+            "implementation",
+            "diffuser",
+            "nasa_diffuser"
+          ]
+        },
+        {
+          "mode": "wall_function",
+          "treatment": "偏移 Wall Law 调用 KEWall 并设置 k 和 omega；Boundary Layer Thickness 和 Wall Distance 需正确设置。",
+          "y_plus": null,
+          "note": "勿假定其他软件自动壁面处理；适用 y+ 未验证。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "需单独验证直管摩擦因子。",
+          "evidence": [
+            "implementation",
+            "nist_pipe"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "存在 Elmer 扩压段回归及其他软件 SST 单案例比较，可作为条件性首选；必须实验与网格对比，回归并非验证。",
+          "evidence": [
+            "implementation",
+            "diffuser",
+            "nasa_diffuser"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "k_omega",
+      "label": "标准 k-ω",
+      "capability_id": null,
+      "flows": [
+        "近壁湍流研究的可选对照；须建立边界条件和输入自由流敏感性验证。"
+      ],
+      "targets": [
+        "求解湍动能 k 和比耗散率 ω（字段名 Kinetic Dissipation）",
+        "耦合流场平均速度和压力；压降可从压力派生，须验证"
+      ],
+      "limitations": [
+        "源码存在不是适用精度或产品接入证明；现无本版本定量验证。",
+        "源码存在；证据不足"
+      ],
+      "evidence": [
+        {
+          "id": "implementation",
+          "kind": "versioned_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/Komega.F90",
+          "locator": "Komega.F90:38–41, 319–327, 479–533",
+          "claim": "fem/src/modules/Komega.F90"
+        },
+        {
+          "id": "manual",
+          "kind": "manual_unpinned",
+          "url": "https://mirrors.nic.funet.fi/index/Science/physics/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Navier–Stokes, wall law",
+          "claim": "Wall Law 使用 Reichardt 壁律，Boundary Layer Thickness 是网格边界到物理壁距离；在线手册版本须复核。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "圆管：ρ U_b D / μ；U_b 为截面平均流速，D 为内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "平面扩压段：ρ U_b,in H_in / μ；H_in 为入口高度，U_b,in 为入口截面平均流速。"
+          },
+          {
+            "symbol": "Re_Dh",
+            "definition": "非圆截面：ρ U_b D_h / μ；D_h=4A/P_w，须注明采用的截面和湿周。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "ρ U_cl,in H_in / μ；U_cl,in 为入口中心线速度，需说明中心线位置，不能与平均速度定义直接等同。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "雷诺数依具体实验定义，必须报告特征长度、流速、物性和取值位置；空区间表示没有本版本验证的普适适用上下限。普通直圆管经验过渡区不能外推到扩压器。"
+      },
+      "walls": [
+        {
+          "mode": "other",
+          "treatment": "存在 Omega Wall BC / Noslip Wall BC；实际距离场与壁面布置必须单独核对。",
+          "y_plus": null,
+          "note": "未确认软件专有的有效 y+ 范围；网格敏感性必需。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ],
+      "rules": []
+    },
+    {
+      "id": "spalart_allmaras",
+      "label": "Spalart–Allmaras",
+      "capability_id": null,
+      "flows": [
+        "附着外流及弱分离外流的一方程模型研究候选。"
+      ],
+      "targets": [
+        "求解一个湍流黏度相关工作变量 TViscosity（具体物理量与单位须结合黏度模型核实）",
+        "耦合流场平均速度和压力；压降及壁面剪切可派生，须验证"
+      ],
+      "limitations": [
+        "不凭模型家族结论宣称适合复杂内流或热流。",
+        "源码存在；证据不足"
+      ],
+      "evidence": [
+        {
+          "id": "implementation",
+          "kind": "versioned_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/Spalart-Allmaras.F90",
+          "locator": "Spalart-Allmaras.F90:38–41, 277–285, 354–356",
+          "claim": "fem/src/modules/Spalart-Allmaras.F90"
+        },
+        {
+          "id": "manual",
+          "kind": "manual_unpinned",
+          "url": "https://mirrors.nic.funet.fi/index/Science/physics/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Navier–Stokes, wall law",
+          "claim": "Wall Law 使用 Reichardt 壁律，Boundary Layer Thickness 是网格边界到物理壁距离；在线手册版本须复核。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "圆管：ρ U_b D / μ；U_b 为截面平均流速，D 为内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "平面扩压段：ρ U_b,in H_in / μ；H_in 为入口高度，U_b,in 为入口截面平均流速。"
+          },
+          {
+            "symbol": "Re_Dh",
+            "definition": "非圆截面：ρ U_b D_h / μ；D_h=4A/P_w，须注明采用的截面和湿周。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "ρ U_cl,in H_in / μ；U_cl,in 为入口中心线速度，需说明中心线位置，不能与平均速度定义直接等同。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "雷诺数依具体实验定义，必须报告特征长度、流速、物性和取值位置；空区间表示没有本版本验证的普适适用上下限。普通直圆管经验过渡区不能外推到扩压器。"
+      },
+      "walls": [
+        {
+          "mode": "other",
+          "treatment": "存在 Noslip Wall BC；本版本具体壁面设置及 y+ 范围尚需单独验证。",
+          "y_plus": null,
+          "note": "未确认软件专有的有效 y+ 范围；网格敏感性必需。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ],
+      "rules": []
+    },
+    {
+      "id": "v2_f",
+      "label": "v²-f",
+      "capability_id": null,
+      "flows": [
+        "研究候选，不建议默认自动选用。"
+      ],
+      "targets": [
+        "V2 与 F 场；代码另读取湍动能与耗散率",
+        "耦合流场平均速度和压力；压降与壁面剪切可派生，须验证"
+      ],
+      "limitations": [
+        "不能由文件名认定其变型、配置或可信度。",
+        "源码存在；证据不足"
+      ],
+      "evidence": [
+        {
+          "id": "implementation",
+          "kind": "versioned_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/V2FSolver.F90",
+          "locator": "V2FSolver.F90:42–46, 203–205, 256–263, 579–582, 806–813",
+          "claim": "fem/src/modules/V2FSolver.F90；源码作者对变型亦有疑问注释。"
+        },
+        {
+          "id": "manual",
+          "kind": "manual_unpinned",
+          "url": "https://mirrors.nic.funet.fi/index/Science/physics/elmer/doc/ElmerModelsManual.pdf",
+          "locator": "Navier–Stokes, wall law",
+          "claim": "Wall Law 使用 Reichardt 壁律，Boundary Layer Thickness 是网格边界到物理壁距离；在线手册版本须复核。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "圆管：ρ U_b D / μ；U_b 为截面平均流速，D 为内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "平面扩压段：ρ U_b,in H_in / μ；H_in 为入口高度，U_b,in 为入口截面平均流速。"
+          },
+          {
+            "symbol": "Re_Dh",
+            "definition": "非圆截面：ρ U_b D_h / μ；D_h=4A/P_w，须注明采用的截面和湿周。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "ρ U_cl,in H_in / μ；U_cl,in 为入口中心线速度，需说明中心线位置，不能与平均速度定义直接等同。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "雷诺数依具体实验定义，必须报告特征长度、流速、物性和取值位置；空区间表示没有本版本验证的普适适用上下限。普通直圆管经验过渡区不能外推到扩压器。"
+      },
+      "walls": [
+        {
+          "mode": "other",
+          "treatment": "存在 Noslip Wall BC；具体壁面条件、数值稳健性未核实。",
+          "y_plus": null,
+          "note": "未确认软件专有的有效 y+ 范围；网格敏感性必需。",
+          "evidence": [
+            "implementation"
+          ]
+        }
+      ],
+      "rules": []
+    }
+  ]
+}

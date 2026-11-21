@@ -1,0 +1,5764 @@
+{
+  "schema_version": 1,
+  "solver": "gmsh",
+  "version": "4.15.2",
+  "capabilities": [
+    {
+      "id": "gmsh.occ_volume_mesh",
+      "module": "OpenCASCADE / 3D mesh / MSH writer",
+      "scope": "Read STEP geometry or a constructed CAD model, then tag and mesh selected volumes and boundaries. The integrated example starts from a generated .geo in SI coordinates. MSH is a mesh container. Match its version, element order and group definitions to the receiving reader, and generate the destination solver deck or polyMesh separately when required.",
+      "inputs": [
+        {
+          "id": "geometry",
+          "unit": "explicit length unit"
+        },
+        {
+          "id": "physical_groups",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "mesh_size",
+          "unit": "geometry length unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "finite element mesh",
+            "网格",
+            "有限元网格",
+            "Gmsh网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "conformal_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Sections 1.1–1.2, tutorial t20, MSH file formats. If physical groups are defined, default export is restricted to elements belonging to at least one physical group."
+          }
+        ],
+        "integration": [
+          {
+            "source": "examples/cli-v01/busbar/prepare.py",
+            "scope": "Generated .geo and named physical groups; no generic STEP-to-boundary inference"
+          }
+        ],
+        "workstation": [
+          {
+            "source": "examples/cli-v01/busbar/README.md",
+            "scope": "Windows Gmsh 4.15.2 recorded for fine electrothermal mesh r005; coarse example reports one distorted tetrahedron"
+          }
+        ],
+        "reference": []
+      },
+      "validation": "Tagged two-volume block: compare length and volume after unit conversion, positive tetrahedron Jacobians, full-dimensional coverage, boundary area and common-interface node IDs."
+    },
+    {
+      "id": "gmsh.size_field_refinement",
+      "module": "Distance / Threshold / Min / Background Field",
+      "scope": "Specify spatially varying element length targets near named geometry. The mesher combines active size prescriptions and applies global bounds; the target is not an exact edge length or a wall-normal first-cell-height prescription.",
+      "inputs": [
+        {
+          "id": "geometry",
+          "unit": "explicit length unit"
+        },
+        {
+          "id": "refinement_entities",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "mesh_size",
+          "unit": "geometry length unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "locally_refined_mesh",
+          "unit": "MSH",
+          "aliases": [
+            "局部加密网格",
+            "尺寸场网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "size_field_refinement"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Tutorial t10 and Gmsh mesh size fields: Distance, Threshold, Min and Background Field."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Mesh a plane around a tagged curve; compare edge-length distributions in near and far bands and verify global bounds with allowance for conformity."
+    },
+    {
+      "id": "gmsh.transfinite_swept_mesh",
+      "module": "Transfinite Curve / Transfinite Surface / Extrude Layers / Recombine",
+      "scope": "Build a structured surface mesh and sweep it through specified layers. A compatible all-quad source surface in a simple extrusion can produce hexes; triangles yield prisms on sweep. Requires compatible curve divisions and a sweepable geometry decomposition.",
+      "inputs": [
+        {
+          "id": "geometry",
+          "unit": "explicit length unit"
+        },
+        {
+          "id": "edge_node_counts",
+          "unit": "count"
+        },
+        {
+          "id": "extrusion_layers",
+          "unit": "count and dimensionless normalized heights"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "swept_mesh",
+          "unit": "MSH",
+          "aliases": [
+            "扫掠网格",
+            "分层体网格",
+            "结构化六面体网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "sweepable_geometry",
+        "compatible_edge_divisions"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Tutorials t3 and t6: extrusion Layers and Recombine, transfinite curve and surface setup."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Extrude a 4-by-6 quadrilateral grid through 5 layers; read back 120 hexes and verify layer spacing and positive Jacobians."
+    },
+    {
+      "id": "gmsh.periodic_mesh_pairs",
+      "module": "Periodic Curve / Periodic Surface / getPeriodicNodes",
+      "scope": "Mesh matching entities with a prescribed transform and return periodic master/slave node correspondences. Geometry and discretization must be compatible with the transform. The receiving solver must independently impose its periodic physical constraints.",
+      "inputs": [
+        {
+          "id": "geometry",
+          "unit": "explicit length unit"
+        },
+        {
+          "id": "periodic_entity_pairs",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "periodic_affine_transform",
+          "unit": "dimensionless linear part"
+        },
+        {
+          "id": "periodic_transform_offset",
+          "unit": "geometry length unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "periodic_node_map",
+          "unit": "MSH $Periodic or API tags",
+          "aliases": [
+            "周期节点映射",
+            "主从节点对应"
+          ]
+        }
+      ],
+      "conditions": [
+        "geometric_periodicity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Tutorial t18, MSH $Periodic section and gmsh/model/mesh/getPeriodicNodes."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "For translated faces of a cube compare transformed master coordinates with slave coordinates and test bijection including high-order nodes if selected."
+    },
+    {
+      "id": "gmsh.element_jacobian_readback",
+      "module": "getIntegrationPoints / getJacobians",
+      "scope": "Read Jacobian determinants at requested reference-element evaluation points from a loaded or generated mesh, grouped by element type. Positive values at sampled points are a local diagnostic; a limited sampling rule cannot certify a curved element everywhere.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "quadrature_points",
+          "unit": "dimensionless reference coordinates"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volume_element_jacobian_determinant",
+          "unit": "geometry length unit cubed",
+          "aliases": [
+            "单元雅可比行列式",
+            "体单元雅可比"
+          ]
+        }
+      ],
+      "conditions": [
+        "volume_mesh",
+        "quadrature_sampling"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Extended tutorial x6 and gmsh/model/mesh/getJacobians API reference."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check affine tetrahedra against the determinant of the edge matrix and the signed volume, then increase sampling for curved elements."
+    },
+    {
+      "id": "gmsh.postprocessing_views",
+      "module": "Post-processing module",
+      "scope": "导入基于模型或列表的标量、向量和张量数据并进行可视化；结果场来自外部求解器，Gmsh 不求解该物理场。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "坐标长度单位"
+        },
+        {
+          "id": "field_data",
+          "unit": "由场定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "postprocessing_view",
+          "unit": "由场定义",
+          "aliases": [
+            "后处理视图"
+          ]
+        }
+      ],
+      "conditions": [
+        "existing_field_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Overview: Post-processing module；tutorial x3、x4"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "导入已知常数场，核对节点数、数值和视图关联。"
+    },
+    {
+      "id": "gmsh.onelab_solver_interface",
+      "module": "Solver module / ONELAB",
+      "scope": "通过 ONELAB 参数和外部求解器交互；外部程序承担物理建模和求解，不能视为 Gmsh 内置求解器。",
+      "inputs": [
+        {
+          "id": "solver_parameters",
+          "unit": "由外部模型定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "external_solver_exchange",
+          "unit": "由外部模型定义",
+          "aliases": [
+            "外部求解器参数交换"
+          ]
+        }
+      ],
+      "conditions": [
+        "external_solver",
+        "onelab"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Overview: Solver module；ONELAB"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用外部示例回读参数，并核对运行程序和输出归属。"
+    },
+    {
+      "id": "gmsh.mesh_partition",
+      "module": "Mesh partitioning",
+      "scope": "按指定分区划分已有网格，可供并行计算使用；求解器需支持输出格式和分区。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "partition_count",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "partitioned_mesh",
+          "unit": "MSH",
+          "aliases": [
+            "分区网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "generated_mesh",
+        "partitioning"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Tutorial t21: Mesh partitioning"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对小网格分区并核对单元总数及分区归属。"
+    },
+    {
+      "id": "gmsh.occ_boolean_fragments",
+      "module": "OpenCASCADE / BooleanFragments",
+      "scope": "对相交实体进行布尔分割，形成共形公共界面；材料身份必须依据操作结果重新映射，实体标签不能假定不变。",
+      "inputs": [
+        {
+          "id": "cad_volumes",
+          "unit": "几何长度单位"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fragmented_material_domains",
+          "unit": "CAD实体及标签",
+          "aliases": [
+            "共形材料分区"
+          ]
+        }
+      ],
+      "conditions": [
+        "opencascade",
+        "intersecting_entities"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/tutorials/t16.geo",
+            "scope": "BooleanDifference 和 BooleanFragments；Physical Volume"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "两相相交体核对各体体积、实体归属和共享面节点，防止遗漏及重复界面。"
+    },
+    {
+      "id": "gmsh.boundary_layer_2d",
+      "module": "BoundaryLayer field",
+      "scope": "沿二维模型中的曲线生成边界层网格，可设置厚度、首层尺寸和增长率；不能据此宣称适用于任意三维边界层。",
+      "inputs": [
+        {
+          "id": "boundary_curves",
+          "unit": "曲线标签"
+        },
+        {
+          "id": "first_layer_size",
+          "unit": "几何长度单位"
+        },
+        {
+          "id": "layer_thickness",
+          "unit": "几何长度单位"
+        },
+        {
+          "id": "growth_ratio",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "boundary_layer_mesh_2d",
+          "unit": "MSH",
+          "aliases": [
+            "二维边界层网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "two_dimensional",
+        "boundary_layer"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Gmsh mesh size fields：BoundaryLayer，明确限定二维"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "平板二维网格测首层高度、层数、增长率并检查角点和单元质量。"
+    },
+    {
+      "id": "gmsh.high_order_mesh",
+      "module": "Mesh order / high-order optimization",
+      "scope": "把已有网格转成指定高阶单元并可执行高阶优化；曲面几何与单元节点决定形状，不保证所有雅可比处处为正。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "element_order",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "high_order_mesh",
+          "unit": "MSH",
+          "aliases": [
+            "高阶网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "generated_mesh",
+        "high_order_elements"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Gmsh application programming interface：gmsh/model/mesh/setOrder 和 optimize"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "弯曲几何检查单元阶数、曲面误差及多点 Jacobian，目标求解器读回。"
+    },
+    {
+      "id": "gmsh.discrete_surface_remesh",
+      "module": "Discrete geometry / classifySurfaces",
+      "scope": "对 STL 曲面按夹角分类，生成离散曲面参数化并重新划分网格；封闭外壳才适合示例中的体网格构造，不能视为自动 CAD 修复。",
+      "inputs": [
+        {
+          "id": "surface_triangulation",
+          "unit": "STL；长度单位需明确"
+        },
+        {
+          "id": "feature_angle",
+          "unit": "rad"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "remeshed_discrete_geometry",
+          "unit": "MSH",
+          "aliases": [
+            "离散曲面重网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "discrete_surface",
+        "stl_surface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/tutorials/python/t13.py",
+            "scope": "classifySurfaces、createGeometry 及封闭曲面建体"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查封闭性、连通性、几何偏差和生成单元质量。"
+    },
+    {
+      "id": "gmsh.math_background_field",
+      "module": "MathEval background field",
+      "scope": "用坐标表达式构造背景网格尺寸；其数值是目标尺寸，实际网格还受边界点、曲率和全局上下限影响。",
+      "inputs": [
+        {
+          "id": "mesh_size_expression",
+          "unit": "几何长度单位的表达式"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "background_size_field",
+          "unit": "几何长度单位",
+          "aliases": [
+            "背景尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "background_mesh_size_field"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/tutorials/t10.geo#L47-L98",
+            "scope": "4.15.2 t10 使用坐标和 Distance 字段构造 MathEval 尺寸场并设置背景场。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在已知坐标采样目标尺寸并统计实际边长。"
+    },
+    {
+      "id": "gmsh.postprocess_cut_and_integrate",
+      "module": "Post-processing plugins / CutPlane / Integrate",
+      "scope": "对外部导入的结果视图进行切面或积分等后处理；数据位置、分量、域、物理单位和插件适用范围须由调用者核实，不生成物理求解结果。",
+      "inputs": [
+        {
+          "id": "postprocessing_view",
+          "unit": "由外部场定义"
+        },
+        {
+          "id": "selection_geometry",
+          "unit": "几何长度单位"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "processed_view",
+          "unit": "由场和操作定义",
+          "aliases": [
+            "截面视图",
+            "视图积分"
+          ]
+        }
+      ],
+      "conditions": [
+        "existing_field_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html",
+            "scope": "Gmsh plugins：CutPlane、Integrate"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对常数场的平面截面和已知面积积分核对结果与单位。"
+    },
+    {
+      "id": "gmsh.occ_translate",
+      "module": "Geometry module / gmsh.model.occ.translate",
+      "scope": "对 OpenCASCADE 几何实体执行平移；需在后续查询和网格生成前同步 CAD 内核。",
+      "inputs": [
+        {
+          "id": "entities_and_translation",
+          "unit": "dim-tag 和几何长度单位",
+          "aliases": [
+            "待平移实体与位移"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "translated_geometry",
+          "unit": "几何长度单位",
+          "aliases": [
+            "平移后几何"
+          ]
+        }
+      ],
+      "conditions": [
+        "occ_kernel",
+        "explicit_geometry_length_unit",
+        "synchronize_before_meshing"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002ftranslate",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.occ_rotate",
+      "module": "Geometry module / gmsh.model.occ.rotate",
+      "scope": "围绕指定轴和角度旋转 OpenCASCADE 实体；操作本身不推断装配接触或物理边界。",
+      "inputs": [
+        {
+          "id": "entities_axis_angle",
+          "unit": "dim-tag、几何长度单位、rad",
+          "aliases": [
+            "实体及旋转轴角"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "rotated_geometry",
+          "unit": "几何长度单位",
+          "aliases": [
+            "旋转后几何"
+          ]
+        }
+      ],
+      "conditions": [
+        "occ_kernel",
+        "angle_in_radians",
+        "synchronize_before_meshing"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002frotate",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.physical_group_create",
+      "module": "Geometry module / gmsh.model.addPhysicalGroup",
+      "scope": "为同维度几何实体创建物理组以标记材料域或边界；物理含义由建模者指定。",
+      "inputs": [
+        {
+          "id": "entity_tags",
+          "unit": "dimension/tag",
+          "aliases": [
+            "实体标签"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "physical_group_tag",
+          "unit": "dimension/tag",
+          "aliases": [
+            "物理组标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "valid_same_dimension_entities",
+        "caller_assigns_physical_meaning"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002faddPhysicalGroup",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.entity_boundary_query",
+      "module": "Geometry module / gmsh.model.getBoundary",
+      "scope": "查询实体边界及可选有向关系；边界几何标识不自动等同流体入口或载荷面。",
+      "inputs": [
+        {
+          "id": "entity_tags",
+          "unit": "dimension/tag",
+          "aliases": [
+            "几何实体标签"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "boundary_entity_tags",
+          "unit": "dimension/tag",
+          "aliases": [
+            "边界实体标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "synchronized_geometry",
+        "verify_orientation_and_selection"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetBoundary",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.mesh_generate",
+      "module": "Mesh module / gmsh.model.mesh.generate",
+      "scope": "对当前模型生成指定维度网格；应另行检查单元质量、物理组覆盖与接收端格式。",
+      "inputs": [
+        {
+          "id": "model_and_dimension",
+          "unit": "dimension/tag、几何长度单位",
+          "aliases": [
+            "几何及目标网格维度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "generated_mesh",
+          "unit": "几何长度单位",
+          "aliases": [
+            "生成网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "valid_synchronized_geometry",
+        "mesh_quality_and_units_check"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgenerate",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.mesh_write",
+      "module": "Mesh module / gmsh.write",
+      "scope": "将当前模型数据写入文件；格式、物理组导出范围和接收求解器兼容性由调用方核实。",
+      "inputs": [
+        {
+          "id": "mesh_and_filename",
+          "unit": "网格及文件路径",
+          "aliases": [
+            "网格和输出路径"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_file",
+          "unit": "格式取决于扩展名或选项",
+          "aliases": [
+            "网格文件"
+          ]
+        }
+      ],
+      "conditions": [
+        "compatible_output_format",
+        "verify_physical_group_export"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fwrite",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "gmsh.field_ball",
+      "module": "Mesh module / Ball field",
+      "scope": "球内 VIn、球外 VOut；Thickness 大于零时在球外过渡层插值。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "Radius",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 Radius"
+          ]
+        },
+        {
+          "id": "Thickness",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 Thickness"
+          ]
+        },
+        {
+          "id": "VIn",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 VIn"
+          ]
+        },
+        {
+          "id": "VOut",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 VOut"
+          ]
+        },
+        {
+          "id": "XCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 XCenter"
+          ]
+        },
+        {
+          "id": "YCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 YCenter"
+          ]
+        },
+        {
+          "id": "ZCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场参数 ZCenter"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "球形区域尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Ball",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_box",
+      "module": "Mesh module / Box field",
+      "scope": "坐标包围盒内 VIn、盒外 VOut；Thickness 大于零时在盒外过渡层插值。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "Thickness",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 Thickness"
+          ]
+        },
+        {
+          "id": "VIn",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 VIn"
+          ]
+        },
+        {
+          "id": "VOut",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 VOut"
+          ]
+        },
+        {
+          "id": "XMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 XMax"
+          ]
+        },
+        {
+          "id": "XMin",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 XMin"
+          ]
+        },
+        {
+          "id": "YMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 YMax"
+          ]
+        },
+        {
+          "id": "YMin",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 YMin"
+          ]
+        },
+        {
+          "id": "ZMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 ZMax"
+          ]
+        },
+        {
+          "id": "ZMin",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场参数 ZMin"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "长方体区域尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Box",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_cylinder",
+      "module": "Mesh module / Cylinder field",
+      "scope": "由中心、轴向量和半径指定圆柱区域；区域内为 VIn，区域外为 VOut。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "Radius",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 Radius"
+          ]
+        },
+        {
+          "id": "VIn",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 VIn"
+          ]
+        },
+        {
+          "id": "VOut",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 VOut"
+          ]
+        },
+        {
+          "id": "XAxis",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 XAxis"
+          ]
+        },
+        {
+          "id": "XCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 XCenter"
+          ]
+        },
+        {
+          "id": "YAxis",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 YAxis"
+          ]
+        },
+        {
+          "id": "YCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 YCenter"
+          ]
+        },
+        {
+          "id": "ZAxis",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 ZAxis"
+          ]
+        },
+        {
+          "id": "ZCenter",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场参数 ZCenter"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆柱区域尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Cylinder",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_distance",
+      "module": "Mesh module / Distance field",
+      "scope": "计算到选定点、曲线或曲面的距离；曲线和曲面采用 Sampling 采样近似，曲面支持 OpenCASCADE 和离散曲面。可将输出交给 Threshold。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CurvesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "几何距离场参数 CurvesList"
+          ]
+        },
+        {
+          "id": "PointsList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "几何距离场参数 PointsList"
+          ]
+        },
+        {
+          "id": "Sampling",
+          "unit": "1",
+          "aliases": [
+            "几何距离场参数 Sampling"
+          ]
+        },
+        {
+          "id": "SurfacesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "几何距离场参数 SurfacesList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "distance",
+          "unit": "几何长度单位",
+          "aliases": [
+            "几何距离场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "sampling_accuracy_checked"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Distance",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_threshold",
+      "module": "Mesh module / Threshold field",
+      "scope": "根据 InField 输出在 DistMin 和 DistMax 之间线性或 sigmoid 插值 SizeMin 与 SizeMax；StopAtDistMax 可在上限外不再限制尺寸。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "DistMax",
+          "unit": "与 InField 值相同的单位",
+          "aliases": [
+            "阈值尺寸场参数 DistMax"
+          ]
+        },
+        {
+          "id": "DistMin",
+          "unit": "与 InField 值相同的单位",
+          "aliases": [
+            "阈值尺寸场参数 DistMin"
+          ]
+        },
+        {
+          "id": "InField",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "阈值尺寸场参数 InField"
+          ]
+        },
+        {
+          "id": "Sigmoid",
+          "unit": "1",
+          "aliases": [
+            "阈值尺寸场参数 Sigmoid"
+          ]
+        },
+        {
+          "id": "SizeMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "阈值尺寸场参数 SizeMax"
+          ]
+        },
+        {
+          "id": "SizeMin",
+          "unit": "几何长度单位",
+          "aliases": [
+            "阈值尺寸场参数 SizeMin"
+          ]
+        },
+        {
+          "id": "StopAtDistMax",
+          "unit": "1",
+          "aliases": [
+            "阈值尺寸场参数 StopAtDistMax"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "阈值尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Threshold",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_min",
+      "module": "Mesh module / Min field",
+      "scope": "对 FieldsList 中各输入场逐点取最小值，可组合多个局部目标尺寸场。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "FieldsList",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "最小值组合尺寸场参数 FieldsList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "输入尺寸场的相同长度单位",
+          "aliases": [
+            "最小值组合尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "compatible_input_fields"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Min",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_max",
+      "module": "Mesh module / Max field",
+      "scope": "对 FieldsList 中各输入场逐点取最大值，可组合多个相同量纲的尺寸场。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "FieldsList",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "最大值组合尺寸场参数 FieldsList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "输入尺寸场的相同长度单位",
+          "aliases": [
+            "最大值组合尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "compatible_input_fields"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Max",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_restrict",
+      "module": "Mesh module / Restrict field",
+      "scope": "将 InField 限制到选定点、曲线、曲面或体，可选择同时包含其边界及嵌入实体。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CurvesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体限定尺寸场参数 CurvesList"
+          ]
+        },
+        {
+          "id": "InField",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "实体限定尺寸场参数 InField"
+          ]
+        },
+        {
+          "id": "IncludeBoundary",
+          "unit": "1",
+          "aliases": [
+            "实体限定尺寸场参数 IncludeBoundary"
+          ]
+        },
+        {
+          "id": "IncludeEmbedded",
+          "unit": "1",
+          "aliases": [
+            "实体限定尺寸场参数 IncludeEmbedded"
+          ]
+        },
+        {
+          "id": "PointsList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体限定尺寸场参数 PointsList"
+          ]
+        },
+        {
+          "id": "SurfacesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体限定尺寸场参数 SurfacesList"
+          ]
+        },
+        {
+          "id": "VolumesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体限定尺寸场参数 VolumesList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "restricted_field",
+          "unit": "与输入场一致",
+          "aliases": [
+            "实体限定尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Restrict",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_math_eval",
+      "module": "Mesh module / MathEval field",
+      "scope": "计算包含 x、y、z、F0 等场引用及数学函数的表达式；用作背景尺寸时须自行保证表达式给出正的长度值。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "F",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式尺寸场参数 F"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "evaluated_field",
+          "unit": "由表达式决定；作为尺寸时为几何长度单位",
+          "aliases": [
+            "数学表达式尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-MathEval",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_math_eval_aniso",
+      "module": "Mesh module / MathEvalAniso field",
+      "scope": "由 M11、M12、M13、M22、M23、M33 表达式计算对称度量张量；空间变量及其他场可参与表达式。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "M11",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M11"
+          ]
+        },
+        {
+          "id": "M12",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M12"
+          ]
+        },
+        {
+          "id": "M13",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M13"
+          ]
+        },
+        {
+          "id": "M22",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M22"
+          ]
+        },
+        {
+          "id": "M23",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M23"
+          ]
+        },
+        {
+          "id": "M33",
+          "unit": "表达式；物理量纲由定义决定",
+          "aliases": [
+            "数学表达式各向异性度量场参数 M33"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "metric_tensor",
+          "unit": "作为长度度量时为几何长度单位的倒数平方",
+          "aliases": [
+            "数学表达式各向异性度量场",
+            "网格各向异性度量"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "symmetric_positive_definite_metric_when_used_as_metric"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-MathEvalAniso",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_post_view",
+      "module": "Mesh module / PostView field",
+      "scope": "按 ViewIndex 或正的 ViewTag 求值已有后处理视图；可控制找不到精确匹配时采用最近节点，以及是否裁剪负值。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CropNegativeValues",
+          "unit": "1",
+          "aliases": [
+            "后处理视图尺寸场参数 CropNegativeValues"
+          ]
+        },
+        {
+          "id": "UseClosest",
+          "unit": "1",
+          "aliases": [
+            "后处理视图尺寸场参数 UseClosest"
+          ]
+        },
+        {
+          "id": "ViewIndex",
+          "unit": "1",
+          "aliases": [
+            "后处理视图尺寸场参数 ViewIndex"
+          ]
+        },
+        {
+          "id": "ViewTag",
+          "unit": "1",
+          "aliases": [
+            "后处理视图尺寸场参数 ViewTag"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "view_field",
+          "unit": "由视图数据决定；作为尺寸时为几何长度单位",
+          "aliases": [
+            "后处理视图尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "external_data_available_and_units_checked"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-PostView",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_constant",
+      "module": "Mesh module / Constant field",
+      "scope": "实体列表内部返回 VIn、外部返回 VOut；可包含实体边界和嵌入实体。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CurvesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体内外常数尺寸场参数 CurvesList"
+          ]
+        },
+        {
+          "id": "IncludeBoundary",
+          "unit": "1",
+          "aliases": [
+            "实体内外常数尺寸场参数 IncludeBoundary"
+          ]
+        },
+        {
+          "id": "IncludeEmbedded",
+          "unit": "1",
+          "aliases": [
+            "实体内外常数尺寸场参数 IncludeEmbedded"
+          ]
+        },
+        {
+          "id": "PointsList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体内外常数尺寸场参数 PointsList"
+          ]
+        },
+        {
+          "id": "SurfacesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体内外常数尺寸场参数 SurfacesList"
+          ]
+        },
+        {
+          "id": "VIn",
+          "unit": "几何长度单位",
+          "aliases": [
+            "实体内外常数尺寸场参数 VIn"
+          ]
+        },
+        {
+          "id": "VOut",
+          "unit": "几何长度单位",
+          "aliases": [
+            "实体内外常数尺寸场参数 VOut"
+          ]
+        },
+        {
+          "id": "VolumesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "实体内外常数尺寸场参数 VolumesList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "实体内外常数尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Constant",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_extend",
+      "module": "Mesh module / Extend field",
+      "scope": "根据选定边界网格边长将尺寸向曲面或体内部延伸；DistMax、Power 和 SizeMax 控制距离插值。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CurvesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "边界网格尺寸延伸场参数 CurvesList"
+          ]
+        },
+        {
+          "id": "DistMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "边界网格尺寸延伸场参数 DistMax"
+          ]
+        },
+        {
+          "id": "Power",
+          "unit": "1",
+          "aliases": [
+            "边界网格尺寸延伸场参数 Power"
+          ]
+        },
+        {
+          "id": "SizeMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "边界网格尺寸延伸场参数 SizeMax"
+          ]
+        },
+        {
+          "id": "SurfacesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "边界网格尺寸延伸场参数 SurfacesList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "边界网格尺寸延伸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Extend",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_structured",
+      "module": "Mesh module / Structured field",
+      "scope": "读取三维规则网格数据并线性插值；支持指定 ASCII 或二进制及网格外数值策略。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "FileName",
+          "unit": "文件路径或字符串",
+          "aliases": [
+            "结构网格数据尺寸场参数 FileName"
+          ]
+        },
+        {
+          "id": "OutsideValue",
+          "unit": "与输入网格数据一致",
+          "aliases": [
+            "结构网格数据尺寸场参数 OutsideValue"
+          ]
+        },
+        {
+          "id": "SetOutsideValue",
+          "unit": "1",
+          "aliases": [
+            "结构网格数据尺寸场参数 SetOutsideValue"
+          ]
+        },
+        {
+          "id": "TextFormat",
+          "unit": "1",
+          "aliases": [
+            "结构网格数据尺寸场参数 TextFormat"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interpolated_field",
+          "unit": "输入数据单位；作为尺寸时为几何长度单位",
+          "aliases": [
+            "结构网格数据尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "external_data_available_and_units_checked"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Structured",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_attractor_aniso_curve",
+      "module": "Mesh module / AttractorAnisoCurve field",
+      "scope": "根据到曲线采样点的距离分别指定曲线法向和切向目标尺寸；DistMin、DistMax 与四个方向尺寸控制变化。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "CurvesList",
+          "unit": "几何实体标签列表",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 CurvesList"
+          ]
+        },
+        {
+          "id": "DistMax",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 DistMax"
+          ]
+        },
+        {
+          "id": "DistMin",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 DistMin"
+          ]
+        },
+        {
+          "id": "Sampling",
+          "unit": "1",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 Sampling"
+          ]
+        },
+        {
+          "id": "SizeMaxNormal",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 SizeMaxNormal"
+          ]
+        },
+        {
+          "id": "SizeMaxTangent",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 SizeMaxTangent"
+          ]
+        },
+        {
+          "id": "SizeMinNormal",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 SizeMinNormal"
+          ]
+        },
+        {
+          "id": "SizeMinTangent",
+          "unit": "几何长度单位",
+          "aliases": [
+            "曲线吸引各向异性尺寸场参数 SizeMinTangent"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "anisotropic_metric",
+          "unit": "由几何长度单位确定的各向异性度量",
+          "aliases": [
+            "曲线吸引各向异性尺寸场",
+            "网格各向异性度量"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "sampling_accuracy_checked"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-AttractorAnisoCurve",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_min_aniso",
+      "module": "Mesh module / MinAniso field",
+      "scope": "对 FieldsList 中可能为各向异性的场取交集；输入场需具备兼容的度量含义。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "FieldsList",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "各向异性场交集参数 FieldsList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "anisotropic_metric",
+          "unit": "与输入度量一致",
+          "aliases": [
+            "各向异性场交集",
+            "网格各向异性度量"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "compatible_input_fields"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-MinAniso",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_intersect_aniso",
+      "module": "Mesh module / IntersectAniso field",
+      "scope": "按手册所述 Alauzet 方法求两个各向异性场的交集；FieldsList 指定输入。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "FieldsList",
+          "unit": "网格场标签或标签列表",
+          "aliases": [
+            "双各向异性场交集参数 FieldsList"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "anisotropic_metric",
+          "unit": "与输入度量一致",
+          "aliases": [
+            "双各向异性场交集",
+            "网格各向异性度量"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality",
+        "compatible_input_fields"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-IntersectAniso",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.field_frustum",
+      "module": "Mesh module / Frustum field",
+      "scope": "根据两端点的内外半径及四个尺寸值，在圆台区域径向与轴向插值目标尺寸。 作为背景尺寸场使用时，最终网格还受其他有效尺寸约束、全局上下限与网格算法影响；本条仅记上游能力，不表示产品已集成。",
+      "inputs": [
+        {
+          "id": "InnerR1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 InnerR1"
+          ]
+        },
+        {
+          "id": "InnerR2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 InnerR2"
+          ]
+        },
+        {
+          "id": "InnerV1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 InnerV1"
+          ]
+        },
+        {
+          "id": "InnerV2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 InnerV2"
+          ]
+        },
+        {
+          "id": "OuterR1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 OuterR1"
+          ]
+        },
+        {
+          "id": "OuterR2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 OuterR2"
+          ]
+        },
+        {
+          "id": "OuterV1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 OuterV1"
+          ]
+        },
+        {
+          "id": "OuterV2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 OuterV2"
+          ]
+        },
+        {
+          "id": "X1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 X1"
+          ]
+        },
+        {
+          "id": "X2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 X2"
+          ]
+        },
+        {
+          "id": "Y1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 Y1"
+          ]
+        },
+        {
+          "id": "Y2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 Y2"
+          ]
+        },
+        {
+          "id": "Z1",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 Z1"
+          ]
+        },
+        {
+          "id": "Z2",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场参数 Z2"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "target_size",
+          "unit": "几何长度单位",
+          "aliases": [
+            "圆台区域渐变尺寸场",
+            "网格尺寸场"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_4_15_2",
+        "valid_field_parameters",
+        "explicit_geometry_length_unit",
+        "background_field_activation_when_used_for_meshing",
+        "check_combined_size_controls_and_mesh_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-Frustum",
+            "scope": "Gmsh 4.15.2 尺寸场及参数参考。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对选定位置或实体按定义核对场值、单位和过渡；生成小网格并检查实际尺寸与质量。本验证尚未运行。"
+    },
+    {
+      "id": "gmsh.api_get_entities_for_physical_group",
+      "module": "gmsh.model.getEntitiesForPhysicalGroup",
+      "scope": "按给定维数和物理组编号，取得该组包含的模型实体编号。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_entities_for_physical_group_tags",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "读取物理组成员 tags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetEntitiesForPhysicalGroup",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用含两个面的壁面组核对标签集合。"
+    },
+    {
+      "id": "gmsh.api_get_physical_groups_for_entity",
+      "module": "gmsh.model.getPhysicalGroupsForEntity",
+      "scope": "按维数和模型实体标签列出其所属的全部物理组，允许空集和多重归属。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_physical_groups_for_entity_physical_tags",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "反查实体物理分组 physicalTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetPhysicalGroupsForEntity",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "构造同一实体属于两个物理组和无组两种情况。"
+    },
+    {
+      "id": "gmsh.api_get_adjacencies",
+      "module": "gmsh.model.getAdjacencies",
+      "scope": "按维数和实体标签返回高一维及低一维的相邻实体，供识别共享界面。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_adjacencies_upward",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "查询实体上下邻接 upward"
+          ]
+        },
+        {
+          "id": "gmsh_get_adjacencies_downward",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "查询实体上下邻接 downward"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetAdjacencies",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用两个共享面的体检查该面的上邻接。"
+    },
+    {
+      "id": "gmsh.api_get_value",
+      "module": "gmsh.model.getValue",
+      "scope": "输入点、曲线或曲面的实体标签和参数坐标，按输入点顺序返回三维空间坐标；体实体不在本接口范围。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "parametric_coord",
+          "unit": "曲线或曲面参数约定",
+          "type": "vector of doubles"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_value_coord",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "求参数位置的空间坐标 coord"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetValue",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对已知直线和圆弧参数点核对坐标。"
+    },
+    {
+      "id": "gmsh.api_get_principal_curvatures",
+      "module": "gmsh.model.getPrincipalCurvatures",
+      "scope": "在选定曲面的参数坐标处输出两个主曲率及各自的方向。",
+      "inputs": [
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "parametric_coord",
+          "unit": "曲线或曲面参数约定",
+          "type": "vector of doubles"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_principal_curvatures_curvature_max",
+          "unit": "1/模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取曲面主曲率和方向 curvatureMax"
+          ]
+        },
+        {
+          "id": "gmsh_get_principal_curvatures_curvature_min",
+          "unit": "1/模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取曲面主曲率和方向 curvatureMin"
+          ]
+        },
+        {
+          "id": "gmsh_get_principal_curvatures_direction_max",
+          "unit": "1",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取曲面主曲率和方向 directionMax"
+          ]
+        },
+        {
+          "id": "gmsh_get_principal_curvatures_direction_min",
+          "unit": "1",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取曲面主曲率和方向 directionMin"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetPrincipalCurvatures",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在圆柱外表面校核一项曲率为零、另一项绝对值为半径倒数。"
+    },
+    {
+      "id": "gmsh.api_get_normal",
+      "module": "gmsh.model.getNormal",
+      "scope": "以成对曲面参数查询三分量法向；给定模型实体的方向需与求解器边界外法向约定对照。",
+      "inputs": [
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "parametric_coord",
+          "unit": "曲线或曲面参数约定",
+          "type": "vector of doubles"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_normal_normals",
+          "unit": "方向向量",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取曲面参数点法向 normals"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetNormal",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在平面和有已知外侧的圆柱上检查方向及长度。"
+    },
+    {
+      "id": "gmsh.api_get_closest_point",
+      "module": "gmsh.model.getClosestPoint",
+      "scope": "从三维点投影到给定曲线或曲面，输出空间和参数坐标；裁剪域内归属需再用 isInside 核查。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "coord",
+          "unit": "模型长度",
+          "type": "vector of doubles"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_get_closest_point_closest_coord",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "正交投影至曲线或曲面 closestCoord"
+          ]
+        },
+        {
+          "id": "gmsh_get_closest_point_parametric_coord",
+          "unit": "曲线或曲面参数约定",
+          "type": "vector of doubles",
+          "aliases": [
+            "正交投影至曲线或曲面 parametricCoord"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "synchronized_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fgetClosestPoint",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "分别使用位于裁剪边界内外的投影点。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_nodes",
+      "module": "gmsh.model.mesh.getNodes",
+      "scope": "按实体范围读取节点编号、三维坐标及可用的参数坐标；是否包含边界会改变结果。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "include_boundary",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "return_parametric_coord",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_nodes_node_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "批量读取网格节点 nodeTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_nodes_coord",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "批量读取网格节点 coord"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_nodes_parametric_coord",
+          "unit": "曲线或曲面参数约定",
+          "type": "vector of doubles",
+          "aliases": [
+            "批量读取网格节点 parametricCoord"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetNodes",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "校核每个节点有三个空间坐标，并比较边界节点开关。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_nodes_for_physical_group",
+      "module": "gmsh.model.mesh.getNodesForPhysicalGroup",
+      "scope": "按物理组的维数和编号读取单元关联节点及三维坐标，供边界条件映射。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_nodes_for_physical_group_node_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "提取边界组网格节点 nodeTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_nodes_for_physical_group_coord",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "提取边界组网格节点 coord"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetNodesForPhysicalGroup",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "与单元连接表节点取并集的结果对照。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_elements",
+      "module": "gmsh.model.mesh.getElements",
+      "scope": "按实体维数和标签读取单元类型、分类型的单元编号以及按单元排列的节点连接表。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_elements_element_types",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "批量读取单元连接关系 elementTypes"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_elements_element_tags",
+          "unit": "1",
+          "type": "vector of vectors of sizes",
+          "aliases": [
+            "批量读取单元连接关系 elementTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_elements_node_tags",
+          "unit": "1",
+          "type": "vector of vectors of sizes",
+          "aliases": [
+            "批量读取单元连接关系 nodeTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetElements",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用一阶三角形和四边形混合网格核对各组大小。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_element",
+      "module": "gmsh.model.mesh.getElement",
+      "scope": "按单元编号返回单元类型、节点、所属几何实体维数和标签。",
+      "inputs": [
+        {
+          "id": "element_tag",
+          "unit": "1",
+          "type": "size"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_element_element_type",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取指定单元拓扑 elementType"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_node_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "读取指定单元拓扑 nodeTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_dim",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取指定单元拓扑 dim"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_tag",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取指定单元拓扑 tag"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetElement",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "与相同单元的批量连接表交叉检查。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_element_by_coordinates",
+      "module": "gmsh.model.mesh.getElementByCoordinates",
+      "scope": "按全局点在网格空间树中搜索，返回单元、连接表和参考坐标；strict 控制是否允许邻近点。",
+      "inputs": [
+        {
+          "id": "x",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "y",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "z",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "strict",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_element_tag",
+          "unit": "1",
+          "type": "size",
+          "aliases": [
+            "定位空间点所在单元 elementTag"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_element_type",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "定位空间点所在单元 elementType"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_node_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "定位空间点所在单元 nodeTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_u",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "定位空间点所在单元 u"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_v",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "定位空间点所在单元 v"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_by_coordinates_w",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "定位空间点所在单元 w"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetElementByCoordinates",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用单元内部点及域外近边界点核对严格模式。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_local_coordinates_in_element",
+      "module": "gmsh.model.mesh.getLocalCoordinatesInElement",
+      "scope": "针对已知单元，把三维模型坐标转换成其参考坐标。",
+      "inputs": [
+        {
+          "id": "element_tag",
+          "unit": "1",
+          "type": "size"
+        },
+        {
+          "id": "x",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "y",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "z",
+          "unit": "模型长度",
+          "type": "double"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_local_coordinates_in_element_u",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "换算单元参考坐标 u"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_local_coordinates_in_element_v",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "换算单元参考坐标 v"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_local_coordinates_in_element_w",
+          "unit": "参考单元坐标",
+          "type": "double",
+          "aliases": [
+            "换算单元参考坐标 w"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetLocalCoordinatesInElement",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在线性单元中将参考点反算到全局并检查往返误差。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_element_properties",
+      "module": "gmsh.model.mesh.getElementProperties",
+      "scope": "返回 MSH 单元类型的名称、维数、阶次、节点数、参考节点坐标和一阶节点数。",
+      "inputs": [
+        {
+          "id": "element_type",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_element_properties_element_name",
+          "unit": "名称",
+          "type": "string",
+          "aliases": [
+            "读取有限元单元类型 elementName"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_properties_dim",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取有限元单元类型 dim"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_properties_order",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取有限元单元类型 order"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_properties_num_nodes",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取有限元单元类型 numNodes"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_properties_local_node_coord",
+          "unit": "参考单元坐标",
+          "type": "vector of doubles",
+          "aliases": [
+            "读取有限元单元类型 localNodeCoord"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_element_properties_num_primary_nodes",
+          "unit": "1",
+          "type": "integer",
+          "aliases": [
+            "读取有限元单元类型 numPrimaryNodes"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetElementProperties",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较线性三角形与二次三角形的阶次和参考坐标。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_element_qualities",
+      "module": "gmsh.model.mesh.getElementQualities",
+      "scope": "按标签和指标读取单元质量值。半径及边长具有长度单位、体积指标具有体积单位，归一化形状指标无量纲。",
+      "inputs": [
+        {
+          "id": "element_tags",
+          "unit": "1",
+          "type": "vector of sizes"
+        },
+        {
+          "id": "quality_name",
+          "unit": "指标名称",
+          "type": "string"
+        },
+        {
+          "id": "task",
+          "unit": "1",
+          "type": "size"
+        },
+        {
+          "id": "num_tasks",
+          "unit": "1",
+          "type": "size"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_element_qualities_elements_quality",
+          "unit": "依 qualityName 为 1、L、L³ 或相应雅可比量纲",
+          "type": "vector of doubles",
+          "aliases": [
+            "按单元提取网格质量 elementsQuality"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetElementQualities",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用规则和反转单元核对所选指标的符号、量纲及顺序。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_ghost_elements",
+      "module": "gmsh.model.mesh.getGhostElements",
+      "scope": "读取指定幽灵实体中的幽灵单元编号及其关联的分区号。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_ghost_elements_element_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "读取分区幽灵单元 elementTags"
+          ]
+        },
+        {
+          "id": "gmsh_mesh_get_ghost_elements_partitions",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "读取分区幽灵单元 partitions"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetGhostElements",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对双分区网格校核共享边界相邻单元与分区号。"
+    },
+    {
+      "id": "gmsh.api_mesh_get_duplicate_nodes",
+      "module": "gmsh.model.mesh.getDuplicateNodes",
+      "scope": "返回指定实体集合内的重复网格节点编号，空选择表示全网格；此操作只读。",
+      "inputs": [
+        {
+          "id": "dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_mesh_get_duplicate_nodes_tags",
+          "unit": "1",
+          "type": "vector of sizes",
+          "aliases": [
+            "查找重复网格节点 tags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "existing_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002fmesh_002fgetDuplicateNodes",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对一对坐标重合、编号不同的节点核对结果。"
+    },
+    {
+      "id": "gmsh.api_occ_get_distance",
+      "module": "gmsh.model.occ.getDistance",
+      "scope": "两个 OCC 实体之间的最短距离及各自最近点坐标，距离为负表示计算失败。",
+      "inputs": [
+        {
+          "id": "dim1",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag1",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "dim2",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag2",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_distance_distance",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 distance"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_x1",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 x1"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_y1",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 y1"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_z1",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 z1"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_x2",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 x2"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_y2",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 y2"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_distance_z2",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "测量实体最小间隙 z2"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetDistance",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用两块相隔已知距离的平板校核最近点配对。"
+    },
+    {
+      "id": "gmsh.api_occ_get_closest_entities",
+      "module": "gmsh.model.occ.getClosestEntities",
+      "scope": "按三维点到指定候选实体的距离升序返回前 n 个结果和最近点。",
+      "inputs": [
+        {
+          "id": "x",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "y",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "z",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "n",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_closest_entities_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "查找最近的候选实体 outDimTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_closest_entities_distances",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "查找最近的候选实体 distances"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_closest_entities_coord",
+          "unit": "模型长度",
+          "type": "vector of doubles",
+          "aliases": [
+            "查找最近的候选实体 coord"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetClosestEntities",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对不同间距的两平面检查排序与投影距离。"
+    },
+    {
+      "id": "gmsh.api_occ_fuse",
+      "module": "gmsh.model.occ.fuse",
+      "scope": "用对象及工具实体执行布尔并集，返回输出实体和输入到结果的对应关系；按 removeObject 和 removeTool 选择是否保留输入。",
+      "inputs": [
+        {
+          "id": "object_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tool_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "remove_object",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "remove_tool",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_fuse_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "布尔并集 outDimTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_fuse_out_dim_tags_map",
+          "unit": "1",
+          "type": "vector of vectors of pairs of integers",
+          "aliases": [
+            "布尔并集 outDimTagsMap"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002ffuse",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对两个部分重叠长方体核对结果体积、公共界面及标签映射。"
+    },
+    {
+      "id": "gmsh.api_occ_intersect",
+      "module": "gmsh.model.occ.intersect",
+      "scope": "用对象及工具实体执行布尔交集，返回输出实体和输入到结果的对应关系；按 removeObject 和 removeTool 选择是否保留输入。",
+      "inputs": [
+        {
+          "id": "object_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tool_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "remove_object",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "remove_tool",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_intersect_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "布尔交集 outDimTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_intersect_out_dim_tags_map",
+          "unit": "1",
+          "type": "vector of vectors of pairs of integers",
+          "aliases": [
+            "布尔交集 outDimTagsMap"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fintersect",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对两个部分重叠长方体核对结果体积、公共界面及标签映射。"
+    },
+    {
+      "id": "gmsh.api_occ_cut",
+      "module": "gmsh.model.occ.cut",
+      "scope": "用对象及工具实体执行布尔差集，返回输出实体和输入到结果的对应关系；按 removeObject 和 removeTool 选择是否保留输入。",
+      "inputs": [
+        {
+          "id": "object_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tool_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "remove_object",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "remove_tool",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_cut_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "布尔差集 outDimTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_cut_out_dim_tags_map",
+          "unit": "1",
+          "type": "vector of vectors of pairs of integers",
+          "aliases": [
+            "布尔差集 outDimTagsMap"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fcut",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对两个部分重叠长方体核对结果体积、公共界面及标签映射。"
+    },
+    {
+      "id": "gmsh.api_occ_fragment",
+      "module": "gmsh.model.occ.fragment",
+      "scope": "用对象及工具实体执行共形布尔分片，返回输出实体和输入到结果的对应关系；按 removeObject 和 removeTool 选择是否保留输入。",
+      "inputs": [
+        {
+          "id": "object_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tool_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "remove_object",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "remove_tool",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_fragment_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "共形布尔分片 outDimTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_fragment_out_dim_tags_map",
+          "unit": "1",
+          "type": "vector of vectors of pairs of integers",
+          "aliases": [
+            "共形布尔分片 outDimTagsMap"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002ffragment",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对两个部分重叠长方体核对结果体积、公共界面及标签映射。"
+    },
+    {
+      "id": "gmsh.api_occ_heal_shapes",
+      "module": "gmsh.model.occ.healShapes",
+      "scope": "按给定容差和退化、小边、小面、缝面、造实体开关处理指定实体或整个模型，返回处理后的实体。",
+      "inputs": [
+        {
+          "id": "dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers"
+        },
+        {
+          "id": "tolerance",
+          "unit": "模型长度",
+          "type": "double"
+        },
+        {
+          "id": "fix_degenerated",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "fix_small_edges",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "fix_small_faces",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "sew_faces",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "make_solids",
+          "unit": "1",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_heal_shapes_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "修复和缝合 OCC 几何 outDimTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fhealShapes",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对小缝模型比较修复前后体积、闭壳数和面组。"
+    },
+    {
+      "id": "gmsh.api_occ_import_shapes",
+      "module": "gmsh.model.occ.importShapes",
+      "scope": "输入文件名、是否仅取最高维和可选格式，返回 OCC 实体维数及标签；转入通用模型前需同步。",
+      "inputs": [
+        {
+          "id": "file_name",
+          "unit": "路径",
+          "type": "string"
+        },
+        {
+          "id": "highest_dim_only",
+          "unit": "1",
+          "type": "boolean"
+        },
+        {
+          "id": "format",
+          "unit": "文件格式",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_import_shapes_out_dim_tags",
+          "unit": "1",
+          "type": "vector of pairs of integers",
+          "aliases": [
+            "导入 STEP IGES 或 BREP 实体 outDimTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fimportShapes",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "导入已知体数和尺度的 STEP，检查单位和实体维数。"
+    },
+    {
+      "id": "gmsh.api_occ_get_bounding_box",
+      "module": "gmsh.model.occ.getBoundingBox",
+      "scope": "读取指定 OCC 实体包围盒的三个最小和三个最大坐标，容差受 CAD 内核影响。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_bounding_box_xmin",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 xmin"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_bounding_box_ymin",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 ymin"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_bounding_box_zmin",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 zmin"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_bounding_box_xmax",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 xmax"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_bounding_box_ymax",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 ymax"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_bounding_box_zmax",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体轴对齐包围盒 zmax"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetBoundingBox",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用不同方向边长的长方体核对轴顺序。"
+    },
+    {
+      "id": "gmsh.api_occ_get_curve_loops",
+      "module": "gmsh.model.occ.getCurveLoops",
+      "scope": "返回构成给定 OCC 曲面的线环以及每个线环内的曲线标签。",
+      "inputs": [
+        {
+          "id": "surface_tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_curve_loops_curve_loop_tags",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "读取曲面边界环 curveLoopTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_curve_loops_curve_tags",
+          "unit": "1",
+          "type": "vector of vectors of integers",
+          "aliases": [
+            "读取曲面边界环 curveTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetCurveLoops",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对带通孔的平面检查外环和内环。"
+    },
+    {
+      "id": "gmsh.api_occ_get_surface_loops",
+      "module": "gmsh.model.occ.getSurfaceLoops",
+      "scope": "返回组成给定 OCC 体的面环及每个面环中的面标签。",
+      "inputs": [
+        {
+          "id": "volume_tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_surface_loops_surface_loop_tags",
+          "unit": "1",
+          "type": "vector of integers",
+          "aliases": [
+            "读取实体表面壳 surfaceLoopTags"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_surface_loops_surface_tags",
+          "unit": "1",
+          "type": "vector of vectors of integers",
+          "aliases": [
+            "读取实体表面壳 surfaceTags"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetSurfaceLoops",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对有封闭内腔的体核查内外壳的成员。"
+    },
+    {
+      "id": "gmsh.api_occ_get_mass",
+      "module": "gmsh.model.occ.getMass",
+      "scope": "读取 OCC 实体的质量属性；默认没有指定密度时，1、2、3 维分别得到长度、面积和体积。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_mass_mass",
+          "unit": "默认单位密度下按维数为 L、L² 或 L³；附加密度时按模型质量约定",
+          "type": "double",
+          "aliases": [
+            "量取线长面积或体积 mass"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetMass",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "分别用线段、矩形、长方体验证量纲和数值。"
+    },
+    {
+      "id": "gmsh.api_occ_get_center_of_mass",
+      "module": "gmsh.model.occ.getCenterOfMass",
+      "scope": "返回指定 OCC 实体质心的三维坐标。",
+      "inputs": [
+        {
+          "id": "dim",
+          "unit": "1",
+          "type": "integer"
+        },
+        {
+          "id": "tag",
+          "unit": "1",
+          "type": "integer"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "gmsh_occ_get_center_of_mass_x",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体质心 x"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_center_of_mass_y",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体质心 y"
+          ]
+        },
+        {
+          "id": "gmsh_occ_get_center_of_mass_z",
+          "unit": "模型长度",
+          "type": "double",
+          "aliases": [
+            "求实体质心 z"
+          ]
+        }
+      ],
+      "conditions": [
+        "gmsh_current_model",
+        "opencascade_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#index-gmsh_002fmodel_002focc_002fgetCenterOfMass",
+            "scope": "固定版手册接口、输入类型及返回契约。"
+          },
+          {
+            "source": "https://pypi.org/project/gmsh/4.15.2/",
+            "scope": "该发行包的官方 gmsh.py 绑定及对应函数签名。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查平移前后的质心变化和对称实体质心。"
+    },
+    {
+      "id": "gmsh.msh41_mesh_format",
+      "module": "MSH 4.1 / msh41_mesh_format",
+      "scope": "识别 MSH 4.1 文件头、ASCII 或二进制模式、size_t 宽度；二进制文件检查字节序标志。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_binary_layout",
+          "unit": "文件布局标识",
+          "aliases": [
+            "MSH 文件编码"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "检查 ASCII 与二进制文件的头和字节序。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_physical_names",
+      "module": "MSH 4.1 / msh41_physical_names",
+      "scope": "将几何维数和物理分组 ID 与名称对应，同名或跨维度情况保留维数；实体成员另从 Entities 获取。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_physical_names",
+          "unit": "名称、维数、ID",
+          "aliases": [
+            "物理组名称字典"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "对相邻维度上的不同分组检查命名与归属。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_entities",
+      "module": "MSH 4.1 / msh41_entities",
+      "scope": "读取 BRep 实体维数、物理组 ID 和带朝向的边界实体连接。点用坐标，高维实体用包围盒。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_entity_topology",
+          "unit": "坐标为模型长度，标识无量纲",
+          "aliases": [
+            "带朝向的几何拓扑和物理归属"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "对带孔体核对闭合外壳、曲面方向和物理组。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_partitioned_entities",
+      "module": "MSH 4.1 / msh41_partitioned_entities",
+      "scope": "读取分区实体与父实体的关联、分区号和幽灵实体元数据，支持保留分区上下文。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_partition_entities",
+          "unit": "ID",
+          "aliases": [
+            "分区与父实体对应"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "与未分区模型对照父实体和幽灵分区。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_nodes",
+      "module": "MSH 4.1 / msh41_nodes",
+      "scope": "按实体块读取非连续节点标签、三维模型坐标以及按维数可选的参数坐标。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_node_table",
+          "unit": "模型长度及参数坐标",
+          "aliases": [
+            "网格节点编号与坐标"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "用稀疏编号、含边界节点的网格核对坐标顺序。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_elements",
+      "module": "MSH 4.1 / msh41_elements",
+      "scope": "读取按实体和单元类型分组的单元号与节点连接表，按该类型的节点次序解释。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_block_connectivity",
+          "unit": "ID",
+          "aliases": [
+            "MSH 单元连接表"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "核对各类型节点数、正标签及所有连接节点存在。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_periodic",
+      "module": "MSH 4.1 / msh41_periodic",
+      "scope": "读取从属/主实体、可选仿射变换和对应节点对，保留主从方向。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_periodic_correspondence",
+          "unit": "节点 ID、仿射变换按模型坐标",
+          "aliases": [
+            "周期主从节点关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "用平移周期面对照从节点变换与主节点坐标。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_ghost_elements",
+      "module": "MSH 4.1 / msh41_ghost_elements",
+      "scope": "读取单元所属分区与幽灵副本分区列表，适用于域划分数据交换。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_ghost_element_partitions",
+          "unit": "ID",
+          "aliases": [
+            "幽灵单元分区表"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "对双分区网格核对副本与所有者。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_parametrizations",
+      "module": "MSH 4.1 / msh41_parametrizations",
+      "scope": "读取离散曲线及曲面的模型坐标与参数坐标，表面还包含三角连接和曲率方向数据。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_discrete_parametrization",
+          "unit": "模型长度、参数与曲率方向数据",
+          "aliases": [
+            "离散曲面和曲线参数化"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "检查参数节点数量、面连接索引和空间点对应。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_node_data",
+      "module": "MSH 4.1 / msh41_node_data",
+      "scope": "按节点标签和视图的时间与分量元数据读取点场；与 Nodes 标签关联恢复空间位置。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_nodal_field",
+          "unit": "单位由视图数据提供者声明",
+          "aliases": [
+            "按节点关联的结果场"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "用已知线性温度场检查节点、时步和分量。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_element_data",
+      "module": "MSH 4.1 / msh41_element_data",
+      "scope": "按单元标签与视图时间、分量元数据读取单元场，保留单元中心数据关联。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_element_field",
+          "unit": "单位由视图数据提供者声明",
+          "aliases": [
+            "按单元关联的结果场"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "核查每个单元的场值及时间步。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_element_node_data",
+      "module": "MSH 4.1 / msh41_element_node_data",
+      "scope": "保留每个单元局部节点的视图数据，同一几何位置可在相邻单元具有不同值。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_element_local_nodal_field",
+          "unit": "单位由视图数据提供者声明",
+          "aliases": [
+            "按单元局部节点的结果场"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "以有材料跳跃的单元面检验两侧节点值分离。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh41_interpolation_scheme",
+      "module": "MSH 4.1 / msh41_interpolation_scheme",
+      "scope": "按名称和单元拓扑登记后处理插值矩阵的行、列和系数；调用方需与视图采用的单元基相配。",
+      "inputs": [
+        {
+          "id": "msh41_section",
+          "unit": "MSH 4.1"
+        },
+        {
+          "id": "tag_and_unit_convention",
+          "unit": "项目标签与单位约定"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_interpolation_matrices",
+          "unit": "矩阵系数按基函数定义",
+          "aliases": [
+            "视图有限元插值矩阵"
+          ]
+        }
+      ],
+      "conditions": [
+        "msh41_format"
+      ],
+      "validation": "以已知基函数重建一个常量视图。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.msh_element_type_metadata",
+      "module": "MSH 4.1 / msh_element_type_metadata",
+      "scope": "按正式 MSH 编码查询单元家族、拓扑维数、多项式阶次及节点数，供检查连接表和选择转换器。其物理方程和自由度由目标求解器单独定义。",
+      "inputs": [
+        {
+          "id": "msh_element_type_id",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "msh_element_type_metadata",
+          "unit": "维数、阶次、节点数均为 1",
+          "aliases": [
+            "MSH 单元类型元数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "fixed_element_layout",
+        "gmsh_4_15_2"
+      ],
+      "validation": "用一阶四面体、二阶三角形及不完整高阶三角形比较类型号、阶次和节点数。",
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#MSH-file-format",
+            "scope": "固定快照的 §10.1 MSH 格式规范。"
+          },
+          {
+            "source": "https://gmsh.info/src/gmsh-4.15.2-source.tgz",
+            "scope": "官方 4.15.2 源归档的 GmshDefines.h、ElementType.cpp、GModelIO_MSH4.cpp。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      }
+    },
+    {
+      "id": "gmsh.geo_transform_and_extrude",
+      "module": "GEO Translate / Rotate / Extrude",
+      "scope": "对建设好的基础曲线/面执行平移、旋转及几何拉伸，按返回实体标签识别新面和体。本卡是几何构造，层网格与分析边界另配。",
+      "inputs": [
+        {
+          "id": "geometry_entities",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "rotation_axis",
+          "unit": "unit vector"
+        },
+        {
+          "id": "rotation_angle",
+          "unit": "rad"
+        },
+        {
+          "id": "translation",
+          "unit": "model length"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "extruded_entities",
+          "unit": "dimension/tag",
+          "aliases": [
+            "拉伸生成的几何实体"
+          ]
+        }
+      ],
+      "conditions": [
+        "cad",
+        "extrusion"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t2",
+            "scope": "官方 手册 t2 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t2.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查变换后的端点、截面面积、体积及拉伸生成面与体的边界邻接。"
+    },
+    {
+      "id": "gmsh.geo_oriented_loops_and_holes",
+      "module": "GEO Curve Loop / Plane Surface",
+      "scope": "在同一平面以有向闭合外环和合法内环构成带孔平面。宏、注记、实体颜色与后续边界条件另有独立定义。",
+      "inputs": [
+        {
+          "id": "oriented_curve_loops",
+          "unit": "curve tags"
+        },
+        {
+          "id": "model_coordinates",
+          "unit": "model length"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "perforated_surface",
+          "unit": "surface tag",
+          "aliases": [
+            "带孔平面"
+          ]
+        }
+      ],
+      "conditions": [
+        "geometry",
+        "surface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t4",
+            "scope": "官方 手册 t4 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t4.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查闭环、内外法向、孔的包含及相离关系，并核对净面积。"
+    },
+    {
+      "id": "gmsh.geo_surface_loop_cavity",
+      "module": "GEO Surface Loop / Volume",
+      "scope": "使用闭合外壳和内部闭合曲面环构造带空腔实体。脚本循环可重用几何构造，用户仍须核对壳体方向、封闭性与导出标签。",
+      "inputs": [
+        {
+          "id": "closed_surface_loops",
+          "unit": "surface loop tags"
+        },
+        {
+          "id": "model_coordinates",
+          "unit": "model length"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "cavity_volume",
+          "unit": "volume tag",
+          "aliases": [
+            "带空腔体"
+          ]
+        }
+      ],
+      "conditions": [
+        "geometry",
+        "volume"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t5",
+            "scope": "官方 手册 t5 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t5.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照外体减空腔的体积，检查不相交的闭壳和三维网格负体积。"
+    },
+    {
+      "id": "gmsh.view_frame_image_export",
+      "module": "View / Print / time-step selection",
+      "scope": "从已加载的后处理视图选择要显示的步骤并导出帧图。动态图序依生成帧和外部编码。可用图形后端、文件写入及固定视角需项目确认。",
+      "inputs": [
+        {
+          "id": "result_view",
+          "unit": "Gmsh view"
+        },
+        {
+          "id": "selected_view_step",
+          "unit": "time-step index"
+        },
+        {
+          "id": "camera_settings",
+          "unit": "Gmsh display options"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "view_image_frame",
+          "unit": "image file",
+          "aliases": [
+            "视图导出帧"
+          ]
+        }
+      ],
+      "conditions": [
+        "postprocessing",
+        "visualization"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t8",
+            "scope": "官方 手册 t8 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t8.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "核对参考帧的视角、结果步骤和色标，并验证实际生成的图像文件可读。"
+    },
+    {
+      "id": "gmsh.view_isosurface_cut_annotation",
+      "module": "Plugin(Isosurface) / Plugin(CutPlane) / Plugin(Annotate)",
+      "scope": "从符合插件要求的标量视图抽取等值面，或对指定视图做平面切片。注记操作独立指定文本与视图。调用方须核对插件可用性、字段分量、单位与时间步。",
+      "inputs": [
+        {
+          "id": "result_view",
+          "unit": "Gmsh view"
+        },
+        {
+          "id": "isosurface_value",
+          "unit": "field unit"
+        },
+        {
+          "id": "plane_equation",
+          "unit": "coordinates and coefficients"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "isosurface_view",
+          "unit": "Gmsh view",
+          "aliases": [
+            "等值面视图"
+          ]
+        },
+        {
+          "id": "plane_cut_view",
+          "unit": "Gmsh view",
+          "aliases": [
+            "剖切视图"
+          ]
+        },
+        {
+          "id": "annotation_view",
+          "unit": "Gmsh view",
+          "aliases": [
+            "注记视图"
+          ]
+        }
+      ],
+      "conditions": [
+        "postprocessing",
+        "plugins"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t9",
+            "scope": "官方 手册 t9 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t9.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用已知线性标量场和已知平面比较截交位置、等值与图元数量。"
+    },
+    {
+      "id": "gmsh.unstructured_quadrangle_recombine",
+      "module": "Recombine Surface / Blossom",
+      "scope": "指定表面并用重组合并兼容三角形生成非结构四边形网格。相关算法、优化和可接受的剩余三角形由用户确认，不能用该步骤保证任意形状全四边形。",
+      "inputs": [
+        {
+          "id": "geometry_entities",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "quadrangle_recombination_options",
+          "unit": "Gmsh option values"
+        },
+        {
+          "id": "mesh_size",
+          "unit": "model length"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        },
+        {
+          "id": "surface_element_types",
+          "unit": "Gmsh type IDs",
+          "aliases": [
+            "表面单元类型"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "quadrangle"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t11",
+            "scope": "官方 手册 t11 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t11.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "统计重组后单元类型、剩余三角形、边界一致性和雅可比质量。"
+    },
+    {
+      "id": "gmsh.compound_cross_patch_mesh",
+      "module": "Compound Curve / Compound Surface",
+      "scope": "将选定曲线或表面片组成复合离散网格实体，对复合域参数化并跨原始缝网格化。分类至原始片取决于选项，复杂物体需独立检查。",
+      "inputs": [
+        {
+          "id": "compound_entity_set",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "compound_mesh_options",
+          "unit": "Gmsh options"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        },
+        {
+          "id": "compound_classification",
+          "unit": "dimension/tag",
+          "aliases": [
+            "复合网格分类"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "compound"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t12",
+            "scope": "官方 手册 t12 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t12.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查跨片拼缝连续、附属标签保留、复合参数化和三维出口拓扑。"
+    },
+    {
+      "id": "gmsh.mesh_relative_homology_basis",
+      "module": "Homology / Cohomology",
+      "scope": "在已网格化域上选取域物理组、可选相对子域物理组和目标维数，求（相对）同调或上同调代表，并以新物理组表示。它是拓扑计算，后续 FE 势和全局约束由场求解器另行实现。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "Gmsh mesh"
+        },
+        {
+          "id": "domain_physical_groups",
+          "unit": "physical tags"
+        },
+        {
+          "id": "relative_subdomain_groups",
+          "unit": "physical tags"
+        },
+        {
+          "id": "homology_dimensions",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "homology_representative_groups",
+          "unit": "dimension/tag",
+          "aliases": [
+            "同调代表物理组"
+          ]
+        },
+        {
+          "id": "cohomology_representative_groups",
+          "unit": "dimension/tag",
+          "aliases": [
+            "上同调代表物理组"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "homology"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t14",
+            "scope": "官方 手册 t14 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t14.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在已知孔洞数或 Betti 数的网格上比较各维代表数及边界相对条件。"
+    },
+    {
+      "id": "gmsh.embed_conformal_lower_dimension",
+      "module": "Point In Surface / Surface In Volume / mesh.embed",
+      "scope": "约束点和曲线进入宿主面，或使点、曲线及面进入宿主体，令生成网格与内部低维实体相容。点、线、面的物理标签可供下游选择，不自动赋予材料、边界或耦合方程。",
+      "inputs": [
+        {
+          "id": "lower_dimensional_entities",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "host_entity",
+          "unit": "dimension/tag"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        },
+        {
+          "id": "embedded_entity_mesh_tags",
+          "unit": "dimension/tag",
+          "aliases": [
+            "嵌入实体网格标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "embedded_entities"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t15",
+            "scope": "官方 手册 t15 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t15.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "核对嵌入范围、低维网格与宿主体的共享节点及标签在导出中的保留。"
+    },
+    {
+      "id": "gmsh.anisotropic_background_metric_mesh",
+      "module": "PostView anisotropic metric / BAMG",
+      "scope": "在二维几何上选用背景度量视图，对相容的各向异性算法提供位置与方向尺寸约束。BAMG 支持依构建而定；必要时检查度量对称正定及单位。",
+      "inputs": [
+        {
+          "id": "background_metric_view",
+          "unit": "Gmsh view, inverse model length squared"
+        },
+        {
+          "id": "geometry_entities",
+          "unit": "dimension/tag"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "anisotropic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t17",
+            "scope": "官方 手册 t17 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t17.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用已知方向尺寸比的二维度量核对单元取向、长度比例、质量与边界贴合。"
+    },
+    {
+      "id": "gmsh.occ_sweep_fillet_pipe_geometry",
+      "module": "OCC ThruSections / Fillet / Pipe",
+      "scope": "用通过截面、圆角及沿路径扫描构造 OCC 几何，并按需要用曲率控制网格尺寸。截面次序、路径连续性、圆角半径、构造成功性及导出拓扑由项目核验。",
+      "inputs": [
+        {
+          "id": "section_wires",
+          "unit": "OCC wire tags"
+        },
+        {
+          "id": "fillet_radius",
+          "unit": "model length"
+        },
+        {
+          "id": "sweep_path",
+          "unit": "OCC wire tag"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "constructed_cad_entities",
+          "unit": "dimension/tag",
+          "aliases": [
+            "扫描和圆角几何实体"
+          ]
+        },
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "occ",
+        "geometry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#t19",
+            "scope": "官方 手册 t19 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/t19.geo",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "检查结果闭合、自交、局部半径、体积及曲率细化读回。"
+    },
+    {
+      "id": "gmsh.discrete_hybrid_terrain_mesh",
+      "module": "Discrete entities / hybrid terrain mesh",
+      "scope": "把显式节点和三角连接装入离散表面，创建拓扑和可用参数化，使用离散表面和内建几何实体共同界定重划分域。必须自行验证表面可参数化、方向一致和闭包。",
+      "inputs": [
+        {
+          "id": "discrete_surface_nodes",
+          "unit": "model length"
+        },
+        {
+          "id": "discrete_surface_connectivity",
+          "unit": "node tags"
+        },
+        {
+          "id": "hybrid_boundary",
+          "unit": "dimension/tag"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "discrete_surface",
+          "unit": "dimension/tag",
+          "aliases": [
+            "离散表面"
+          ]
+        },
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "discrete_geometry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x2",
+            "scope": "官方 手册 x2 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x2.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "核对三角朝向、边界连通、体域闭合与地形误差，并比较生成单元质量。"
+    },
+    {
+      "id": "gmsh.post_view_list_based_import",
+      "module": "gmsh.view.addListData",
+      "scope": "将由元素类型码、坐标和逐步值定义的无模型视图载入 Gmsh。元素数量、分量、步序和数据布局由调用方遵守；Gmsh 不会推断原物理量。",
+      "inputs": [
+        {
+          "id": "list_data_type",
+          "unit": "Gmsh view data type code"
+        },
+        {
+          "id": "list_element_count",
+          "unit": "1"
+        },
+        {
+          "id": "list_element_data",
+          "unit": "model length and field unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "view_tag",
+          "unit": "1",
+          "aliases": [
+            "后处理视图标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "postprocessing",
+        "list_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x3",
+            "scope": "官方 手册 x3 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x3.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用已知节点坐标和标量/矢量对照图元数、分量和时间步读回。"
+    },
+    {
+      "id": "gmsh.post_view_model_based_import",
+      "module": "gmsh.view.addHomogeneousModelData",
+      "scope": "把与 Gmsh 模型节点或单元标签相联系的同构结果数据加入视图。明确模型名称、步编号、数据类型和分量，核对标签映射及时间选择。",
+      "inputs": [
+        {
+          "id": "model_name",
+          "unit": "Gmsh model name"
+        },
+        {
+          "id": "result_entity_tags",
+          "unit": "node or element tags"
+        },
+        {
+          "id": "model_data",
+          "unit": "field unit"
+        },
+        {
+          "id": "view_time",
+          "unit": "time unit"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "view_tag",
+          "unit": "1",
+          "aliases": [
+            "后处理视图标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "postprocessing",
+        "model_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x4",
+            "scope": "官方 手册 x4 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x4.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照确定标签的数值和物理时间，校验模型切换及导出视图。"
+    },
+    {
+      "id": "gmsh.cad_parametric_derivatives",
+      "module": "getParametrization / getNormal / getCurvature",
+      "scope": "按实体和物理点读参数坐标，并查询所支持实体的坐标、单位法向和曲率。参数范围、周期接缝、退化点和法向约定由项目核对。",
+      "inputs": [
+        {
+          "id": "geometry_entities",
+          "unit": "dimension/tag"
+        },
+        {
+          "id": "model_coordinates",
+          "unit": "model length"
+        },
+        {
+          "id": "parametric_coordinates",
+          "unit": "CAD parameters"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "cad_parametric_coordinates",
+          "unit": "CAD parameters",
+          "aliases": [
+            "几何参数坐标"
+          ]
+        },
+        {
+          "id": "surface_unit_normal",
+          "unit": "1",
+          "aliases": [
+            "曲面单位法向"
+          ]
+        },
+        {
+          "id": "geometric_curvature",
+          "unit": "1/model length",
+          "aliases": [
+            "几何曲率"
+          ]
+        }
+      ],
+      "conditions": [
+        "geometry",
+        "parametrization"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x5",
+            "scope": "官方 手册 x5 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x5.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用平面与圆柱核对坐标正反转换、法向和曲率，独立检查接缝。"
+    },
+    {
+      "id": "gmsh.reference_basis_quadrature_readback",
+      "module": "getIntegrationPoints / getBasisFunctions",
+      "scope": "按元素类型给出参考积分点、权重、Lagrange 形函数或参考梯度。物理空间梯度须由适当的逆雅可比变换得到；下游组装仍须自研和验证。",
+      "inputs": [
+        {
+          "id": "mesh_element_type",
+          "unit": "Gmsh type ID"
+        },
+        {
+          "id": "quadrature_rule",
+          "unit": "Gmsh integration rule string"
+        },
+        {
+          "id": "basis_space",
+          "unit": "Gmsh function space string"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "reference_quadrature_points",
+          "unit": "reference coordinates",
+          "aliases": [
+            "参考积分点"
+          ]
+        },
+        {
+          "id": "reference_quadrature_weights",
+          "unit": "reference measure",
+          "aliases": [
+            "参考积分权重"
+          ]
+        },
+        {
+          "id": "reference_basis_values",
+          "unit": "reference basis values",
+          "aliases": [
+            "参考形函数值"
+          ]
+        },
+        {
+          "id": "reference_basis_gradients",
+          "unit": "inverse reference coordinate",
+          "aliases": [
+            "参考形函数梯度"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "quadrature"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x6",
+            "scope": "官方 手册 x6 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x6.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "校验积分常数、基函数分割统一性、节点顺序和梯度相加为零。"
+    },
+    {
+      "id": "gmsh.unique_internal_edge_face_topology",
+      "module": "createEdges / createFaces / getEdges / getFaces",
+      "scope": "从四面体单元节点取得唯一内部边及三角面标签、逐单元取向与邻接。可由用户构造离散面单元集合供 DG 等工作流使用，界面积分与方向处理需另实现。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "Gmsh mesh"
+        },
+        {
+          "id": "mesh_element_type",
+          "unit": "Gmsh type ID"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_edges_and_faces",
+          "unit": "edge and face tags",
+          "aliases": [
+            "网格边面标签"
+          ]
+        },
+        {
+          "id": "mesh_orientation_codes",
+          "unit": "integer orientation",
+          "aliases": [
+            "网格方向码"
+          ]
+        },
+        {
+          "id": "element_interface_adjacency",
+          "unit": "element tags",
+          "aliases": [
+            "单元内界面邻接"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh",
+        "topology"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gmsh.info/doc/texinfo/gmsh.html#x7",
+            "scope": "官方 手册 x7 教程与所列函数示例。"
+          },
+          {
+            "source": "https://gitlab.onelab.info/gmsh/gmsh/blob/gmsh_4_15_2/tutorials/python/x7.py",
+            "scope": "Gmsh 4.15.2 固定标签下的教程源码入口。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用两个共面四面体核查唯一面计数、局部顶点顺序和公共面的双侧引用。"
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "Geometry module",
+      "source": "https://gmsh.info/doc/texinfo/gmsh.html#Geometry-module",
+      "records": [
+        "gmsh.occ_volume_mesh",
+        "gmsh.occ_boolean_fragments",
+        "gmsh.discrete_surface_remesh",
+        "gmsh.occ_translate",
+        "gmsh.occ_rotate",
+        "gmsh.physical_group_create",
+        "gmsh.entity_boundary_query",
+        "gmsh.api_get_entities_for_physical_group",
+        "gmsh.api_get_physical_groups_for_entity",
+        "gmsh.api_get_adjacencies",
+        "gmsh.api_get_value",
+        "gmsh.api_get_principal_curvatures",
+        "gmsh.api_get_normal",
+        "gmsh.api_get_closest_point",
+        "gmsh.api_occ_get_distance",
+        "gmsh.api_occ_get_closest_entities",
+        "gmsh.api_occ_fuse",
+        "gmsh.api_occ_intersect",
+        "gmsh.api_occ_cut",
+        "gmsh.api_occ_fragment",
+        "gmsh.api_occ_heal_shapes",
+        "gmsh.api_occ_import_shapes",
+        "gmsh.api_occ_get_bounding_box",
+        "gmsh.api_occ_get_curve_loops",
+        "gmsh.api_occ_get_surface_loops",
+        "gmsh.api_occ_get_mass",
+        "gmsh.api_occ_get_center_of_mass",
+        "gmsh.geo_transform_and_extrude",
+        "gmsh.geo_oriented_loops_and_holes",
+        "gmsh.geo_surface_loop_cavity",
+        "gmsh.occ_sweep_fillet_pipe_geometry",
+        "gmsh.cad_parametric_derivatives"
+      ],
+      "gaps": [
+        "复杂装配的容差、实体追踪与自动材料识别仍须按输入几何验证。"
+      ]
+    },
+    {
+      "module": "Mesh module",
+      "source": "https://gmsh.info/doc/texinfo/gmsh.html#Mesh-module",
+      "records": [
+        "gmsh.occ_volume_mesh",
+        "gmsh.size_field_refinement",
+        "gmsh.transfinite_swept_mesh",
+        "gmsh.periodic_mesh_pairs",
+        "gmsh.element_jacobian_readback",
+        "gmsh.mesh_partition",
+        "gmsh.boundary_layer_2d",
+        "gmsh.high_order_mesh",
+        "gmsh.math_background_field",
+        "gmsh.mesh_generate",
+        "gmsh.mesh_write",
+        "gmsh.field_ball",
+        "gmsh.field_box",
+        "gmsh.field_cylinder",
+        "gmsh.field_distance",
+        "gmsh.field_threshold",
+        "gmsh.field_min",
+        "gmsh.field_max",
+        "gmsh.field_restrict",
+        "gmsh.field_math_eval",
+        "gmsh.field_math_eval_aniso",
+        "gmsh.field_post_view",
+        "gmsh.field_constant",
+        "gmsh.field_extend",
+        "gmsh.field_structured",
+        "gmsh.field_attractor_aniso_curve",
+        "gmsh.field_min_aniso",
+        "gmsh.field_intersect_aniso",
+        "gmsh.field_frustum",
+        "gmsh.api_mesh_get_nodes",
+        "gmsh.api_mesh_get_nodes_for_physical_group",
+        "gmsh.api_mesh_get_elements",
+        "gmsh.api_mesh_get_element",
+        "gmsh.api_mesh_get_element_by_coordinates",
+        "gmsh.api_mesh_get_local_coordinates_in_element",
+        "gmsh.api_mesh_get_element_properties",
+        "gmsh.api_mesh_get_element_qualities",
+        "gmsh.api_mesh_get_ghost_elements",
+        "gmsh.api_mesh_get_duplicate_nodes",
+        "gmsh.msh41_mesh_format",
+        "gmsh.msh41_physical_names",
+        "gmsh.msh41_entities",
+        "gmsh.msh41_partitioned_entities",
+        "gmsh.msh41_nodes",
+        "gmsh.msh41_elements",
+        "gmsh.msh41_periodic",
+        "gmsh.msh41_ghost_elements",
+        "gmsh.msh41_parametrizations",
+        "gmsh.msh_element_type_metadata",
+        "gmsh.unstructured_quadrangle_recombine",
+        "gmsh.compound_cross_patch_mesh",
+        "gmsh.mesh_relative_homology_basis",
+        "gmsh.embed_conformal_lower_dimension",
+        "gmsh.anisotropic_background_metric_mesh",
+        "gmsh.discrete_hybrid_terrain_mesh",
+        "gmsh.reference_basis_quadrature_readback",
+        "gmsh.unique_internal_edge_face_topology"
+      ],
+      "gaps": [
+        "三维复杂边界层、各网格算法和质量指标尚未逐项验证。"
+      ]
+    },
+    {
+      "module": "Solver module",
+      "source": "https://gmsh.info/doc/texinfo/gmsh.html#Solver-module",
+      "records": [
+        "gmsh.onelab_solver_interface"
+      ],
+      "gaps": [
+        "各外部求解器的参数协议、运行环境与适配未逐项验证。"
+      ]
+    },
+    {
+      "module": "Post-processing module",
+      "source": "https://gmsh.info/doc/texinfo/gmsh.html#Post_002dprocessing-module",
+      "records": [
+        "gmsh.postprocessing_views",
+        "gmsh.postprocess_cut_and_integrate",
+        "gmsh.msh41_node_data",
+        "gmsh.msh41_element_data",
+        "gmsh.msh41_element_node_data",
+        "gmsh.msh41_interpolation_scheme",
+        "gmsh.view_frame_image_export",
+        "gmsh.view_isosurface_cut_annotation",
+        "gmsh.post_view_list_based_import",
+        "gmsh.post_view_model_based_import"
+      ],
+      "gaps": [
+        "其他插件和动画的输入限制尚未逐项建模。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "gmsh.boundary_layer_2d",
+      "gmsh.discrete_surface_remesh",
+      "gmsh.element_jacobian_readback",
+      "gmsh.high_order_mesh",
+      "gmsh.math_background_field",
+      "gmsh.mesh_partition",
+      "gmsh.occ_boolean_fragments",
+      "gmsh.occ_volume_mesh",
+      "gmsh.onelab_solver_interface",
+      "gmsh.periodic_mesh_pairs",
+      "gmsh.postprocess_cut_and_integrate",
+      "gmsh.postprocessing_views",
+      "gmsh.size_field_refinement",
+      "gmsh.transfinite_swept_mesh"
+    ]
+  }
+}

@@ -1,0 +1,5095 @@
+{
+  "schema_version": 1,
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "capabilities": [
+    {
+      "id": "openfoam_opencfd.steady_incompressible",
+      "module": "simpleFoam / blockMesh / checkMesh",
+      "scope": "Single-region steady incompressible flow on a static mesh. The native p field is kinematic pressure; convert differences with the declared constant density. Flow is the signed integral of face flux across the selected patch. An imported Gmsh mesh needs a version-compatible gmshToFoam conversion, physical-group to patch checks and checkMesh before case setup. For pressure in Pa specify the datum and density; pressure drop requires source and destination selections, a matched reduction convention and an ordered difference.",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "flow_boundaries",
+          "unit": "m/s or m^2/s^2"
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "flow velocity",
+            "速度",
+            "流速",
+            "速度场"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "pressure field",
+            "压力",
+            "压力场"
+          ]
+        },
+        {
+          "id": "pressure_drop",
+          "unit": "Pa",
+          "aliases": [
+            "pressure drop",
+            "pressure difference",
+            "压降",
+            "压差"
+          ]
+        },
+        {
+          "id": "flow_rate",
+          "unit": "m^3/s",
+          "aliases": [
+            "volumetric flow rate",
+            "体积流量",
+            "流量"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "incompressible_fluid",
+        "pressure_inlet_outlet"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/simpleFoam.C",
+            "scope": "v2606 simpleFoam source specifies SIMPLE, incompressible steady flow and native kinematic p."
+          },
+          {
+            "source": "https://doc.openfoam.com/2312/tools/processing/solvers/rtm/incompressible/simpleFoam/",
+            "scope": "v2312 solver equations, required fields and kinematic pressure convention"
+          }
+        ],
+        "integration": [
+          {
+            "source": "backend/agent_engine/templates/t3-incompressible-steady/template.json",
+            "scope": "Steady incompressible CFD template"
+          },
+          {
+            "source": "examples/cli-v01/valve/run_case.py",
+            "scope": "Fixed-pose flow and fluid force orchestration"
+          },
+          {
+            "source": "tools/mesh_convert.py",
+            "scope": "Wrapper invokes installed gmshToFoam in an existing case; patch semantics and mesh quality require separate checks."
+          }
+        ],
+        "workstation": [
+          {
+            "source": "START_HERE.md",
+            "scope": "Windows native flow examples include eight-process turbulent pipe and public cavity; velocity readback separately covered by ASCII static-mesh path"
+          }
+        ],
+        "reference": [
+          {
+            "source": "backend/agent_engine/templates/t3-incompressible-steady/benchmark-reference.json",
+            "scope": "Re 10000 turbulent pipe x=7 to 9 m pressure drop: 3.08960445 Pa vs 3.16 Pa Blasius estimate (−2.23%); applies to that setup only."
+          }
+        ]
+      },
+      "validation": "Fully developed pipe: compare axial pressure loss and signed inlet/outlet flow balance under mesh refinement; use a benchmark matched to the declared flow regime."
+    },
+    {
+      "id": "openfoam_opencfd.transient_cht",
+      "module": "chtMultiRegionFoam",
+      "scope": "Conjugate heat transfer between multiple fluid and solid regions on defined paired interfaces. Fluid p and p_rgh are in Pa; T is in K. Requires compatible thermophysical and interface boundary conditions per region. The pressure output is a field; a pressure drop requires separately defined inlet/outlet selections, reduction and signed differencing. The wall heat-flux field is a derived result, requiring a separately configured compatible region-specific wallHeatFlux function object or equivalent postprocessing; record the selected patches, radiation treatment and sign convention. This profile selects turbulentTemperatureCoupledBaffleMixed on the paired heat-transfer patches. The mixed boundary receives neighbor internal temperature and neighbor conductance weights in both directions, then derives the signed heat flux locally.",
+      "inputs": [
+        {
+          "id": "region_meshes",
+          "unit": "per-region polyMesh"
+        },
+        {
+          "id": "thermal_interfaces",
+          "unit": "paired patches"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "SI"
+        },
+        {
+          "id": "compressible_flow_boundaries",
+          "unit": "m/s; Pa"
+        },
+        {
+          "id": "thermal_boundary_history",
+          "unit": "K or W/m^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature field",
+            "温度",
+            "温度场"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度",
+            "流速",
+            "速度场"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "pressure field",
+            "压力",
+            "压力场"
+          ]
+        },
+        {
+          "id": "wall_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "壁面热通量",
+            "壁面热流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "conjugate_heat_transfer"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionFoam.C",
+            "scope": "v2606 chtMultiRegionFoam source specifies transient conjugate heat transfer across fluid/solid regions."
+          },
+          {
+            "source": "https://doc.openfoam.com/2312/tools/processing/solvers/rtm/heat-transfer/chtMultiRegionFoam/",
+            "scope": "v2312 solver input requirements; this is older than the selected executable version"
+          },
+          {
+            "source": "https://api.openfoam.com/2606/classFoam_1_1functionObjects_1_1wallHeatFlux.html",
+            "scope": "v2606 wallHeatFlux function object configuration and patch/model options; this is additional postprocessing, not an automatic solver output."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C",
+            "scope": "v2606 updateCoeffs maps neighboring patchInternalField and neighboring kappa times deltaCoeffs with distinct distributes. The mixed condition uses both weights and temperatures. Heat flux is evaluated locally from the solution gradient."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Two-region heated channel and solid wall: check fluid/solid interface temperature and opposite signed heat flow, include transient storage, and refine time step/mesh before comparing the defined outlet temperature. Configure the postprocessor for the correct region and patches, and independently verify its heat-flux sign and included radiation terms.",
+      "couplings": [
+        {
+          "from_field": "fluid_thermal",
+          "to_field": "solid_thermal",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "fluid_thermal",
+          "to_field": "solid_thermal",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "solid_thermal",
+          "to_field": "fluid_thermal",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "solid_thermal",
+          "to_field": "fluid_thermal",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "flow",
+          "to_field": "fluid_thermal",
+          "quantity": "mass_flux",
+          "unit": "kg/s",
+          "transfer": "通过同区域面质量通量组装流体能量对流；每步按 PIMPLE 区域循环更新。",
+          "implementation": "native",
+          "custom_work": "为流体能量方程配置入口温度和热物性。"
+        },
+        {
+          "from_field": "fluid_thermal",
+          "to_field": "flow",
+          "quantity": "density",
+          "unit": "kg/m^3",
+          "transfer": "对启用浮力和适用状态方程的流体区域，用当前热力状态更新密度和浮力。",
+          "implementation": "native",
+          "custom_work": "确认状态方程、重力与参考压力。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.transient_incompressible",
+      "module": "pimpleFoam",
+      "scope": "Single-phase transient incompressible Newtonian flow with PIMPLE. This entry covers a static mesh and cell velocity and kinematic pressure histories. Specify initial and boundary fields, timestep and, for turbulence, the intended closure and wall treatment.",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "flow_boundaries",
+          "unit": "m/s or m^2/s^2"
+        },
+        {
+          "id": "initial_velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity_history",
+          "unit": "m/s vs s",
+          "aliases": [
+            "速度时程",
+            "瞬态速度场"
+          ]
+        },
+        {
+          "id": "kinematic_pressure_history",
+          "unit": "m^2/s^2 vs s",
+          "aliases": [
+            "运动压力时程"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "incompressible_fluid",
+        "single_phase",
+        "static_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/dir_000001_000499.html",
+            "scope": "v2606 source-directory dependency listing includes incompressible/pimpleFoam/createFields.H."
+          },
+          {
+            "source": "https://api.openfoam.com/2506/pimpleFoam_8C_source.html",
+            "scope": "v2506 pimpleFoam.C implementation documents transient incompressible Newtonian flow and PIMPLE loop."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Use decaying laminar periodic shear; compare the mode amplitude with its exponential viscous decay under timestep and mesh refinement."
+    },
+    {
+      "id": "openfoam_opencfd.two_phase_immiscible_vof",
+      "module": "interIsoFoam",
+      "scope": "Track the interface between two incompressible immiscible phases with the isoAdvector volume-of-fluid implementation. This entry targets free-surface motion without phase change. Native p_rgh is pressure with a hydrostatic contribution removed; use the named p field and datum for pressure comparisons.",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "phase_densities",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "phase_viscosities",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "surface_tension",
+          "unit": "N/m"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "initial_phase_fraction",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "phase_volume_fraction",
+          "unit": "1",
+          "aliases": [
+            "相体积分数",
+            "液相体积分数",
+            "VOF相分数"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "incompressible_fluid",
+        "immiscible_two_phase",
+        "no_phase_change"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/group__grpMultiphaseSolvers.html",
+            "scope": "v2606 Multiphase solvers: interIsoFoam description, isoAdvector phase fraction for two incompressible isothermal immiscible fluids."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Run a hydrostatic two-layer column and confirm phase volumes stay constant and pressure gradients match each density times gravity; verify interface drift.",
+      "couplings": [
+        {
+          "from_field": "flow",
+          "to_field": "phase_fraction",
+          "quantity": "volumetric_flux",
+          "unit": "m^3/s",
+          "transfer": "由当前速度通量推进几何 VOF 追踪。",
+          "implementation": "native",
+          "custom_work": "配置界面初值，控制相分数 Courant 数。"
+        },
+        {
+          "from_field": "phase_fraction",
+          "to_field": "flow",
+          "quantity": "phase_fraction",
+          "unit": "1",
+          "transfer": "同网格按相分数更新混合物属性及界面力，进入动量和压力修正。",
+          "implementation": "native",
+          "custom_work": "给定表面张力与接触角等适用数据。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.mass_weighted_thermal_readback",
+      "module": "surfaceFieldValue / weightedAverage",
+      "scope": "v2606 signed face-weighted thermal readback: X_b=Σ(mdot_f X_f)/Σmdot_f, face mdot includes area. Scalar integrated mass phi uses weightedAverage; weightedAreaAverage multiplies area again. Vector mass flux density uses area-weighted normal projection. Check actual phi dimensions: compressible buoyantSimpleFoam mass flux; incompressible phi may be volumetric, requiring face density to obtain mass flow. Signed net mean includes reverse flow and is ill-conditioned near zero net flow; only-outflow requires selecting positive faces, not absolute weighting. Variable cp requires mass-weighted enthalpy and thermodynamic inversion to temperature at a declared state. Wall mode tokens are flux, power and coefficient, not internal enum fixedHeatFlux. This record describes versioned operations, not an automatic validated mixed-cup implementation.",
+      "inputs": [
+        {
+          "id": "surface_thermodynamic_field",
+          "unit": "K or J/kg"
+        },
+        {
+          "id": "mass_face_flux",
+          "unit": "kg/s per face"
+        },
+        {
+          "id": "surface_sampling_definition",
+          "unit": "patch or oriented faceZone"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mass_weighted_thermal_mean",
+          "unit": "K or J/kg",
+          "aliases": [
+            "质量加权温度",
+            "混合杯温度",
+            "质量加权焓"
+          ]
+        }
+      ],
+      "conditions": [
+        "selected_surface",
+        "defined_flow_sign",
+        "thermophysical_state"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValueTemplates.C",
+            "scope": "OpenFOAM-v2606 203–241: weighted and weighted-area means, denominator handling"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.C",
+            "scope": "OpenFOAM-v2606 939–990, 994–1062: scalar/vector weights and face area"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/externalWallHeatFluxTemperature/externalWallHeatFluxTemperatureFvPatchScalarField.C",
+            "scope": "OpenFOAM-v2606 40–42, 104–112, 289–320: dictionary mode flux/power/coefficient, Q/area and (q+qr)/kappa"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/createFields.H",
+            "scope": "OpenFOAM-v2606 2–4, 33: rhoThermo and compressibleCreatePhi"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/pEqn.H",
+            "scope": "OpenFOAM-v2606 9–12, 31–41: density-weighted face flux and pressure correction"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/finiteVolume/fields/fvPatchFields/derived/inletOutlet/inletOutletFvPatchField.H",
+            "scope": "OpenFOAM-v2606 35–61: outgoing zero gradient and incoming inletValue"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify field dimensions, nonuniform face-area weighting and normal signs against explicit face sums; separate outflow and backflow, guard near-zero signed flow, and close the wall/enthalpy energy balance. Thermodynamic inversion, direction filtering, interpolated internal-surface mapping and workflow integration require custom implementation and verification."
+    },
+    {
+      "id": "openfoam_opencfd.patch_volumetric_flux",
+      "module": "surfaceFieldValue / sum(phi)",
+      "scope": "Sum signed face volumetric flux on a named patch with the native face orientation. Confirm phi dimensions are volume per time; compressible mass phi requires its own reduction. Use this sum on integrated face flux without an additional area factor.",
+      "inputs": [
+        {
+          "id": "volumetric_face_flux",
+          "unit": "m^3/s per face"
+        },
+        {
+          "id": "patch_selection",
+          "unit": "polyMesh patch name"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "flow_rate",
+          "unit": "m^3/s",
+          "aliases": [
+            "体积流量",
+            "截面净体积流量",
+            "边界体积流量"
+          ]
+        }
+      ],
+      "conditions": [
+        "volumetric_flux_field",
+        "named_patch"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/classFoam_1_1functionObjects_1_1fieldValues_1_1surfaceFieldValue.html",
+            "scope": "v2606 surfaceFieldValue detailed description, patch region type and sum operation."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "On a straight duct with known uniform normal velocity verify opposite-signed inlet/outlet fluxes against area times velocity and check the whole-domain balance."
+    },
+    {
+      "id": "openfoam_opencfd.time_averaged_velocity",
+      "module": "fieldAverage / UMean",
+      "scope": "Compute a time-weighted velocity mean on fixed mesh cells over the declared sampling interval. Specify averaging base, any window, time origin and restart behavior. A time mean is distinct from a spatial average and its statistical convergence depends on the sampling interval.",
+      "inputs": [
+        {
+          "id": "velocity_history",
+          "unit": "m/s vs s"
+        },
+        {
+          "id": "averaging_window",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mean_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "时均速度",
+            "平均速度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "static_mesh",
+        "time_weighted_average"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/classFoam_1_1functionObjects_1_1fieldAverage.html",
+            "scope": "v2606 fieldAverage detailed description: base time or iteration, mean fields, window and restarts."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Average a prescribed periodic velocity over an integer number of periods after startup, compare to its analytic mean and check consistency after restarting."
+    },
+    {
+      "id": "openfoam_opencfd.transient_density_based_compressible",
+      "module": "rhoCentralFoam",
+      "scope": "Solve transient single-phase compressible flow with a density-based central-upwind flux. Supply the equation of state and transport law, initial thermodynamic fields and compatible inlet/outlet data; this entry covers a static mesh and nonreacting fluid. Use thermodynamic pressure in Pa and track the wave-speed Courant number.",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "SI"
+        },
+        {
+          "id": "compressible_flow_boundaries",
+          "unit": "m/s and Pa and K"
+        },
+        {
+          "id": "initial_thermodynamic_state",
+          "unit": "Pa and K and m/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "compressible_pressure_history",
+          "unit": "Pa vs s",
+          "aliases": [
+            "可压缩流压力时程"
+          ]
+        },
+        {
+          "id": "density_history",
+          "unit": "kg/m^3 vs s",
+          "aliases": [
+            "密度时程",
+            "密度场"
+          ]
+        },
+        {
+          "id": "compressible_velocity_history",
+          "unit": "m/s vs s",
+          "aliases": [
+            "可压缩流速度时程"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "compressible_fluid",
+        "single_phase",
+        "static_mesh",
+        "nonreacting"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/files.html",
+            "scope": "OpenCFD v2606 generated source index, applications/solvers/compressible/rhoCentralFoam: rhoCentralFoam.C, createFields.H and centralCourantNo.H."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a small pressure pulse in a straight air duct with the analytic acoustic transit time at the chosen gas state; refine grid and timestep and monitor mass and energy balance.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "flow",
+          "quantity": "pressure",
+          "unit": "Pa",
+          "transfer": "密度、动量和总能量按密度基通量推进，状态方程回算热力学压力。",
+          "implementation": "native",
+          "custom_work": "提供适用状态方程和初始热力学场。"
+        },
+        {
+          "from_field": "flow",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "动量除以密度更新速度，以通量和动能分量共同更新总能量。",
+          "implementation": "native",
+          "custom_work": "核对速度、压力边界一致性和声速 Courant 数。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.transient_buoyant_heat_transfer",
+      "module": "buoyantPimpleFoam",
+      "scope": "Solve single-region buoyancy-driven compressible flow with gravity and a fluid energy equation, suitable for ventilation and natural convection. Thermal boundary conditions drive density changes according to the equation of state. Read p in Pa for thermodynamic pressure and retain the reference height and gravity when interpreting p_rgh. This scope uses a static mesh and fluid-side heat transfer; explicit solid conduction calls for a multi-region case.",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "SI"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "thermal_boundary_history",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "initial_thermodynamic_state",
+          "unit": "Pa and K and m/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "buoyant_velocity_history",
+          "unit": "m/s vs s",
+          "aliases": [
+            "浮力流速度时程",
+            "自然对流速度场"
+          ]
+        },
+        {
+          "id": "temperature_history",
+          "unit": "K vs s",
+          "aliases": [
+            "温度时程",
+            "瞬态温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "compressible_fluid",
+        "buoyancy",
+        "single_fluid_region",
+        "static_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/files.html",
+            "scope": "OpenCFD v2606 generated source index, applications/solvers/heatTransfer/buoyantPimpleFoam: solver description, energy and pressure equations."
+          },
+          {
+            "source": "https://api.openfoam.com/2506/heatTransfer_2buoyantPimpleFoam_2pEqn_8H.html",
+            "scope": "v2506 equation source shows p = p_rgh + rho*gh."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "For a differentially heated square cavity, set the fluid properties and Rayleigh number to a laminar reference and compare temperature, centerline velocity and the hot-wall mean Nusselt number after grid and timestep refinement.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "flow",
+          "quantity": "density",
+          "unit": "kg/m^3",
+          "transfer": "能量求解更新状态方程密度，并在 PIMPLE 修正中影响浮力和压力。",
+          "implementation": "native",
+          "custom_work": "设置热力学模型与重力、压力基准。"
+        },
+        {
+          "from_field": "flow",
+          "to_field": "thermal",
+          "quantity": "mass_flux",
+          "unit": "kg/s",
+          "transfer": "共用同网格面质量通量，组装能量对流并随外循环更新。",
+          "implementation": "native",
+          "custom_work": "启用适合的热扩散与湍流热输运。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.solid_energy_diffusion",
+      "module": "solidFoam / pureZoneMixture",
+      "scope": "用有限体积求解固体温度及热扩散，按 cellZone 赋予不同材料。对跨材料面核对法向导热系数插值和连续热流，区分各向同性与张量导热。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "volumetric_heat_capacity",
+          "unit": "J/(m^3 K)"
+        },
+        {
+          "id": "thermal_boundary_conditions",
+          "unit": "K or W/m^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature",
+            "温度"
+          ]
+        },
+        {
+          "id": "heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "conductive heat flux",
+            "导热热流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/solvers-and-physics",
+            "scope": "solidFoam / pureZoneMixture。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用两层平板比较解析串联热阻及两侧热流，核对张量主轴方向。"
+    },
+    {
+      "id": "openfoam_opencfd.geko_rans",
+      "module": "TurbulenceModels / RAS / GEKO",
+      "scope": "为适配的可压或不可压求解器选择 GEKO 两方程湍流闭式。检查近壁方法、入口湍流条件及调参依据；计算输出为模型湍流统计量。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "flow_boundaries",
+          "unit": "model-dependent"
+        },
+        {
+          "id": "turbulence_inlet_data",
+          "unit": "m^2/s^2 and 1/s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "turbulent_kinetic_energy",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "turbulent kinetic energy",
+            "湍动能"
+          ]
+        },
+        {
+          "id": "turbulent_kinematic_viscosity",
+          "unit": "m^2/s",
+          "aliases": [
+            "turbulent kinematic viscosity",
+            "湍动黏度"
+          ]
+        }
+      ],
+      "conditions": [
+        "rans"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/solvers-and-physics",
+            "scope": "TurbulenceModels / RAS / GEKO。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对后台阶基准比较再附点、壁面分辨率和入口湍流敏感性。",
+      "couplings": [
+        {
+          "from_field": "flow",
+          "to_field": "turbulence",
+          "quantity": "velocity_gradient",
+          "unit": "1/s",
+          "transfer": "同网格用速度梯度计算湍流产生项，闭式与平均流在迭代中交替更新。",
+          "implementation": "native",
+          "custom_work": "依据场景选择近壁网格和入口湍流条件。"
+        },
+        {
+          "from_field": "turbulence",
+          "to_field": "flow",
+          "quantity": "turbulent_kinematic_viscosity",
+          "unit": "m^2/s",
+          "transfer": "通过有效动量扩散及模型应力进入下一次平均动量迭代。",
+          "implementation": "configured",
+          "custom_work": "选择 GEKO 并定义系数及检查壁面分辨率。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.overset_flow",
+      "module": "overset / dynamicOversetFvMesh / overPimpleDyMFoam",
+      "scope": "重叠网格支持给定相对运动的不可压流计算；定义背景网格、移动网格、区域编号和插值。插值后的守恒误差需专门量化。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "prescribed_mesh_motion",
+          "unit": "m and rad"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "flow_boundaries",
+          "unit": "m/s or m^2/s^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "flow velocity",
+            "流速"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "kinematic pressure",
+            "运动压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "overset_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/numerics/overset/",
+            "scope": "overset / dynamicOversetFvMesh / overPimpleDyMFoam。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在给定平移的重叠网格上检查均匀流保真性和通量平衡，再评估网格重叠敏感性。",
+      "couplings": [
+        {
+          "from_field": "mesh_motion",
+          "to_field": "flow",
+          "quantity": "mesh_velocity",
+          "unit": "m/s",
+          "transfer": "每步更新网格与 overset 供受体关系，按相对通量推进。",
+          "implementation": "configured",
+          "custom_work": "给定运动轨迹，核验重叠层和插值后的守恒。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.spray_wall_interaction",
+      "module": "lagrangian / LocalInteraction / BaiGosman",
+      "scope": "为具备温度与密度数据的液滴 parcels 配置 BaiGosman 壁面相互作用，可描述黏附、反弹与飞溅；采用适用液体属性并记录随机性。",
+      "inputs": [
+        {
+          "id": "droplet_parcel_state",
+          "unit": "m, m/s, K, kg/m^3"
+        },
+        {
+          "id": "liquid_properties",
+          "unit": "model-dependent"
+        },
+        {
+          "id": "wall_interaction_parameters",
+          "unit": "model-dependent"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "spray_wall_outcome",
+          "unit": "categorical",
+          "aliases": [
+            "droplet wall interaction outcome",
+            "液滴撞壁状态"
+          ]
+        }
+      ],
+      "conditions": [
+        "lagrangian_spray"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/solvers-and-physics",
+            "scope": "lagrangian / LocalInteraction / BaiGosman。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用单液滴撞壁现象图核验状态切换条件，测试二次液滴质量分配。",
+      "couplings": [
+        {
+          "from_field": "droplet",
+          "to_field": "wall_interaction",
+          "quantity": "droplet_temperature",
+          "unit": "K",
+          "transfer": "每个 parcel 撞击事件读取当前液滴状态，随壁面闭式确定相互作用结果。",
+          "implementation": "configured",
+          "custom_work": "配置液体热物性、撞壁相关阈值与随机采样检查。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.synthetic_turbulence_inlet",
+      "module": "finiteVolume / turbulentDigitalFilterInlet",
+      "scope": "在 LES 或 DES 入口按平均流、雷诺应力及尺度生成时变速度边界，v2606 并行化数字滤波卷积。统计比较时记录随机种子及重启动方式。",
+      "inputs": [
+        {
+          "id": "mean_velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "reynolds_stress",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "integral_length_scale",
+          "unit": "m"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity_inlet_history",
+          "unit": "m/s",
+          "aliases": [
+            "time varying inlet velocity",
+            "时变入口速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "les"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/solvers-and-physics",
+            "scope": "finiteVolume / turbulentDigitalFilterInlet。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较入口流向均值、应力张量和积分尺度，复核统计采样区间。"
+    },
+    {
+      "id": "openfoam_opencfd.fully_developed_boundary_profile",
+      "module": "boundaryFoam",
+      "scope": "在不可压稳态一维湍流参考网格上求解速度及湍流剖面，供下游入口条件使用；选择与下游算例相容的湍流模型和壁面配置。并非任意截面二维发展流求解器。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "mean_velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity_inlet_profile",
+          "unit": "m/s",
+          "aliases": [
+            "fully developed inlet profile",
+            "充分发展入口速度剖面"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "incompressible_fluid",
+        "one_dimensional",
+        "turbulent_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/solvers/rtm/incompressible/boundaryFoam/",
+            "scope": "boundaryFoam。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          },
+          {
+            "source": "https://api.openfoam.com/2506/boundaryFoam_8C_source.html",
+            "scope": "v2506 boundaryFoam 源码说明一维稳态不可压湍流；作为较旧版本补充证据。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "同截面核对平均速度目标及充分发展通道基准速度剖面。"
+    },
+    {
+      "id": "openfoam_opencfd.passive_scalar_transport",
+      "module": "scalarTransport function object / scalarTransportFoam",
+      "scope": "用已有不可压流面通量推进无量纲被动标量对流扩散。保持标量对动量、密度和温度无反馈；指定扩散系数和初边值。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "volumetric_flux",
+          "unit": "m^3/s"
+        },
+        {
+          "id": "mass_diffusivity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "scalar_boundary_conditions",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "passive_scalar",
+          "unit": "1",
+          "aliases": [
+            "passive scalar concentration",
+            "无量纲被动标量浓度"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "incompressible_fluid"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/post-processing/function-objects/solvers/scalarTransport/",
+            "scope": "scalarTransport function object / scalarTransportFoam。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较均匀速度通道脉冲的对流时间、展宽和总标量守恒。",
+      "couplings": [
+        {
+          "from_field": "flow",
+          "to_field": "scalar",
+          "quantity": "volumetric_flux",
+          "unit": "m^3/s",
+          "transfer": "标量方程每次执行直接读取同区域当前面通量。",
+          "implementation": "configured",
+          "custom_work": "配置标量边界和扩散，检查采样与求解更新频率。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.steady_compressible",
+      "module": "rhoSimpleFoam / SIMPLE",
+      "scope": "对固定网格上的单相稳态可压缩流求压力、温度、密度、速度；供给相容的状态方程与进出口总量/静量。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "equation_of_state",
+          "unit": "model-dependent"
+        },
+        {
+          "id": "compressible_flow_boundaries",
+          "unit": "Pa, K, m/s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "pressure",
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature",
+            "温度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "density",
+            "密度"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "velocity",
+            "速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "compressible_fluid"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/rhoSimpleFoam.C",
+            "scope": "rhoSimpleFoam / SIMPLE。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对收缩喷管亚声速解核对质量流量、总焓平衡和静压分布。",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "flow",
+          "quantity": "density",
+          "unit": "kg/m^3",
+          "transfer": "在稳态 SIMPLE 外迭代从压力与热力状态更新密度，修正连续与动量方程。",
+          "implementation": "native",
+          "custom_work": "配置状态方程及热边界。"
+        },
+        {
+          "from_field": "flow",
+          "to_field": "thermal",
+          "quantity": "mass_flux",
+          "unit": "kg/s",
+          "transfer": "能量对流项使用同网格质量面通量。",
+          "implementation": "native",
+          "custom_work": "检查总能量及流量平衡。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.isothermal_vof_cavitation",
+      "module": "interPhaseChangeFoam / phaseChangeTwoPhaseMixtures",
+      "scope": "求解等温液体—蒸气空化与相界面演化；饱和压力及质量转移闭式须与流体和绝对压力基准匹配。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "vapor_saturation_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "phase_properties",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "phase_change_parameters",
+          "unit": "model-dependent"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "vapor_volume_fraction",
+          "unit": "1",
+          "aliases": [
+            "vapor volume fraction",
+            "蒸气体积分数"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "pressure",
+            "压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "cavitation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interPhaseChangeFoam/interPhaseChangeFoam.C",
+            "scope": "interPhaseChangeFoam / phaseChangeTwoPhaseMixtures。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对公开文丘里空化基准比较空腔长度及压强恢复，检查模型参数和时步敏感性。",
+      "couplings": [
+        {
+          "from_field": "flow",
+          "to_field": "phase_fraction",
+          "quantity": "pressure",
+          "unit": "Pa",
+          "transfer": "在 VOF 推进中用局部压力和饱和压力差评价相变源。",
+          "implementation": "configured",
+          "custom_work": "配置饱和压力、相变闭式和压力量纲。"
+        },
+        {
+          "from_field": "phase_fraction",
+          "to_field": "flow",
+          "quantity": "phase_mass_transfer_rate",
+          "unit": "kg/(m^3 s)",
+          "transfer": "同网格相变源影响混合连续性，压力修正与相分数更新相互反馈。",
+          "implementation": "native",
+          "custom_work": "核对可用液相、质量通量和相分数界限。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.permanent_magnet_field",
+      "module": "magneticFoam",
+      "scope": "在固定磁体及空气区域求解永久磁体静磁场。需显式设置磁化方向、区域材料和远场截断边界。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "magnetization",
+          "unit": "A/m"
+        },
+        {
+          "id": "permeability",
+          "unit": "H/m"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "magnetic_flux_density",
+          "unit": "T",
+          "aliases": [
+            "magnetic flux density",
+            "磁通密度"
+          ]
+        },
+        {
+          "id": "magnetic_field_strength",
+          "unit": "A/m",
+          "aliases": [
+            "magnetic field strength",
+            "磁场强度"
+          ]
+        }
+      ],
+      "conditions": [
+        "magnetostatic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/electromagnetics/magneticFoam/magneticFoam.C",
+            "scope": "magneticFoam。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较圆柱磁体轴线上磁通密度及远场尺寸敏感性。"
+    },
+    {
+      "id": "openfoam_opencfd.small_strain_thermoelastic",
+      "module": "solidDisplacementFoam",
+      "scope": "在小应变线弹性条件下求解固体位移与应力，可启用导热及温度膨胀项。热场用同一有限体积网格。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "elastic_properties",
+          "unit": "Pa, 1"
+        },
+        {
+          "id": "thermal_expansion_coefficient",
+          "unit": "1/K"
+        },
+        {
+          "id": "thermal_boundary_conditions",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "structural_constraints",
+          "unit": "m / DOF"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "displacement",
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "stress",
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "small_strain"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/stressAnalysis/solidDisplacementFoam/solidDisplacementFoam.C",
+            "scope": "solidDisplacementFoam。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较受约束均匀温升杆的轴向热应力，并用自由膨胀对照。",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "structural",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "同一固体单元内以温度场参与热应力项，分离推进热扩散和位移方程。",
+          "implementation": "configured",
+          "custom_work": "启用热应力，设置弹性参数、热膨胀系数和相容边界。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.joule_heating_source",
+      "module": "fvOptions / jouleHeatingSource",
+      "scope": "在支持的能量方程中配置电势计算及导体焦耳体热源。线性稳态电流情形使用适用的电导率，核验电势边界和绝缘面。",
+      "inputs": [
+        {
+          "id": "finite_volume_mesh",
+          "unit": "polyMesh"
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m"
+        },
+        {
+          "id": "voltage",
+          "unit": "V"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "joule_heat",
+          "unit": "W/m^3",
+          "aliases": [
+            "volumetric Joule heating",
+            "焦耳体热源"
+          ]
+        }
+      ],
+      "conditions": [
+        "dc_conduction"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/numerics/fvoptions/sources/",
+            "scope": "fvOptions / jouleHeatingSource。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用均匀导体比较端电压乘电流和体源积分。",
+      "couplings": [
+        {
+          "from_field": "electrical",
+          "to_field": "thermal",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "在能量方程源项调用时，用电势梯度与电导率在同网格构造焦耳热。",
+          "implementation": "configured",
+          "custom_work": "提供电势边界、电导及兼容能量源配置。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.suction_pressure_projection",
+      "module": "Custom / suction wall-normal pressure projection",
+      "scope": "自研后处理。以壁外法线 n 指向机器人，取有效足印投影 A 和同一参考的 p_amb−p_cup。F_s=∫_A(p_amb−p_cup)dA [N]，正值为向壁吸附，力向量 −F_s n。实际湿壁气动力可另行投影并完整计入外侧压力、黏性与力矩。两套账本择一，墙体湿面上的流体力也不可作为机器人足端接触反力。",
+      "inputs": [
+        {
+          "id": "suction_face_pressure_field",
+          "unit": "Pa",
+          "aliases": [
+            "吸附腔有效足印的压力分布，或经过验证的均匀压强"
+          ]
+        },
+        {
+          "id": "ambient_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "adhesion_projection",
+          "unit": "m^2 and unit normal"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "suction_force",
+          "unit": "N",
+          "aliases": [
+            "吸附力",
+            "法向吸力",
+            "吸盘吸力",
+            "suction force",
+            "wall-normal suction force"
+          ]
+        }
+      ],
+      "conditions": [
+        "vacuum_adhesion",
+        "wall_contact",
+        "pressure_projection"
+      ],
+      "couplings": [
+        {
+          "from_field": "chamber_pressure",
+          "to_field": "suction_force",
+          "quantity": "单足向壁的法向压差载荷",
+          "unit": "N",
+          "transfer": "同参考 Pa 的 p_amb−p_cup 对有效足印投影面积积分；记录壁法线及正方向。",
+          "implementation": "custom",
+          "custom_work": "需自研压力映射、有效密封足印与符号转换；外露面需按完整载荷账本补齐。"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/forces/forces/forces.C",
+            "scope": "v2606 原生提供所选湿面的压力和黏性力及参照点力矩；这里的有效足印压差积分需自研。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": [
+          {
+            "source": "https://doi.org/10.3390/s21041117",
+            "scope": "§3.3 式 (1)–(3) 的均匀压差面积模型与吸盘试验。本文卡采用 p_amb−p_cup 的正吸附大小定义。"
+          }
+        ]
+      },
+      "validation": "以均匀压差平面 F=ΔpA 检查几何、量纲和方向，零压差返回零；对比独立力传感器法向载荷并核对湿面与足印定义。"
+    },
+    {
+      "id": "openfoam_opencfd.wall_force_and_moment",
+      "module": "forces function object",
+      "scope": "对指定湿表面分别积分压力与黏性贡献，记录力方向和转矩中心。不可压 p 用已声明密度换算；可压 p 使用其原有物理单位。",
+      "inputs": [
+        {
+          "id": "pressure",
+          "unit": "Pa or m^2/s^2"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "wall_patch_selection",
+          "unit": "patch names"
+        },
+        {
+          "id": "moment_origin",
+          "unit": "m"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_force",
+          "unit": "N",
+          "aliases": [
+            "fluid force",
+            "流体作用力"
+          ]
+        },
+        {
+          "id": "fluid_moment",
+          "unit": "N m",
+          "aliases": [
+            "fluid moment",
+            "流体力矩"
+          ]
+        }
+      ],
+      "conditions": [
+        "surface_integral"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/post-processing/function-objects/forces/forces/",
+            "scope": "forces function object。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀压差平板核对法向力和参考点力矩，检查黏性贡献和坐标轴。"
+    },
+    {
+      "id": "openfoam_opencfd.acoustic_pressure_wave",
+      "module": "acousticFoam",
+      "scope": "在给定声速和声学初边值条件下积分线性标量声压波动方程，得到时域扰动声压。来流噪声、结构激励和温度对声速的影响须另外建模。",
+      "inputs": [
+        {
+          "id": "sound_speed",
+          "unit": "m/s",
+          "aliases": [
+            "声速"
+          ]
+        },
+        {
+          "id": "acoustic_initial_boundary_data",
+          "unit": "Pa，或由声压边界条件的类型决定",
+          "aliases": [
+            "声压初边值"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "acoustic_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "声压"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "linear_acoustics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/acoustic/acousticFoam/acousticFoam.C",
+            "scope": "v2606 acousticFoam.C，Description 中 pa 与 c 的定义；主循环调用 paEqn.H 并写时步结果。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用给定声速的一维行波比较两测点到达时间、波幅及时间步和网格加密误差。"
+    },
+    {
+      "id": "openfoam_opencfd.adjoint_design_sensitivity",
+      "module": "adjointOptimisationFoam",
+      "scope": "在支持的原问题、目标函数和设计变量配置下计算目标灵敏度并迭代更新设计变量。工程目标必须能由所选目标函数或用户实现表达。",
+      "inputs": [
+        {
+          "id": "primal_flow_case",
+          "unit": "OpenFOAM case",
+          "aliases": [
+            "原问题算例"
+          ]
+        },
+        {
+          "id": "objective_definition",
+          "unit": "由目标函数 J 定义",
+          "aliases": [
+            "优化目标定义"
+          ]
+        },
+        {
+          "id": "design_variable_definition",
+          "unit": "由设计变量 x 定义",
+          "aliases": [
+            "设计变量及约束"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "objective_sensitivity",
+          "unit": "[J]/[x]",
+          "aliases": [
+            "设计灵敏度"
+          ]
+        }
+      ],
+      "conditions": [
+        "adjoint_optimisation",
+        "differentiable_objective"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/incompressible/adjointOptimisationFoam/adjointOptimisationFoam.C",
+            "scope": "v2606 主程序 optimisationManager，solvePrimalEquations、solveAdjointEquations 及 updateDesignVariables 循环。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "选单个设计变量，比较伴随导数与同一目标的中心有限差分，检查扰动步长敏感性。"
+    },
+    {
+      "id": "openfoam_opencfd.potential_flow_initialization",
+      "module": "potentialFoam",
+      "scope": "用速度势求解适用边界的不可压势流，重建速度场，可用作黏性流动计算的初值。该输出不包含边界层发展。",
+      "inputs": [
+        {
+          "id": "fluid_mesh",
+          "unit": "m",
+          "aliases": [
+            "流体网格"
+          ]
+        },
+        {
+          "id": "velocity_boundary_data",
+          "unit": "m/s",
+          "aliases": [
+            "速度边界值"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "potential_flow_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "势流初始速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "incompressible",
+        "potential_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/basic/potentialFoam/potentialFoam.C",
+            "scope": "v2606 potentialFoam.C，Description / Solver details 中的速度势、通量重建及初值用途。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在等截面直管核对入口和出口的体积流量与重建速度，并检查质量不平衡。"
+    },
+    {
+      "id": "openfoam_opencfd.single_cell_chemistry",
+      "module": "combustion / chemFoam",
+      "scope": "原生均匀单元化学反应时间积分。使用初始温度、压力、组成及热物性和反应机制，输出温压历程，适用于已混合的均匀单元化学诊断。",
+      "inputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "初始温度"
+          ]
+        },
+        {
+          "id": "absolute_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "初始绝对压力"
+          ]
+        },
+        {
+          "id": "species_mass_fraction",
+          "unit": "kg/kg",
+          "aliases": [
+            "初始组分质量分数"
+          ]
+        },
+        {
+          "id": "chemical_kinetic_mechanism",
+          "unit": "OpenFOAM dictionaries",
+          "aliases": [
+            "反应及热物性机制"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "chemistry_temperature_history",
+          "unit": "K",
+          "aliases": [
+            "均匀单元温度历程"
+          ]
+        },
+        {
+          "id": "chemistry_pressure_history",
+          "unit": "Pa",
+          "aliases": [
+            "均匀单元压力历程"
+          ]
+        }
+      ],
+      "conditions": [
+        "one_cell_case",
+        "homogeneous_mixture",
+        "chemical_mechanism_available"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/combustion/chemFoam/createFields.H",
+            "scope": "单单元限制与 chemFoam.out 温度和压力列"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/combustion/chemFoam",
+            "scope": "均匀单元官方输入示例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对已知反应与初态在独立 0D 反应器中复算，核对热力条件、温压历程和元素守恒。"
+    },
+    {
+      "id": "openfoam_opencfd.isotropic_periodic_dns",
+      "module": "DNS / dnsFoam",
+      "scope": "原生周期盒不可压各向同性湍流 DNS。使用周期域黏性及随机谱激励；压力以运动学量读出。对网格与时步充分分辨的尺度解释统计结果。",
+      "inputs": [
+        {
+          "id": "periodic_box_mesh",
+          "unit": "m",
+          "aliases": [
+            "周期盒网格"
+          ]
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s",
+          "aliases": [
+            "运动黏度"
+          ]
+        },
+        {
+          "id": "dns_forcing_parameters",
+          "unit": "case-dependent",
+          "aliases": [
+            "随机谱激励参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "瞬态速度场"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动学压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "periodic_box",
+        "isotropic_turbulence",
+        "scale_resolved_grid",
+        "incompressible_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/DNS/dnsFoam/dnsFoam.C",
+            "scope": "速度压力推进、谱强迫"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/DNS/dnsFoam/boxTurb16",
+            "scope": "周期盒官方算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "固定统计配置并逐级缩小网格与时步，检查频谱、均方速度及黏性耗散的统计收敛。"
+    },
+    {
+      "id": "openfoam_opencfd.european_option_pde",
+      "module": "financial / financialFoam",
+      "scope": "原生 Black–Scholes 方程算例，限固定收益率及波动率的欧式看涨期权，用作通用 PDE 求解示例。",
+      "inputs": [
+        {
+          "id": "strike_price",
+          "unit": "currency",
+          "aliases": [
+            "执行价"
+          ]
+        },
+        {
+          "id": "risk_free_rate",
+          "unit": "1/model time",
+          "aliases": [
+            "无风险利率"
+          ]
+        },
+        {
+          "id": "volatility",
+          "unit": "1/sqrt(model time)",
+          "aliases": [
+            "波动率"
+          ]
+        },
+        {
+          "id": "option_time_to_expiry",
+          "unit": "model time",
+          "aliases": [
+            "到期时间"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "european_option_value",
+          "unit": "currency",
+          "aliases": [
+            "欧式期权理论价值"
+          ]
+        },
+        {
+          "id": "option_delta",
+          "unit": "1",
+          "aliases": [
+            "价格对标的价格导数"
+          ]
+        }
+      ],
+      "conditions": [
+        "black_scholes",
+        "constant_volatility",
+        "european_call"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/financial/financialFoam/createFields.H",
+            "scope": "financialProperties 与 V、delta 场"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/financial/financialFoam/europeanCall",
+            "scope": "欧式看涨算例及末端、边界配置"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较解析 Black–Scholes 的期权价值和 Delta，避开未经网格加密验证的截断边界与行权价尖点。"
+    },
+    {
+      "id": "openfoam_opencfd.periodic_rarefied_gas_dsmc",
+      "module": "discreteMethods / dsmcFoam",
+      "scope": "原生 DSMC。粒子云随离散碰撞和运动推进，周期均匀稀薄气体可用于检验宏观平均量。宏观场需统计，记录采样区间和粒子权重。",
+      "inputs": [
+        {
+          "id": "dsmc_gas_species_properties",
+          "unit": "SI property set",
+          "aliases": [
+            "气体粒子模型参数"
+          ]
+        },
+        {
+          "id": "periodic_box_mesh",
+          "unit": "m",
+          "aliases": [
+            "周期网格"
+          ]
+        },
+        {
+          "id": "dsmc_initial_number_density",
+          "unit": "1/m^3",
+          "aliases": [
+            "初始分子数密度"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "初始化气体温度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "dsmc_particle_cloud",
+          "unit": "parcel data",
+          "aliases": [
+            "DSMC 模拟粒子云"
+          ]
+        },
+        {
+          "id": "dsmc_number_density",
+          "unit": "1/m^3",
+          "aliases": [
+            "DSMC 数密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "rarefied_gas",
+        "periodic_box",
+        "statistically_converged_sampling"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/discreteMethods/dsmc/dsmcFoam/dsmcFoam.C",
+            "scope": "粒子云时间步演化及输出"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/discreteMethods/dsmcFoam/freeSpacePeriodic",
+            "scope": "周期自由空间初始化与物种配置"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/lagrangian/DSMC/clouds/Templates/DSMCCloud/DSMCCloud.C",
+            "scope": "rhoN_：按等效实际粒子数加权并除以单元体积"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在周期平衡盒对照初始化数密度及温度对应的统计均值，检查总粒子权重与时间、样本数敏感性。"
+    },
+    {
+      "id": "openfoam_opencfd.partition_reconstruct_fields",
+      "module": "parallelProcessing",
+      "scope": "原生并行 I/O。decomposePar 按分区配置拆分标准算例和字段，reconstructPar 使用 processor 网格寻址将所选时刻场合回单域。",
+      "inputs": [
+        {
+          "id": "openfoam_case_mesh",
+          "unit": "OpenFOAM polyMesh",
+          "aliases": [
+            "原始网格"
+          ]
+        },
+        {
+          "id": "decompose_par_dictionary",
+          "unit": "OpenFOAM dictionary",
+          "aliases": [
+            "分区配置"
+          ]
+        },
+        {
+          "id": "processor_partition_fields",
+          "unit": "OpenFOAM fields",
+          "aliases": [
+            "分区场及寻址"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "reconstructed_sampled_fields",
+          "unit": "field-dependent",
+          "aliases": [
+            "重构时步场"
+          ]
+        }
+      ],
+      "conditions": [
+        "consistent_processor_addressing",
+        "matching_time_directories",
+        "configured_case_decomposition"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/utilities/parallelProcessing/decomposePar/decomposePar.C",
+            "scope": "网格和字段拆分入口"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/utilities/parallelProcessing/reconstructPar/reconstructPar.C",
+            "scope": "所选时步字段重构入口"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "给静态网格速度、压力赋可识别的空间分布，拆分后重构并逐单元、逐边界核对数值与面积积分。"
+    },
+    {
+      "id": "openfoam_opencfd.vtk_hdf_volume_export",
+      "module": "v2606 Infrastructure / Plugins",
+      "scope": "官方发行说明确认的 VTK-HDF 体数据输出。初版覆盖体网格及体场，依赖启用相应组件的构建以及可读此格式的查看器。",
+      "inputs": [
+        {
+          "id": "openfoam_case_mesh",
+          "unit": "OpenFOAM polyMesh",
+          "aliases": [
+            "体网格"
+          ]
+        },
+        {
+          "id": "openfoam_volume_fields",
+          "unit": "field-dependent",
+          "aliases": [
+            "待导出体场"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "vtkhdf_volume_dataset",
+          "unit": "VTK-HDF/HDF5",
+          "aliases": [
+            "体数据 VTK-HDF 文件"
+          ]
+        }
+      ],
+      "conditions": [
+        "vtkhdf_enabled_build",
+        "volume_geometry_and_fields",
+        "vtkhdf_compatible_reader"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/plugins",
+            "scope": "New VTK-HDF support：体网格和体场范围、查看器版本及无原生生成压缩"
+          },
+          {
+            "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/post-processing",
+            "scope": "核对发行版结果转换相关范围"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用有明确单元数、速度和压力的静态算例导出，按读取器检查网格坐标、场数组及单位，核对首末时刻。"
+    },
+    {
+      "id": "openfoam_opencfd.surface_laminar_liquid_film",
+      "module": "finiteArea / liquidFilmFoam",
+      "scope": "原生有限面积方法，在给定面网格上求不可压 Newton 流体层流薄膜。使用绕圆柱膜流作为边界和变量参考。",
+      "inputs": [
+        {
+          "id": "finite_area_mesh",
+          "unit": "m",
+          "aliases": [
+            "薄膜有限面积网格"
+          ]
+        },
+        {
+          "id": "liquid_film_thickness",
+          "unit": "m",
+          "aliases": [
+            "初始膜厚"
+          ]
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s",
+          "aliases": [
+            "运动黏度"
+          ]
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2",
+          "aliases": [
+            "重力"
+          ]
+        },
+        {
+          "id": "liquid_density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "薄膜液体密度"
+          ]
+        },
+        {
+          "id": "surface_tension",
+          "unit": "N/m",
+          "aliases": [
+            "表面张力"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "liquid_film_thickness_field",
+          "unit": "m",
+          "aliases": [
+            "时变面膜厚"
+          ]
+        },
+        {
+          "id": "liquid_film_surface_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "沿面薄膜速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "thin_film",
+        "surface_finite_area",
+        "laminar_newtonian_liquid",
+        "incompressible_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/finiteArea/liquidFilmFoam/liquidFilmFoam.C",
+            "scope": "薄膜运动与膜厚方程"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/finiteArea/liquidFilmFoam/cylinder",
+            "scope": "圆柱薄膜输入与边界"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照膜厚场与膜速，比较总膜体积变化、进出口净体积流量及源汇项积分，并单独量化膜厚下限裁剪引入的体积变化。再检查结果对网格和时间步的敏感性。"
+    },
+    {
+      "id": "openfoam_opencfd.film_fields_to_wall_patches",
+      "module": "finiteArea / liquidFilmFoam",
+      "scope": "原生写出映射。求解器必须读取有限面积 h 和 Us，在写时刻按关联面寻址投到同一体网格的边界 H 和 U，输出体场容器中的壁面分量。体网格内部以零初始化。H 和 U 的 NO_READ 表明它们是写出容器。",
+      "inputs": [
+        {
+          "id": "liquid_film_thickness_field",
+          "unit": "m",
+          "aliases": [
+            "有限面积膜厚 h"
+          ]
+        },
+        {
+          "id": "liquid_film_surface_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "有限面积膜面速度 Us"
+          ]
+        },
+        {
+          "id": "finite_area_volume_face_addressing",
+          "unit": "face IDs",
+          "aliases": [
+            "有限面积至体网格边界面对应"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "wall_patch_film_thickness",
+          "unit": "m",
+          "aliases": [
+            "体网格边界膜厚 H"
+          ]
+        },
+        {
+          "id": "wall_patch_film_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "体网格边界膜速 U"
+          ]
+        }
+      ],
+      "conditions": [
+        "finite_area_volume_patch_addressing",
+        "liquid_film_foam_case",
+        "selected_output_time"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/finiteArea/liquidFilmFoam/createFaFields.H",
+            "scope": "膜厚 h、膜速 Us 必读"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/finiteArea/liquidFilmFoam/createFvFields.H",
+            "scope": "体容器 H、U 的 NO_READ 与 AUTO_WRITE"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/finiteArea/liquidFilmFoam/liquidFilmFoam.C",
+            "scope": "writeTime 内调用 mapToVolume 后 runTime.write"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/tutorials/finiteArea/liquidFilmFoam/cylinder",
+            "scope": "发行版圆柱薄膜算例"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在写时刻对同一已知膜面逐面比对 h→H 和 Us→U，检查未关联边界及体内部初值，并对读回的面积积分作一致性检查。",
+      "couplings": [
+        {
+          "from_field": "finite_area_liquid_film",
+          "to_field": "volume_mesh_wall_output",
+          "quantity": "liquid_film_thickness_field",
+          "unit": "m",
+          "transfer": "按面寻址将 h 写入匹配壁面 H",
+          "implementation": "native",
+          "custom_work": "验证有限面积面到体网格壁面的对应及覆盖。"
+        },
+        {
+          "from_field": "finite_area_liquid_film",
+          "to_field": "volume_mesh_wall_output",
+          "quantity": "liquid_film_surface_velocity",
+          "unit": "m/s",
+          "transfer": "按面寻址将 Us 写入匹配壁面 U",
+          "implementation": "native",
+          "custom_work": "核对全局向量坐标与壁面切向；仅在写时刻读取。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.mapped_baffle_thermal_layers",
+      "module": "compressible::turbulentTemperatureCoupledBaffleMixed",
+      "scope": "Mapped mixed heat-transfer boundary for back-to-back walls with optional thin-layer thermal resistance. The mapped mixed interface exchanges neighbor internal temperature and neighbor conductance weights in both directions. The signed interface heat flux is derived locally from the solved temperature gradient and conductivity. Reported heat flux requires explicit region/patch postprocessing and a stated normal and radiation convention.",
+      "inputs": [
+        {
+          "id": "mapped_thermal_patches",
+          "unit": "patch pair"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "layer_thickness",
+          "unit": "m"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "interfacial_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "界面热流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermal",
+        "interface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H",
+            "scope": "Official v2606 header documents Tnbr, thicknessLayers, kappaLayers, conductivity providers and mappedWall-type support."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C",
+            "scope": "v2606 updateCoeffs maps neighboring patchInternalField and neighboring kappa times deltaCoeffs with distinct distributes. The mixed condition uses both weights and temperatures. Heat flux is evaluated locally from the solution gradient."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "In a 1D two-region conduction case compare both signed interface heat rates and the jump expected from specified series thermal resistance.",
+      "couplings": [
+        {
+          "from_field": "thermal_region_a",
+          "to_field": "thermal_region_b",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "thermal_region_a",
+          "to_field": "thermal_region_b",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "thermal_region_b",
+          "to_field": "thermal_region_a",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "thermal_region_b",
+          "to_field": "thermal_region_a",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.wall_heat_flux_readback",
+      "module": "wallHeatFlux function object / wall model",
+      "scope": "Boundary heat flux readback for an existing compatible thermophysical case using the native wall model. User supplies wall patch selection, field and time scope. The alternative heat gauge model is a separate case setup.",
+      "inputs": [
+        {
+          "id": "wall_patch_selection",
+          "unit": "patch selection"
+        },
+        {
+          "id": "thermophysical_fields",
+          "unit": "OpenFOAM fields"
+        },
+        {
+          "id": "radiative_heat_flux",
+          "unit": "W/m^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "wall_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "壁面热流密度"
+          ]
+        },
+        {
+          "id": "wall_heat_rate",
+          "unit": "W",
+          "aliases": [
+            "壁面传热功率"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermal",
+        "wall"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/functionObjects/field/wallHeatFlux/wallHeatFlux.H",
+            "scope": "v2606 wallHeatFlux documentation defines the wall model, configurable wall selection and radiative heat flux lookup."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare area-integrated wall flux with a known applied duty and confirm dimensions and normal convention."
+    },
+    {
+      "id": "openfoam_opencfd.sst_rans_wall_flow",
+      "module": "RAS / kOmegaSST",
+      "scope": "Prepare a single-phase incompressible wall-bounded case with the native SST two-equation RANS closure. Include k, omega, patch wall treatment and mesh near-wall resolution in the case specification.",
+      "conditions": [
+        "incompressible",
+        "rans",
+        "wall"
+      ],
+      "inputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "turbulent_kinetic_energy",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "specific_dissipation_rate",
+          "unit": "1/s"
+        },
+        {
+          "id": "wall_mesh_resolution",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "turbulent_kinetic_energy",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "湍动能"
+          ]
+        },
+        {
+          "id": "specific_dissipation_rate",
+          "unit": "1/s",
+          "aliases": [
+            "比耗散率"
+          ]
+        },
+        {
+          "id": "turbulent_kinematic_viscosity",
+          "unit": "m^2/s",
+          "aliases": [
+            "湍流运动黏度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/TurbulenceModels/turbulenceModels/RAS/kOmegaSST/kOmegaSST.H",
+            "scope": "Official v2606 kOmegaSST header identifies the SST RAS model and its turbulence transport variables."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check developed channel velocity and wall stress against a specified benchmark, with mesh and near-wall treatment sensitivity."
+    },
+    {
+      "id": "openfoam_opencfd.external_wall_layer_convection",
+      "module": "externalWallHeatFluxTemperature / mode coefficient",
+      "scope": "Native external wall Robin temperature condition with ambient temperature, heat-transfer coefficient and optional thin-layer thermal resistances. Restrict to the coefficient mode and specify a compatible conductivity provider.",
+      "conditions": [
+        "thermal",
+        "wall",
+        "convection"
+      ],
+      "inputs": [
+        {
+          "id": "ambient_temperature",
+          "unit": "K"
+        },
+        {
+          "id": "heat_transfer_coefficient",
+          "unit": "W/(m^2 K)"
+        },
+        {
+          "id": "layer_thickness",
+          "unit": "m"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "wall_temperature",
+          "unit": "K",
+          "aliases": [
+            "壁面温度"
+          ]
+        },
+        {
+          "id": "wall_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "壁面热流密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/externalWallHeatFluxTemperature/externalWallHeatFluxTemperatureFvPatchScalarField.H",
+            "scope": "v2606 source documents coefficient, flux and power modes, optional layer resistance, ambient temperature and conductivity inputs."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a one-dimensional wall with ambient convection and optional layer resistance against its series-resistance heat flux and wall temperature.",
+      "couplings": [
+        {
+          "from_field": "thermal_ambient",
+          "to_field": "thermal_wall",
+          "quantity": "ambient_temperature",
+          "unit": "K",
+          "transfer": "按环境温度、换热系数与串联薄层热阻计算外墙热流。",
+          "implementation": "configured",
+          "custom_work": "用户提供独立边界换热参数。NaviField 自动选择热导来源和结果热平衡仍需实现。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.constant_scalar_diffusion",
+      "module": "laplacianFoam",
+      "scope": "Homogeneous isotropic scalar diffusion with specified diffusivity on a fixed mesh. T is a generic scalar; this profile uses it as temperature and keeps conservative material-energy enthalpy modelling outside the profile.",
+      "conditions": [
+        "diffusion",
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "thermal_diffusivity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "initial_temperature",
+          "unit": "K"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/basic/laplacianFoam/laplacianFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Uses fvm::ddt(T) and fvm::laplacian(DT,T), with T read and written by the application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/basic/laplacianFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a slab against the transient analytical temperature history and repeat after reducing time step and mesh size."
+    },
+    {
+      "id": "openfoam_opencfd.transient_pressure_based_compressible",
+      "module": "rhoPimpleFoam",
+      "scope": "Transient pressure-based compressible Newtonian flow with PIMPLE, fluid thermodynamics and fixed mesh. Intended for nonreacting low-to-moderate Mach HVAC or duct transients.",
+      "conditions": [
+        "transient",
+        "compressible"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "OpenFOAM thermophysical dictionary"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoPimpleFoam/rhoPimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Reads the thermodynamic pressure and velocity and advances momentum, pressure/continuity and energy equations in the PIMPLE loop."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoPimpleFoam/EEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoPimpleFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoPimpleFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/compressible/rhoPimpleFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a duct pressure transient and integrated mass balance, then repeat with smaller time step."
+    },
+    {
+      "id": "openfoam_opencfd.steady_compressible_buoyant_heat_transfer",
+      "module": "buoyantSimpleFoam",
+      "scope": "Steady buoyant nonreacting compressible flow with SIMPLE and gravity, solving single-region flow and energy. Radiation and optional sources require separate case selection.",
+      "conditions": [
+        "steady",
+        "compressible",
+        "buoyancy",
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "OpenFOAM thermophysical dictionary"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/buoyantSimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Pressure correction uses hydrostatic-reduced pressure p_rgh. UEqn and EEqn accompany the SIMPLE solve."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/EEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantSimpleFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify natural-convection cavity mean Nusselt number, mass conservation and wall energy balance.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "fluid",
+          "quantity": "density",
+          "unit": "kg/m^3",
+          "transfer": "热物性关系提供密度并通过重力进入浮力项。",
+          "implementation": "configured",
+          "custom_work": "配置压力和热物性模型、重力、壁面热输入及温标。"
+        },
+        {
+          "from_field": "fluid",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "速度通量把能量在流体内对流输送。",
+          "implementation": "configured",
+          "custom_work": "核对对流量与壁面热收支。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.steady_cht",
+      "module": "chtMultiRegionSimpleFoam",
+      "scope": "Steady single-phase fluid convection with solid heat conduction across mapped paired interfaces. Declare fluid and solid regions, zone thermodynamics, interface pairing, contact resistance if present, and thermal boundary conditions. This profile selects turbulentTemperatureCoupledBaffleMixed on the paired heat-transfer patches. The mapped mixed interface exchanges neighbor internal temperature and neighbor conductance weights in both directions. The signed interface heat flux is derived locally from the solved temperature gradient and conductivity. Reported heat flux requires explicit region/patch postprocessing and a stated normal and radiation convention.",
+      "conditions": [
+        "steady",
+        "thermal",
+        "multiregion",
+        "coupled"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "fluid_solid_mesh",
+          "unit": "one mesh per region"
+        },
+        {
+          "id": "fluid_velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "OpenFOAM thermophysical dictionary"
+        },
+        {
+          "id": "solid_thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "interface_patch_pair",
+          "unit": "mapped patch names"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_temperature",
+          "unit": "K",
+          "aliases": [
+            "流体温度"
+          ]
+        },
+        {
+          "id": "solid_temperature",
+          "unit": "K",
+          "aliases": [
+            "固体温度"
+          ]
+        },
+        {
+          "id": "interfacial_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "界面热流密度"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/chtMultiRegionSimpleFoam/chtMultiRegionSimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Separate fluid equations and solid solve are advanced under the multi-region steady driver."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C",
+            "scope": "v2606 updateCoeffs maps neighboring patchInternalField and neighboring kappa times deltaCoeffs with distinct distributes. The mixed condition uses both weights and temperatures. Heat flux is evaluated locally from the solution gradient."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare coupled conductive–convective heat duty and signed interface flux balance at each paired patch. Configure region-specific wallHeatFlux or equivalent reconstruction, and record patch areas, radiation terms and outward normals.",
+      "couplings": [
+        {
+          "from_field": "fluid_thermal",
+          "to_field": "solid_thermal",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "fluid_thermal",
+          "to_field": "solid_thermal",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "solid_thermal",
+          "to_field": "fluid_thermal",
+          "quantity": "neighbor_internal_temperature",
+          "unit": "K",
+          "transfer": "把邻域侧近壁单元的温度映射到当前侧的 mixed 界面。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        },
+        {
+          "from_field": "solid_thermal",
+          "to_field": "fluid_thermal",
+          "quantity": "neighbor_thermal_conductance_per_area",
+          "unit": "W/(m^2 K)",
+          "transfer": "映射邻侧 kappa×deltaCoeffs 有效热导权重。选择薄层时按该边界实现配置热阻。",
+          "implementation": "configured",
+          "custom_work": "配置配对 mappedWall、区域材料和所选热阻。NaviField 仍需自动识别面配对、校核覆盖、回读派生热流及核查积分热量和法向。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.isothermal_algebraic_vof",
+      "module": "interFoam",
+      "scope": "Transient incompressible two-immiscible-fluid isothermal VOF using the native interFoam phase-fraction transport and one mixture momentum equation on a fixed grid. Define initial fractions, per-phase material data and gravity as applicable.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "multiphase",
+        "isothermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "hydrostatic_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "volume_fraction",
+          "unit": "1"
+        },
+        {
+          "id": "phase_density",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "phase_kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "surface_tension",
+          "unit": "N/m"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volume_fraction",
+          "unit": "1",
+          "aliases": [
+            "体积分数"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interFoam/interFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Main loop advances the phase fraction with subcycling then solves mixture momentum and pressure. This executable is distinct from geometric isoAdvector."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify phase-volume conservation and pressure/free-surface history on a dam-break or tank benchmark."
+    },
+    {
+      "id": "openfoam_opencfd.steady_boussinesq_convection",
+      "module": "buoyantBoussinesqSimpleFoam",
+      "scope": "Steady fixed-grid, incompressible natural or mixed convection using the Boussinesq approximation and a temperature equation. Use the approximation for small density change relative to the reference state.",
+      "conditions": [
+        "steady",
+        "incompressible",
+        "buoyancy",
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "thermal_expansion_coefficient",
+          "unit": "1/K"
+        },
+        {
+          "id": "reference_temperature",
+          "unit": "K"
+        },
+        {
+          "id": "prandtl_number",
+          "unit": "1"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/buoyantBoussinesqSimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. TEqn solves thermal transport and UEqn/pEqn use thermally varying kinematic buoyancy density with a hydrostatic correction."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/TEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqSimpleFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare cavity convection flow and average Nusselt number at a documented Rayleigh number with a mass and thermal balance.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "fluid",
+          "quantity": "relative_density",
+          "unit": "1",
+          "transfer": "温差按热膨胀系数转换为浮力项中的相对密度。",
+          "implementation": "configured",
+          "custom_work": "输入参考温度与系数并核查小密度变化前提。"
+        },
+        {
+          "from_field": "fluid",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "流体通量驱动温度输运。",
+          "implementation": "configured",
+          "custom_work": "指定温度边界和有效热扩散。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.transient_boussinesq_convection",
+      "module": "buoyantBoussinesqPimpleFoam",
+      "scope": "Transient fixed-grid, incompressible natural or mixed convection using the Boussinesq approximation and a temperature equation. Use the approximation for small density change relative to the reference state.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "buoyancy",
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "thermal_expansion_coefficient",
+          "unit": "1/K"
+        },
+        {
+          "id": "reference_temperature",
+          "unit": "K"
+        },
+        {
+          "id": "prandtl_number",
+          "unit": "1"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/buoyantBoussinesqPimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. TEqn solves thermal transport and UEqn/pEqn use thermally varying kinematic buoyancy density with a hydrostatic correction."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/TEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/buoyantBoussinesqPimpleFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare cavity convection flow and average Nusselt number at a documented Rayleigh number with a mass and thermal balance.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "fluid",
+          "quantity": "relative_density",
+          "unit": "1",
+          "transfer": "温差按热膨胀系数转换为浮力项中的相对密度。",
+          "implementation": "configured",
+          "custom_work": "输入参考温度与系数并核查小密度变化前提。"
+        },
+        {
+          "from_field": "fluid",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "流体通量驱动温度输运。",
+          "implementation": "configured",
+          "custom_work": "指定温度边界和有效热扩散。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.transient_laminar_newtonian_piso",
+      "module": "icoFoam",
+      "scope": "PISO integration of the incompressible laminar Newtonian equations on a fixed grid with constant kinematic viscosity.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "laminar"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/icoFoam/icoFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Constructs U and kinematic p and solves transient momentum with pressure corrections."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/icoFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare velocity and shear with the transient Couette or fully developed Poiseuille reference."
+    },
+    {
+      "id": "openfoam_opencfd.transient_incompressible_piso",
+      "module": "pisoFoam",
+      "scope": "Isothermal transient incompressible flow solved with the PISO driver on a fixed mesh. Use a validated momentum closure and appropriate initial and pressure reference setup.",
+      "conditions": [
+        "transient",
+        "incompressible"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/pisoFoam/pisoFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. UEqn and pEqn are solved in the PISO pressure-correction sequence using velocity and kinematic pressure fields."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/pisoFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/pisoFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/pisoFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check flow and pressure drop in a duct after timestep refinement, including patch flux conservation."
+    },
+    {
+      "id": "openfoam_opencfd.steady_incompressible_porous_pressure_loss",
+      "module": "porousSimpleFoam",
+      "scope": "Steady incompressible porous-resistance flow on a fixed mesh with explicit or implicit momentum porosity treatment. This profile uses a specified porous zone, calibrated Darcy–Forchheimer coefficients and a defined local basis.",
+      "conditions": [
+        "steady",
+        "incompressible",
+        "porous"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "porous_cell_zone",
+          "unit": "cell zone"
+        },
+        {
+          "id": "darcy_resistance",
+          "unit": "1/m^2"
+        },
+        {
+          "id": "forchheimer_resistance",
+          "unit": "1/m"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "pressure_drop",
+          "unit": "Pa",
+          "aliases": [
+            "压降"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/porousSimpleFoam/porousSimpleFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. createPorousZones is invoked by the solver. UEqn/pEqn incorporate porous momentum resistance."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/porousSimpleFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/simpleFoam/porousSimpleFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check integrated pressure drop and mass balance in a uniform porous slab against calibrated Darcy–Forchheimer behaviour."
+    },
+    {
+      "id": "openfoam_opencfd.frozen_flow_thermal_transport",
+      "module": "thermoFoam",
+      "scope": "Solve fluid energy and temperature in a previously specified flow field. Treat this as a one-way thermal calculation with frozen velocity and compatible thermodynamics.",
+      "conditions": [
+        "thermal",
+        "frozen_flow"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "thermophysical_properties",
+          "unit": "OpenFOAM thermophysical dictionary"
+        },
+        {
+          "id": "thermal_boundary",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "specific_energy",
+          "unit": "J/kg",
+          "aliases": [
+            "比能"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/thermoFoam/thermoFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Constructs thermodynamics and advances EEqn without a velocity momentum solve."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/thermoFoam/EEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/thermoFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare energy balance or heating of a fixed-flow constant-property channel against an energy-rate reference.",
+      "couplings": [
+        {
+          "from_field": "fluid",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "已有流动场作为能量方程的对流输入。",
+          "implementation": "configured",
+          "custom_work": "准备相容网格、通量和时间记录，独立核对热边界。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.steady_linear_elastic_fv_equilibrium",
+      "module": "solidEquilibriumDisplacementFoam",
+      "scope": "Solve small-strain linear-elastic equilibrium of a solid by segregated finite volumes on a fixed mesh. Prepared mechanical boundary conditions and elastic properties required. Optional temperature-driven strain is a distinct setup.",
+      "conditions": [
+        "steady",
+        "linear_elastic",
+        "structural"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "elastic_modulus",
+          "unit": "Pa"
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1"
+        },
+        {
+          "id": "displacement_boundary",
+          "unit": "m"
+        },
+        {
+          "id": "traction_boundary",
+          "unit": "Pa"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/solidEquilibriumDisplacementFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. The displacement-correction equation is assembled with Lamé parameters, and stress is reconstructed from displacement gradients."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/stressAnalysis/solidEquilibriumDisplacementFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare axial bar displacement and stress under calibrated traction with the analytical elastic solution."
+    },
+    {
+      "id": "openfoam_opencfd.nonisothermal_compressible_vof",
+      "module": "compressibleInterFoam",
+      "scope": "Transient two-immiscible-compressible-fluid VOF on a fixed grid, with one mixture momentum equation and shared temperature field. Choose compatible phase thermodynamic definitions.",
+      "conditions": [
+        "transient",
+        "compressible",
+        "multiphase",
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "temperature",
+          "unit": "K"
+        },
+        {
+          "id": "volume_fraction",
+          "unit": "1"
+        },
+        {
+          "id": "phase_thermophysical_properties",
+          "unit": "OpenFOAM thermophysical dictionaries"
+        },
+        {
+          "id": "surface_tension",
+          "unit": "N/m"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volume_fraction",
+          "unit": "1",
+          "aliases": [
+            "体积分数"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/compressibleInterFoam/compressibleInterFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. The driver composes phase-fraction transport, mixture momentum/pressure and TEqn. Phase thermophysical properties enter density and energy updates."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/compressibleInterFoam/TEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/compressibleInterFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/compressibleInterFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/compressibleInterFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check phase-volume, total mass and energy balance on a bounded two-phase heat-transfer benchmark.",
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "fluid",
+          "quantity": "phase_thermophysical_properties",
+          "unit": "phase state",
+          "transfer": "温度通过相热物性改变两相状态与混合密度。",
+          "implementation": "configured",
+          "custom_work": "选择相状态方程并检查温度适用范围。"
+        },
+        {
+          "from_field": "fluid",
+          "to_field": "thermal",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "混合流体通量驱动温度输运。",
+          "implementation": "configured",
+          "custom_work": "读取体积分数并检查两相总质量及能量守恒。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.mixture_drift_flux_settling",
+      "module": "driftFluxFoam",
+      "scope": "Model dispersed-phase settling via an incompressible mixture momentum equation and algebraic relative velocity from a drift-flux closure. Define gravity, phase densities, mixture rheology and validated slip parameters.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "multiphase",
+        "settling"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "volume_fraction",
+          "unit": "1"
+        },
+        {
+          "id": "phase_density",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "relative_velocity_model",
+          "unit": "OpenFOAM runtime dictionary"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "volume_fraction",
+          "unit": "1",
+          "aliases": [
+            "体积分数"
+          ]
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/driftFluxFoam/driftFluxFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Alpha equation includes relative drift and pressure/momentum solves use mixture flow."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/driftFluxFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/driftFluxFoam/alphaEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/driftFluxFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/driftFluxFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a settling column concentration profile and conservation of dispersed-phase volume."
+    },
+    {
+      "id": "openfoam_opencfd.finite_area_prescribed_surface_scalar_transport",
+      "module": "surfactantFoam",
+      "scope": "Native passive finite-area surfactant scalar convection and diffusion on an existing surface mesh and prescribed tangential velocity. Use a fixed, explicitly defined concentration convention.",
+      "conditions": [
+        "transient",
+        "surface",
+        "scalar_transport"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "surface_mesh",
+          "unit": "OpenFOAM finiteArea mesh"
+        },
+        {
+          "id": "surface_velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "surface_scalar",
+          "unit": "1"
+        },
+        {
+          "id": "surface_diffusivity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "surface_scalar",
+          "unit": "1",
+          "aliases": [
+            "无量纲表面标量"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/finiteArea/surfactantFoam/surfactantFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Creates finite-area fields and solves the application Cs equation with tangential convection and diffusion."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare passive scalar spreading on a plane to a reference diffusion solution and check area-integrated scalar balance."
+    },
+    {
+      "id": "openfoam_opencfd.laminar_liquid_mhd_induction",
+      "module": "mhdFoam",
+      "scope": "Incompressible laminar electrically conducting fluid with prescribed magnetic boundary value and uniform viscosity, conductivity and magnetic permeability. The native model advances magnetic induction and Lorentz-force-coupled flow. Coded external current or electric-field boundary control lies outside this profile.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "laminar",
+        "magnetohydrodynamics"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m"
+        },
+        {
+          "id": "magnetic_permeability",
+          "unit": "H/m"
+        },
+        {
+          "id": "magnetic_flux_density",
+          "unit": "T"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "magnetic_flux_density",
+          "unit": "T",
+          "aliases": [
+            "磁通密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/electromagnetics/mhdFoam/mhdFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. UEqn includes magnetic stress terms and BEqn advances induction with magnetic divergence correction."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/electromagnetics/mhdFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare a weak-field channel benchmark against the zero-field Poiseuille limit and track magnetic-flux divergence.",
+      "couplings": [
+        {
+          "from_field": "electromagnetic",
+          "to_field": "fluid",
+          "quantity": "magnetic_flux_density",
+          "unit": "T",
+          "transfer": "磁通密度场的应力项进入流体动量方程。",
+          "implementation": "configured",
+          "custom_work": "配置 B 与速度边界、均匀电导率和磁导率。"
+        },
+        {
+          "from_field": "fluid",
+          "to_field": "electromagnetic",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "速度与通量进入磁感应方程。",
+          "implementation": "configured",
+          "custom_work": "检查磁通守恒和尺寸一致性，编排需 NaviField 自行实现。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.homogeneous_equilibrium_cavitation",
+      "module": "cavitatingFoam",
+      "scope": "Transient homogeneous-equilibrium cavitation with one mixture velocity and barotropic liquid–vapor closure on a fixed mesh. Provide model-specific saturation and phase compressibility data.",
+      "conditions": [
+        "transient",
+        "cavitation",
+        "homogeneous_equilibrium"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "saturation_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "phase_density",
+          "unit": "kg/m^3"
+        },
+        {
+          "id": "phase_compressibility",
+          "unit": "s^2/m^2"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "pressure",
+          "unit": "Pa",
+          "aliases": [
+            "压力"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "密度"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/cavitatingFoam/cavitatingFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Application uses a compressibility model for the homogeneous liquid–vapor mixture and advances mixture momentum and pressure."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/cavitatingFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/cavitatingFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/cavitatingFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check pressure and density against the barotropic closure and compare integrated mass on a reference cavitation case."
+    },
+    {
+      "id": "openfoam_opencfd.transient_generalized_newtonian_piso",
+      "module": "nonNewtonianIcoFoam",
+      "scope": "Single-phase isothermal incompressible laminar flow with a shear-rate-dependent generalized Newtonian viscosity and PISO on a fixed mesh.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "non_newtonian"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "viscosity_law",
+          "unit": "OpenFOAM transport model dictionary"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/nonNewtonianIcoFoam/nonNewtonianIcoFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Application computes transient non-Newtonian viscous stress with a selected transport closure and pressure correction."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/incompressible/nonNewtonianIcoFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare fully developed velocity and flow rate with the power-law tube solution in the valid shear-rate range."
+    },
+    {
+      "id": "openfoam_opencfd.single_phase_linear_free_surface_approximation",
+      "module": "potentialFreeSurfaceFoam",
+      "scope": "Single-phase incompressible free-surface approximation using boundary elevation coupled to pressure. Provide a reference free-surface patch and gravity. Intended for small free-surface excursions that do not require interface topology changes.",
+      "conditions": [
+        "transient",
+        "incompressible",
+        "free_surface"
+      ],
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "OpenFOAM polyMesh"
+        },
+        {
+          "id": "velocity",
+          "unit": "m/s"
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2"
+        },
+        {
+          "id": "surface_elevation",
+          "unit": "m"
+        },
+        {
+          "id": "gravity",
+          "unit": "m/s^2"
+        },
+        {
+          "id": "kinematic_viscosity",
+          "unit": "m^2/s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        },
+        {
+          "id": "solver_controls",
+          "unit": "OpenFOAM dictionaries"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "velocity",
+          "unit": "m/s",
+          "aliases": [
+            "速度"
+          ]
+        },
+        {
+          "id": "kinematic_pressure",
+          "unit": "m^2/s^2",
+          "aliases": [
+            "运动压力"
+          ]
+        },
+        {
+          "id": "surface_elevation",
+          "unit": "m",
+          "aliases": [
+            "液面高程"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/potentialFreeSurfaceFoam/potentialFreeSurfaceFoam.C",
+            "scope": "Fixed v2606 application description and solver loop. Application evolves free-surface elevation zeta used by pressure boundary conditions in an incompressible Navier–Stokes solve."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/potentialFreeSurfaceFoam/UEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/potentialFreeSurfaceFoam/createFields.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/potentialFreeSurfaceFoam/pEqn.H",
+            "scope": "Fixed v2606 field construction or assembled equation for this application."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check small-amplitude finite-depth gravity-wave speed and reflected amplitude with mesh and time-step refinement.",
+      "couplings": [
+        {
+          "from_field": "fluid",
+          "to_field": "free_surface",
+          "quantity": "velocity",
+          "unit": "m/s",
+          "transfer": "流体面通量更新自由面高程。",
+          "implementation": "configured",
+          "custom_work": "选择与高程更新相容的自由面 patch。"
+        },
+        {
+          "from_field": "free_surface",
+          "to_field": "fluid",
+          "quantity": "surface_elevation",
+          "unit": "m",
+          "transfer": "液面高程进入压力边界。",
+          "implementation": "configured",
+          "custom_work": "校核基准高程和重力符号。"
+        }
+      ]
+    },
+    {
+      "id": "openfoam_opencfd.open_suction_chamber_pressure",
+      "module": "Open suction flow and pressure readout",
+      "scope": "规划级方法。开放吸附腔连接环境漏路和抽气出口；用给定叶轮转速和几何，或实测压升–流量关系，闭合稳定工作点。选定测压口、面积或足印输出物理绝压，说明绝压基准及取样定义。仅在经验证的均压近似下可用一个测点替代足印分布。",
+      "conditions": [
+        "steady",
+        "open_leaking_suction_chamber",
+        "calibrated_leak_or_resolved_gap"
+      ],
+      "inputs": [
+        {
+          "id": "pump_operating_map",
+          "unit": "Pa vs m^3/s at rpm or resolved rotor geometry and rpm"
+        },
+        {
+          "id": "wall_leakage_law",
+          "unit": "kg/s vs Pa or resolved gap in m"
+        },
+        {
+          "id": "ambient_state",
+          "unit": "Pa absolute, K"
+        },
+        {
+          "id": "suction_pressure_sampling",
+          "unit": "patch/point and pressure datum"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "suction_chamber_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "吸附腔压",
+            "开放吸附腔压",
+            "suction chamber pressure"
+          ]
+        },
+        {
+          "id": "suction_face_pressure_field",
+          "unit": "Pa",
+          "aliases": [
+            "吸附面绝压分布"
+          ]
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/compressible/rhoSimpleFoam/UEqn.H",
+            "scope": "v2606 稳态可压动量方程含 MRF；漏路和装机工作点须另建。"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/src/functionObjects/field/fieldValues/surfaceFieldValue/surfaceFieldValue.H",
+            "scope": "所选面区通量代数和及压力面积平均；足印分布另保留各面压力。"
+          }
+        ],
+        "reference": [
+          {
+            "source": "https://doi.org/10.3390/s21041117",
+            "scope": "原型开口漏路/旋转域/压力测点与按转速独立校核，§3.3、§4.2、§5.2。"
+          }
+        ],
+        "integration": [],
+        "workstation": []
+      },
+      "validation": "用同表面和密封状态的独立实测转速点检查腔压、质量平衡、场分辨率、取压位置和基准。"
+    },
+    {
+      "id": "openfoam_opencfd.solid_volumetric_heat_source",
+      "module": "chtMultiRegionFoam / fvOptions",
+      "scope": "Apply a prescribed volumetric heat generation in selected solid cells of a multi-region energy solve. Use W/m³ directly or distribute total W over the declared source volume; check the solver's energy variable and source normalization. Spatial generation and net heat conversion must be provided or independently established.",
+      "conditions": [
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "heat_source_zone",
+          "unit": "cellZone"
+        },
+        {
+          "id": "volumetric_heat_generation",
+          "unit": "W/m^3"
+        },
+        {
+          "id": "heat_generation_power",
+          "unit": "W"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "integrated_heat_generation",
+          "unit": "W"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/solid/solveSolid.H",
+            "scope": "固定 v2606 的分区固体焓方程。固体体积源项进入所选固体区域；以热源积分和边界能量收支确认实际输入。"
+          },
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/numerics/fvoptions/",
+            "scope": "在选定网格单元集合上添加源项；区分总功率和每体积功率。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Integrate over the selected cells and compare to total thermal power; require steady or transient global energy balance."
+    },
+    {
+      "id": "openfoam_opencfd.directional_conduction_and_thin_contact",
+      "module": "solidThermo / temperatureCoupledBase / turbulentTemperatureCoupledBaffleMixed",
+      "scope": "Directional solid conduction uses conductivity values and material directions. A mapped thermal interface can represent a thin-layer equivalent resistance supplied by the project; verify continuity of normal heat flux. This does not infer preload-dependent contact from CAD.",
+      "conditions": [
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "directional_thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "thermal_contact_areal_resistance",
+          "unit": "m^2 K/W"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interfacial_heat_flux",
+          "unit": "W/m^2"
+        },
+        {
+          "id": "solid_temperature",
+          "unit": "K"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/heatTransfer/chtMultiRegionFoam/solid/solveSolid.H",
+            "scope": "固定 v2606 的分区固体焓方程。固体体积源项进入所选固体区域；以热源积分和边界能量收支确认实际输入。"
+          },
+          {
+            "source": "https://api.openfoam.com/2606/classFoam_1_1temperatureCoupledBase.html",
+            "scope": "方向性导热接口读取方向性热扩散率；使用主轴导热率时须映射到材料方向并检查跨界面法向热流。"
+          },
+          {
+            "source": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/thermoTools/derivedFvPatchFields/turbulentTemperatureCoupledBaffleMixed/turbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C",
+            "scope": "配对映射邻区温度与有效导热权重；薄层热阻叠加需核对两侧配置及重复计入问题。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check directional conduction and contact temperature drop against a two-body conduction reference."
+    },
+    {
+      "id": "openfoam_opencfd.fan_curve_operating_point",
+      "module": "fanMomentumSource",
+      "scope": "Model fan forcing from a pressure rise versus actual flow curve across a defined fan zone. Keep static/total pressure convention, orientation, density/rpm reference and network pressure losses explicit. A catalog free-air flow is not a measured installed operating point.",
+      "conditions": [
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "fan_pressure_flow_curve",
+          "unit": "Pa versus m^3/s"
+        },
+        {
+          "id": "fan_zone",
+          "unit": "cellZone and faceZone"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fan_operating_volume_flow",
+          "unit": "m^3/s"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/namespaceFoam_1_1fv.html",
+            "scope": "OpenCFD v2606 源代码索引包含风机动量源类。输入为选定风机区和压流特性，工作点由系统阻力联立确定。"
+          },
+          {
+            "source": "https://api.openfoam.com/2606/files.html",
+            "scope": "定风量边界候选。质量流量和体积流量分别定义，采用实际入口工况给出体积流量。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify operating point against measured system resistance or an independent fan/duct balance."
+    },
+    {
+      "id": "openfoam_opencfd.surface_view_factor_exchange",
+      "module": "viewFactor / viewFactorsGen",
+      "scope": "Optional diffuse-gray long-wave surface-to-surface thermal exchange across a non-participating gap or enclosure. Supply surface emissivity, geometry and external surroundings or opening treatment. Participating gases and specular surfaces require separate validation.",
+      "conditions": [
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "surface_emissivity",
+          "unit": "dimensionless"
+        },
+        {
+          "id": "surface_view_factors",
+          "unit": "dimensionless"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "radiative_heat_flux",
+          "unit": "W/m^2"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://api.openfoam.com/2606/files.html",
+            "scope": "将表面长波灰体交换与流固换热分开核算；设置表面有效发射率和视角因子。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check view-factor reciprocity/closure and radiation temperature/energy signs without double counting convection."
+    },
+    {
+      "id": "openfoam_opencfd.reacting_species_heat_release",
+      "module": "reactingMixture / basicChemistryModel::Qdot / fvOptions",
+      "scope": "Versioned single-phase reactive species and energy source components. Packed-bed heterogeneous kinetics, species/heat source basis, porous resistance, jacket/wall transfer and possible separate gas/solid energy models require explicit closure and verification.",
+      "conditions": [
+        "thermal"
+      ],
+      "inputs": [
+        {
+          "id": "reaction_kinetics",
+          "unit": "rate law with declared basis"
+        },
+        {
+          "id": "molar_reaction_enthalpy",
+          "unit": "J/mol"
+        },
+        {
+          "id": "species_inlet_state",
+          "unit": "composition and temperature"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "reaction_volumetric_heat_release",
+          "unit": "W/m^3"
+        },
+        {
+          "id": "species_mass_fraction",
+          "unit": "dimensionless"
+        }
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/models/thermophysical/mixture/rtm/reactingMixture/",
+            "scope": "v2606 支持单相反应组分输入；需实际化学和物性。"
+          },
+          {
+            "source": "https://api.openfoam.com/2606/classFoam_1_1basicChemistryModel.html",
+            "scope": "化学热释放率以 W/m³ 表示。颗粒床反应速率及面积或体积换算须独立闭合。"
+          },
+          {
+            "source": "https://doc.openfoam.com/2606/tools/processing/numerics/fvoptions/",
+            "scope": "区域源项支持按网格分配；颗粒床压损、化学和界面换热仍需项目定义。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check conversion against material balance and compare integrated Qdot to reacted molar extent times molar heat release."
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "applications/solvers/basic",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/basic",
+      "records": [
+        "openfoam_opencfd.passive_scalar_transport",
+        "openfoam_opencfd.potential_flow_initialization",
+        "openfoam_opencfd.constant_scalar_diffusion"
+      ],
+      "gaps": [
+        "拉普拉斯扩散工具的系数定义、边界和具体输出尚待细分。"
+      ]
+    },
+    {
+      "module": "applications/solvers/incompressible",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/incompressible",
+      "records": [
+        "openfoam_opencfd.steady_incompressible",
+        "openfoam_opencfd.transient_incompressible",
+        "openfoam_opencfd.fully_developed_boundary_profile",
+        "openfoam_opencfd.transient_laminar_newtonian_piso",
+        "openfoam_opencfd.transient_incompressible_piso",
+        "openfoam_opencfd.steady_incompressible_porous_pressure_loss",
+        "openfoam_opencfd.transient_generalized_newtonian_piso"
+      ],
+      "gaps": [
+        "非牛顿输运、旋转参考系泵特性和湍流壁函数尚缺独立能力及约束。"
+      ]
+    },
+    {
+      "module": "applications/solvers/compressible",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/compressible",
+      "records": [
+        "openfoam_opencfd.transient_density_based_compressible",
+        "openfoam_opencfd.steady_compressible",
+        "openfoam_opencfd.transient_pressure_based_compressible"
+      ],
+      "gaps": [
+        "移动网格可压缩和冲击波验证边界待展开。"
+      ]
+    },
+    {
+      "module": "applications/solvers/heatTransfer",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/heatTransfer",
+      "records": [
+        "openfoam_opencfd.reacting_species_heat_release",
+        "openfoam_opencfd.transient_cht",
+        "openfoam_opencfd.solid_volumetric_heat_source",
+        "openfoam_opencfd.directional_conduction_and_thin_contact",
+        "openfoam_opencfd.fan_curve_operating_point",
+        "openfoam_opencfd.surface_view_factor_exchange",
+        "openfoam_opencfd.transient_buoyant_heat_transfer",
+        "openfoam_opencfd.solid_energy_diffusion",
+        "openfoam_opencfd.mapped_baffle_thermal_layers",
+        "openfoam_opencfd.steady_compressible_buoyant_heat_transfer",
+        "openfoam_opencfd.steady_cht",
+        "openfoam_opencfd.steady_boussinesq_convection",
+        "openfoam_opencfd.transient_boussinesq_convection",
+        "openfoam_opencfd.frozen_flow_thermal_transport"
+      ],
+      "gaps": [
+        "含辐射、薄膜或热接触阻力时需核对版本边界类型和热流读回。"
+      ]
+    },
+    {
+      "module": "applications/solvers/multiphase",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/multiphase",
+      "records": [
+        "openfoam_opencfd.two_phase_immiscible_vof",
+        "openfoam_opencfd.isothermal_vof_cavitation",
+        "openfoam_opencfd.isothermal_algebraic_vof",
+        "openfoam_opencfd.nonisothermal_compressible_vof",
+        "openfoam_opencfd.mixture_drift_flux_settling",
+        "openfoam_opencfd.homogeneous_equilibrium_cavitation",
+        "openfoam_opencfd.single_phase_linear_free_surface_approximation"
+      ],
+      "gaps": [
+        "沸腾、Euler–Euler、多相颗粒和可压 VOF 需要核验闭式和守恒验证。"
+      ]
+    },
+    {
+      "module": "applications/solvers/lagrangian / src/lagrangian",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/lagrangian",
+      "records": [
+        "openfoam_opencfd.spray_wall_interaction"
+      ],
+      "gaps": [
+        "两向流固粒子交换、碰撞、蒸发及壁膜质量传递待分项。"
+      ]
+    },
+    {
+      "module": "applications/solvers/combustion",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/combustion",
+      "records": [
+        "openfoam_opencfd.single_cell_chemistry"
+      ],
+      "gaps": [
+        "工程燃烧设备、混合模型、辐射及壁面边界适用范围待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "工程燃烧设备、混合模型、辐射及壁面边界适用范围待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/combustion",
+          "reason": "已确认均匀化学时间积分。工业燃烧装置尚需逐个核对反应闭式、辐射及设备边界。"
+        }
+      ]
+    },
+    {
+      "module": "applications/solvers/DNS",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/DNS",
+      "records": [
+        "openfoam_opencfd.isotropic_periodic_dns"
+      ],
+      "gaps": [
+        "带壁面 DNS 的空间尺度、网格及耗散核对待独立取证。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "带壁面 DNS 的空间尺度、网格及耗散核对待独立取证。",
+          "status": "insufficient_evidence",
+          "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/DNS",
+          "reason": "周期盒证据无法推导近壁边界与分辨率要求。"
+        }
+      ]
+    },
+    {
+      "module": "applications/solvers/electromagnetics",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/electromagnetics",
+      "records": [
+        "openfoam_opencfd.permanent_magnet_field",
+        "openfoam_opencfd.laminar_liquid_mhd_induction"
+      ],
+      "gaps": [
+        "静电输运方程与磁流体双向耦合的模块输入和适用条件待展开。"
+      ]
+    },
+    {
+      "module": "applications/solvers/stressAnalysis",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/stressAnalysis",
+      "records": [
+        "openfoam_opencfd.small_strain_thermoelastic",
+        "openfoam_opencfd.steady_linear_elastic_fv_equilibrium"
+      ],
+      "gaps": [
+        "温度依赖材料、动力学约束和复杂三维载荷的离散边界待核实。"
+      ]
+    },
+    {
+      "module": "applications/solvers/financial",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/financial",
+      "records": [
+        "openfoam_opencfd.european_option_pde"
+      ],
+      "gaps": [],
+      "gap_assessments": []
+    },
+    {
+      "module": "applications/solvers/discreteMethods",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/discreteMethods",
+      "records": [
+        "openfoam_opencfd.periodic_rarefied_gas_dsmc"
+      ],
+      "gaps": [
+        "分子动力学、壁面反射和复杂稀薄气体边界待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "分子动力学、壁面反射和复杂稀薄气体边界待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/discreteMethods",
+          "reason": "周期稀薄气体 DSMC 有算例。分子动力学及复杂稀薄气体壁面需单独核验。"
+        }
+      ]
+    },
+    {
+      "module": "applications/solvers/incompressible/adjointOptimisationFoam",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/incompressible/adjointOptimisationFoam/adjointOptimisationFoam.C",
+      "records": [
+        "openfoam_opencfd.adjoint_design_sensitivity"
+      ],
+      "gaps": [
+        "各目标函数、离散伴随边界以及拓扑与形状参数化的兼容组合仍需逐项核对。"
+      ]
+    },
+    {
+      "module": "src/TurbulenceModels",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/TurbulenceModels",
+      "records": [
+        "openfoam_opencfd.geko_rans",
+        "openfoam_opencfd.sst_rans_wall_flow"
+      ],
+      "gaps": [
+        "LES 亚格子及 DES 切换、RSM 与各壁面方法的兼容性未逐项编目。"
+      ]
+    },
+    {
+      "module": "src/transportModels / src/thermophysicalModels",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/thermophysicalModels",
+      "records": [
+        "openfoam_opencfd.solid_energy_diffusion"
+      ],
+      "gaps": [
+        "状态方程、混合规则、非牛顿黏度、辐射模型及材料外推边界待展开。"
+      ]
+    },
+    {
+      "module": "src/overset / src/dynamicMesh / src/finiteArea",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/overset",
+      "records": [
+        "openfoam_opencfd.overset_flow"
+      ],
+      "gaps": [
+        "AMI 相对旋转、形变网格几何守恒与多 finiteArea 薄壁耦合待展开。"
+      ]
+    },
+    {
+      "module": "src/finiteVolume / src/fvOptions",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/finiteVolume",
+      "records": [
+        "openfoam_opencfd.synthetic_turbulence_inlet",
+        "openfoam_opencfd.joule_heating_source",
+        "openfoam_opencfd.external_wall_layer_convection"
+      ],
+      "gaps": [
+        "边界类型、源项、数值格式和预条件器组合需要分项版本核对。"
+      ]
+    },
+    {
+      "module": "applications/utilities/mesh",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/utilities/mesh",
+      "records": [
+        "openfoam_opencfd.steady_incompressible"
+      ],
+      "gaps": [
+        "snappyHexMesh 层网格、区域拆分、转换器和 checkMesh 质量阈值待逐工具编目。"
+      ]
+    },
+    {
+      "module": "src/functionObjects / applications/utilities/postProcessing",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/functionObjects",
+      "records": [
+        "openfoam_opencfd.mass_weighted_thermal_readback",
+        "openfoam_opencfd.patch_volumetric_flux",
+        "openfoam_opencfd.time_averaged_velocity",
+        "openfoam_opencfd.suction_pressure_projection",
+        "openfoam_opencfd.wall_force_and_moment",
+        "openfoam_opencfd.wall_heat_flux_readback",
+        "openfoam_opencfd.open_suction_chamber_pressure"
+      ],
+      "gaps": [
+        "壁面热流、面积加权、探针、噪声和导出格式待补数据契约。"
+      ]
+    },
+    {
+      "module": "applications/utilities/parallelProcessing / src/parallel",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/parallel",
+      "records": [
+        "openfoam_opencfd.partition_reconstruct_fields"
+      ],
+      "gaps": [
+        "GAMG 粗网格处理及特定 MPI/平台并行性能待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "GAMG 粗网格处理及特定 MPI/平台并行性能待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/src/parallel",
+          "reason": "文件分区重构和 GAMG/MPI 实际求解性能属于不同能力。"
+        }
+      ]
+    },
+    {
+      "module": "OpenFOAM v2606 Infrastructure / Plugins",
+      "source": "https://www.openfoam.com/news/main-news/openfoam-v2606",
+      "records": [
+        "openfoam_opencfd.vtk_hdf_volume_export"
+      ],
+      "gaps": [
+        "GPU 后端、pybFoam/pyOFTools 及 VTK-HDF 生效构建与目标机部署待分项核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "GPU 后端、pybFoam/pyOFTools 及 VTK-HDF 生效构建与目标机部署待分项核对。",
+          "status": "insufficient_evidence",
+          "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/infrastructure",
+          "reason": "发行公告区分实验 GPU 工作与正式组件，同时缺少本项目指定系统的构建、安装和运行验证。"
+        }
+      ]
+    },
+    {
+      "module": "applications/solvers/finiteArea",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/tree/OpenFOAM-v2606/applications/solvers/finiteArea",
+      "records": [
+        "openfoam_opencfd.surface_laminar_liquid_film",
+        "openfoam_opencfd.film_fields_to_wall_patches",
+        "openfoam_opencfd.finite_area_prescribed_surface_scalar_transport"
+      ],
+      "gaps": [
+        "表面活性剂输运及独立流体求解器和有限面积膜的物理双向交换待分项核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "表面活性剂输运及独立流体求解器和有限面积膜的物理双向交换待分项核对。",
+          "status": "insufficient_evidence",
+          "source": "https://www.openfoam.com/news/main-news/openfoam-v2606/numerics",
+          "reason": "liquidFilmFoam 的 h 和 Us 写入同一体网格边界 H、U 仅为场输出。独立的表面活性剂求解器与壁膜双向闭式需要相应读入、源项和算例证据。"
+        }
+      ]
+    },
+    {
+      "module": "applications/solvers/acoustic",
+      "source": "https://gitlab.com/openfoam/core/openfoam/-/raw/OpenFOAM-v2606/applications/solvers/acoustic/acousticFoam/acousticFoam.C",
+      "records": [
+        "openfoam_opencfd.acoustic_pressure_wave"
+      ],
+      "gaps": [
+        "流动噪声源向声压方程的传递、吸声边界及多材料界面需分别核定。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "openfoam_opencfd.acoustic_pressure_wave",
+      "openfoam_opencfd.adjoint_design_sensitivity",
+      "openfoam_opencfd.european_option_pde",
+      "openfoam_opencfd.film_fields_to_wall_patches",
+      "openfoam_opencfd.fully_developed_boundary_profile",
+      "openfoam_opencfd.geko_rans",
+      "openfoam_opencfd.isothermal_vof_cavitation",
+      "openfoam_opencfd.isotropic_periodic_dns",
+      "openfoam_opencfd.joule_heating_source",
+      "openfoam_opencfd.overset_flow",
+      "openfoam_opencfd.partition_reconstruct_fields",
+      "openfoam_opencfd.passive_scalar_transport",
+      "openfoam_opencfd.patch_volumetric_flux",
+      "openfoam_opencfd.periodic_rarefied_gas_dsmc",
+      "openfoam_opencfd.permanent_magnet_field",
+      "openfoam_opencfd.potential_flow_initialization",
+      "openfoam_opencfd.single_cell_chemistry",
+      "openfoam_opencfd.small_strain_thermoelastic",
+      "openfoam_opencfd.solid_energy_diffusion",
+      "openfoam_opencfd.spray_wall_interaction",
+      "openfoam_opencfd.steady_compressible",
+      "openfoam_opencfd.steady_incompressible",
+      "openfoam_opencfd.surface_laminar_liquid_film",
+      "openfoam_opencfd.synthetic_turbulence_inlet",
+      "openfoam_opencfd.time_averaged_velocity",
+      "openfoam_opencfd.transient_buoyant_heat_transfer",
+      "openfoam_opencfd.transient_cht",
+      "openfoam_opencfd.transient_density_based_compressible",
+      "openfoam_opencfd.transient_incompressible",
+      "openfoam_opencfd.two_phase_immiscible_vof",
+      "openfoam_opencfd.vtk_hdf_volume_export",
+      "openfoam_opencfd.wall_force_and_moment"
+    ]
+  }
+}

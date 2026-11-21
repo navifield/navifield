@@ -1,0 +1,30 @@
+{
+  "domain": "phase_change",
+  "mechanisms": [
+    "boiling"
+  ],
+  "goals": [
+    "net_vapor_mass_flow"
+  ],
+  "conditions": {
+    "geometry": "heated_channel",
+    "regime": "subcooled_nucleate",
+    "wall_control": "prescribed_temperature",
+    "operation": "startup_and_steady"
+  },
+  "known_inputs": [
+    "geometry",
+    "flow_bc",
+    "thermal_bc",
+    "phase_properties",
+    "saturation_relation",
+    "latent_heat",
+    "boiling_closures",
+    "interfacial_heat_transfer",
+    "diagnostic_patches",
+    "gravity",
+    "surface_tension",
+    "initial_inventory"
+  ],
+  "description": "一根竖直加热水道以过冷水进料，受热壁保持规定温度，处于核态沸腾区。请给出启动到稳态期间设备每秒净送出的蒸汽质量，进口也可能带少量汽。可取得几何、初始汽液分布、进出口和热边界、流体物性以及适合本工况的换热数据。"
+}

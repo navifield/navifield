@@ -1,0 +1,244 @@
+[
+  {
+    "id": "comsol-aluminium-hot-arm-2025",
+    "doi": "10.1186/s40486-025-00241-5",
+    "title": "Fabrication and electro-thermo-mechanical characterization of a hot arm actuator",
+    "authors": "Kibum Jung, Juhee Ko, Taeyeong Kim, Jungchul Lee",
+    "year": 2025,
+    "software": "COMSOL",
+    "software_version": null,
+    "industry": "光学微机电",
+    "targets": [
+      "wall_temperature",
+      "displacement",
+      "electrical_resistance",
+      "response_time"
+    ],
+    "source_url": "https://link.springer.com/article/10.1186/s40486-025-00241-5",
+    "source_locator": "Experimental results，图 3–4；Simulation methodology and parameters，Material properties / Boundary conditions。",
+    "conditions": [
+      "悬置铝热臂和冷臂，锚点固定并设为 293 K，自由表面对流系数取 15 W/(m²·K)。",
+      "用输入功率比较稳态读数，用电压脉冲取瞬态响应。"
+    ],
+    "model_chain": [
+      "电流场计算焦耳发热并传给固体热方程，温度通过电阻率反馈给电流场。",
+      "把非均匀温度场传给固体力学，用热膨胀计算端部横向位移。"
+    ],
+    "required_inputs": [
+      "热臂、冷臂和柔性连接几何，铝的热、电、弹性及热膨胀参数。",
+      "电压或可对应的输入功率、锚点热与结构约束、环境换热和光学读数位置。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "displacement",
+        "detail": "显微镜测得输入 20 mW 时端部横向位移 13.2 µm。",
+        "locator": "图 4a 及邻文"
+      },
+      {
+        "kind": "measured",
+        "quantity": "wall_temperature",
+        "detail": "作者用标定的激光反射测温记录热臂表面最高温度随功率的变化。",
+        "locator": "图 3b"
+      },
+      {
+        "kind": "derived",
+        "quantity": "response_time",
+        "detail": "从 0.2–0.6 V 脉冲下的瞬态电阻响应提取热时间常数。",
+        "locator": "图 4b"
+      }
+    ],
+    "limitations": [
+      "正文确认 COMSOL，未核实具体版本。论文给出端部位移和表面温度的实验对照，局部应力缺少同量实测。"
+    ],
+    "provenance": "作者制样并测量，温度为经标定的光学测温，位移为显微读数。",
+    "reproduction": {
+      "status": "not_run",
+      "scope": "作者的铝热臂稳态实验靶值。本开源求解链未进行此器件原生复算，实验误差和产品精度未验证。作者使用 COMSOL，版本未确认。",
+      "routes": [
+        {
+          "chain": "joule_heated_thermal_actuator",
+          "solver": "getdp",
+          "version": "3.5.0"
+        }
+      ],
+      "cases": [],
+      "brief_results": [
+        {
+          "kind": "experimental_targets",
+          "conditions": "作者的稳态输入功率扫描。20 mW 位移点在建模与校准时留出。",
+          "measurements": [
+            {
+              "quantity": "displacement",
+              "value": 13.2,
+              "unit": "µm",
+              "measurement_definition": "正文所报 20 mW 端部横向位移，光学显微镜，图 4a。"
+            },
+            {
+              "quantity": "wall_temperature",
+              "value": null,
+              "unit": "K",
+              "measurement_definition": "图 3b 的热臂表面最高温度随功率，激光反射测温；数值曲线待取得或可靠读图。"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "完整实物轮廓及其与掩模的映射、薄膜 ρ(T)、图 3b 稳态温度数据及实验不确定度仍待补齐；关键输入未冻结，原件复建 HOLD。"
+      ]
+    }
+  },
+  {
+    "id": "comsol-polysilicon-actuator-stress-2019",
+    "doi": "10.1016/j.promfg.2019.02.290",
+    "title": "Numerical Investigation of a MEMS Thermal Actuator Performance by Modifying its Geometric Dimensions",
+    "authors": "Viorel Ionescu",
+    "year": 2019,
+    "software": "COMSOL",
+    "software_version": "5.2",
+    "industry": "射频微机电",
+    "targets": [
+      "thermal_stress",
+      "displacement",
+      "temperature"
+    ],
+    "source_url": "https://www.researchgate.net/publication/332597142_Numerical_Investigation_of_a_MEMS_Thermal_Actuator_Performance_by_Modifying_its_Geometric_Dimensions",
+    "source_locator": "原文引言和 §2，表 1–3；图 2（位移对照）、图 6–7（温度及应力预测）。出版 DOI 可解析至 Elsevier。",
+    "conditions": [
+      "二维多晶硅双热臂；表 1 的验证件与表 3 的几何变体分开使用。",
+      "间隙 1.5 µm、冷臂宽 15 µm、驱动 7 V 是应力图对应的变体。"
+    ],
+    "model_chain": [
+      "施加电压产生电阻热，计算臂间传热并得到温度分布。",
+      "以温升引起的受约束热膨胀计算端部位移和局部 von Mises 应力。"
+    ],
+    "required_inputs": [
+      "热臂和冷臂的宽厚、间距与锚点条件。",
+      "驱动电压、热基准、多晶硅热物性、电阻率温度系数、弹性及膨胀参数。"
+    ],
+    "observations": [
+      {
+        "kind": "comparison",
+        "quantity": "displacement",
+        "detail": "图 2 将参考文献中的位移实验数据与验证件有限元位移比较，作者报告 5–9 V 段吻合。",
+        "locator": "§2 图 2、参考文献 16"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "thermal_stress",
+        "detail": "在上述 7 V 变体，作者报告尖端内表面的局部 von Mises 热应力约 450 MPa。",
+        "locator": "图 7 及邻文"
+      }
+    ],
+    "limitations": [
+      "应力热点属于另一组几何参数下的数值预测。用位移曲线验证基准件不足以验证 450 MPa。",
+      "图中不同提取位置有不同应力峰值，复算须核对坐标、几何及网格。"
+    ],
+    "provenance": "作者模拟；位移对照引用既有实验数据。"
+  },
+  {
+    "id": "reference-microchannel-heat-sink-2002",
+    "doi": "10.1016/S0017-9310(01)00337-4",
+    "title": "Experimental and numerical study of pressure drop and heat transfer in a single-phase micro-channel heat sink",
+    "authors": "Weilin Qu, Issam Mudawar",
+    "year": 2002,
+    "software": "未确认",
+    "software_version": null,
+    "industry": "电子液冷",
+    "targets": [
+      "pressure_drop",
+      "heat_rate",
+      "wall_temperature"
+    ],
+    "source_url": "https://engineering.purdue.edu/mudawar/files/articles-all/2002/2002_1.pdf",
+    "source_locator": "§2.2–2.4，表 1；§3.1–3.3，图 4–8。",
+    "conditions": [
+      "21 条平行铜微通道，去离子水入口 15 °C，按投影面积施加 100 或 200 W/cm²。"
+    ],
+    "model_chain": [
+      "三维单相流动与铜壁导热耦合，在界面连续传递温度和法向热流。",
+      "总压差计入进出口收缩、扩张。水侧温升和流量可用于能量平衡核对。"
+    ],
+    "required_inputs": [
+      "通道与集流腔几何、测压截面、流量及入口温度。",
+      "铜及水的物性、热输入的面积定义和四个热电偶的坐标。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "pressure_drop",
+        "detail": "100 W/cm²、Re = 1672 时，装置进出口间压差为 86 kPa。",
+        "locator": "§3.2 图 4a"
+      },
+      {
+        "kind": "derived",
+        "quantity": "heat_rate",
+        "detail": "用实测水温升和流量核对冷却水吸热功率与电功率。",
+        "locator": "§2.4，§3.2 式 23、图 5"
+      },
+      {
+        "kind": "measured",
+        "quantity": "solid_temperature",
+        "detail": "四个热电偶在铜体内部测温。",
+        "locator": "§2.2、图 6–7"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "wall_temperature",
+        "detail": "连续壁温分布来自三维数值解。",
+        "locator": "§3.3 图 8"
+      }
+    ],
+    "limitations": [
+      "正文交代有限差分和 SIMPLE，所核原文未明确使用 Fluent 或 COMSOL。",
+      "§2.2 和表 1 的通道深度相差 1 µm；传感器精度与两端压差的不确定度须分别处理。"
+    ],
+    "provenance": "作者台架实测及同篇数值分析；上一轮已核题源。"
+  },
+  {
+    "id": "reference-thermal-mixing-pipe-2019",
+    "doi": "10.26583/npe.2019.2.10",
+    "title": "Experimental studies of temperature pulsations during the process of mixing non-isothermal coolant flows in nuclear reactor equipment components",
+    "authors": "S. M. Dmitriev, A. V. Mamaev, R. R. Ryazapov, A. E. Sobornov, A. V. Kotin, D. E. Bescherov, M. A. Bolshuhin",
+    "year": 2019,
+    "software": "未确认",
+    "software_version": null,
+    "industry": "能源装备管路",
+    "targets": [
+      "thermal_stress",
+      "temperature_fluctuation"
+    ],
+    "source_url": "https://static.nuclear-power-engineering.ru/articles/2019/02/10.pdf",
+    "source_locator": "期刊原版第 120–123 页，图 1–2 试验装置与仪表、图 3–6 温度记录和统计，第 122 页应力。",
+    "conditions": [
+      "285 °C 与 35 °C 的两股单相流在试验段混合，管样为奥氏体钢。"
+    ],
+    "model_chain": [
+      "论文试验链为冷热流混合、温度波动测量、应变测量及应力推算。",
+      "用于复算时可将脉动流体传热传给管壁瞬态导热，再将壁内温度场传给约束结构；这是本库建议路线。"
+    ],
+    "required_inputs": [
+      "两路流动和温度工况，混合段和管壁尺寸、传感器位置及采样时间。",
+      "结构支撑、材料随温度的参数、无应力参考温度和应力分量定义。"
+    ],
+    "observations": [
+      {
+        "kind": "derived",
+        "quantity": "temperature_fluctuation",
+        "detail": "温度记录最大峰峰值 120 °C，文中给出的特征频谱峰位于 0.4–0.5 Hz。",
+        "locator": "第 121–122 页，图 3–6"
+      },
+      {
+        "kind": "derived",
+        "quantity": "thermal_stress",
+        "detail": "作者根据应变测量推算加载区最大应力 152 MPa。",
+        "locator": "第 122 页，图 6 后正文"
+      }
+    ],
+    "limitations": [
+      "本条作为实验参考，未确认任何商用软件。",
+      "复算 152 MPa 仍需核回应力定义、支撑、测点与时程。"
+    ],
+    "provenance": "作者实验及应变推算；上一轮已核题源，按原版 DOI 计一篇。"
+  }
+]

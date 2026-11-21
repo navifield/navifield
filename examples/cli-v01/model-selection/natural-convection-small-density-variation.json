@@ -1,0 +1,13 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["conduction", "fluid_advection", "buoyancy"],
+  "goals": ["temperature", "wall_heat_flux"],
+  "conditions": {
+    "geometry": "fluid",
+    "motion": "buoyant",
+    "density": "small_variation",
+    "time": "steady"
+  },
+  "known_inputs": ["conductivity", "density", "heat_capacity", "fluid_properties", "flow_bc", "thermal_bc", "gravity", "expansion_coefficient", "reference_temperature"],
+  "description": "Predict steady buoyancy-driven circulation and wall heat flux in a sealed air cavity with no fan. The opposing wall temperatures are 299 K and 301 K, with the other walls insulated and all walls impermeable and no-slip. Use the measured reference properties at 300 K. The product of the expansion coefficient and wall temperature difference is about 0.007."
+}

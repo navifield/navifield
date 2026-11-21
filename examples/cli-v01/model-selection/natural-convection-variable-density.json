@@ -1,0 +1,13 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["conduction", "fluid_advection", "buoyancy"],
+  "goals": ["temperature", "wall_heat_flux"],
+  "conditions": {
+    "geometry": "fluid",
+    "motion": "buoyant",
+    "density": "variable",
+    "time": "steady"
+  },
+  "known_inputs": ["density", "fluid_properties", "flow_bc", "thermal_bc", "gravity", "equation_of_state"],
+  "description": "Predict steady buoyancy-driven circulation and wall heat flux in a sealed air cavity with no fan. One wall is at 300 K and its opposing wall is at 500 K. The gas density at a common pressure changes by about 40 percent over that interval. Use the specified gas equation of state and transport properties. All walls are impermeable and no-slip."
+}

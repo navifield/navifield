@@ -1,0 +1,309 @@
+{
+  "solver": "getdp",
+  "version": "3.5.0",
+  "chains": [
+    {
+      "id": "tactile_pad_forward",
+      "status": "custom",
+      "scope": "指垫或柔性压敏电容的准静态候选；载荷改变形态时需要单向固体变形传递。固定、已知几何可直接建静电子问题。适用频率、介电损耗、端口和材料独立性需验证，具体客户工况尚待建模与运行。",
+      "steps": [
+        {
+          "id": "solid",
+          "operation": "固体静力求解",
+          "equation": "∇·σ+b=0；泡沫使用与试验拟合且验证的可压缩大变形本构及接触，按材料实际条件求解；小变形线弹性仅作独立简化基准，不能替代泡沫模型。",
+          "receives": [
+            "载荷 N 或位移 m，拟合的材料、接触和支承"
+          ],
+          "produces": [
+            "固体位移场 u，m"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "ccx"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "geometry_transfer",
+          "operation": "将位移传到电极与介质几何并重建网格",
+          "equation": "x_deformed=X+u(X)；按区域和电极 ID 映射，校验界面、法向、网格质量与不穿透。",
+          "receives": [
+            "位移场、原始网格、区域及电极 ID"
+          ],
+          "produces": [
+            "变形后的电极和介质几何、带物理组的静电网格"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "ccx",
+            "gmsh"
+          ],
+          "depends_on": [
+            "solid"
+          ]
+        },
+        {
+          "id": "electrostatic",
+          "operation": "求静电势与电极总电荷",
+          "equation": "E=−∇φ，D=εE，∇·D=ρ_free；电极等势，指定 V 和参考端；Q=∫electrode D·n_e dA，n_e 从电极指向介质，或用等价全局电荷自由度。",
+          "receives": [
+            "变形网格、介电常数、电极电势和外边界"
+          ],
+          "produces": [
+            "φ V、电极总电荷 Q C"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ],
+          "depends_on": [
+            "geometry_transfer"
+          ]
+        },
+        {
+          "id": "capacitance",
+          "operation": "由电荷计算电容",
+          "equation": "无内部自由电荷、无预偏置且线性受控二端时 C=Q/ΔV，ΔV≠0；固定空间电荷或偏置时固定其他端条件并用增量 ΔQ/ΔV；非线性时需工作点微分 dQ/dV。多端需电容矩阵与端条件。",
+          "receives": [
+            "电极电荷 C、电势差 V、工作点和其余端条件"
+          ],
+          "produces": [
+            "电容 F"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ],
+          "depends_on": [
+            "electrostatic"
+          ]
+        },
+        {
+          "id": "change",
+          "operation": "计算相对同预载零点的电容变化",
+          "equation": "ΔC=C−C0 单位 F；ΔC/C0 无量纲且 C0 非零，C0 与 C 必须同电极、预载基准、频率和测量配置。",
+          "receives": [
+            "电容 C F、同条件零点 C0 F"
+          ],
+          "produces": [
+            "电容变化 ΔC F、可选相对变化 ΔC/C0"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ],
+          "depends_on": [
+            "capacitance"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "力学与电学闭合",
+          "relation": "力学本构及接触由实测或文献确定；准静态、线性介电且电场力对形变可忽略时单向传递。非线性、粘弹/滞回或电场反馈需额外模型和验证。",
+          "applicability": "限定材料、频率、载荷和温度范围",
+          "implementation": "custom",
+          "evidence": [
+            "ccx",
+            "getdp"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "test_protocol",
+          "meaning": "载荷范围、压入和卸载速率；同一样件/压头、预载后调零的参考力及 C0、力/位移/电容的同步时间戳、重复次数与允许误差。"
+        }
+      ],
+      "custom_work": [
+        "实现位移到电极/介质几何的映射、重建、物理组保留与质量检查；实现 GetDP 静电问题和电荷读回。",
+        "实现 C=Q/ΔV 的定义、符号、单位及多电极激励管理；实现标定、反演、误差和有效范围判断。",
+        "对具体算例独立审查载荷、边界、单位和读回；现有材料仅提供计划级证据，不是端到端运行。"
+      ],
+      "checks": [
+        "力学先与解析梁或压缩试验比对，检查反力平衡与位移网格收敛；接触、超弹材料另验。",
+        "平行板电容 C≈εA/d；电极电荷等量异号仅在孤立二端、内部无净自由电荷且外边界无通量等条件下检验。检查边缘场、外边界尺寸、网格收敛和法向符号。",
+        "位移映射和重网格前后核对电极 ID、区域体积、界面连通、单位及形变；没有验证不得作为已实现功能。",
+        "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+        "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。",
+        "报告同一样件/压头/速率的重复性和偏差，独立样件验收时同时给定力误差 N、压力的面积口径与名义单位 Pa。动态或抓取闭环须另行验证。"
+      ],
+      "sources": [
+        {
+          "id": "ccx",
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "2.22 *STATIC, *BOUNDARY, *CLOAD, *DLOAD, *NODE FILE, contact and hyperelastic materials",
+          "claim": "静力位移与材料、载荷、接触按具体输入文件定义；不证明指垫求解或精度。"
+        },
+        {
+          "id": "gmsh",
+          "kind": "version_manual",
+          "url": "https://gmsh.info/doc/texinfo/gmsh.pdf",
+          "locator": "4.15.2 §2.1 t1 Physical Groups",
+          "claim": "几何实体可定义物理组并导出网格；跨求解器与变形后标签一致性需自检。"
+        },
+        {
+          "id": "getdp",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+          "claim": "静电标势、全局电势和电荷及其后处理设施；特定传感器需自行构建。"
+        },
+        {
+          "id": "paper",
+          "kind": "physics_reference",
+          "url": "https://www.mdpi.com/2072-666X/15/5/628",
+          "locator": "§2.1, Figure 1; §3, Figures 4–5 and gripping experiments; DOI 10.3390/mi15050628",
+          "claim": "论文展示两种指定压缩形态的静电模拟与实物压头、抓取实验；不证明连续力学-静电耦合或经验证的载荷反演。"
+        }
+      ]
+    },
+    {
+      "id": "tactile_pad_inverse",
+      "status": "custom",
+      "scope": "经验标定反演仅依赖测量及独立标定；模型辅助时可另组合 tactile_pad_forward 并提供候选载荷域、接触边界。不代表已接入或已验。",
+      "steps": [
+        {
+          "id": "inverse",
+          "operation": "经独立标定反演载荷",
+          "equation": "在有效范围内以 C_measured 与独立标定 C(F,位置,历史,温度) 比较求 F；不可辨识、多值或外推时拒绝唯一估计。模型辅助时另组合 tactile_pad_forward 并给候选载荷域及接触边界，经验反演不依赖运行前向。",
+          "receives": [
+            "测量电容 F、独立标定数据和不确定度"
+          ],
+          "produces": [
+            "接触载荷 N 与不确定度、适用范围"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "paper"
+          ],
+          "depends_on": []
+        }
+      ],
+      "closures": [
+        {
+          "name": "经验标定反演",
+          "relation": "标定包含有效范围、接触位置、温度、历史与不确定度；未知或不可辨识时不得给唯一结果。",
+          "applicability": "同测量配置和已验证标定域",
+          "implementation": "custom",
+          "evidence": [
+            "paper"
+          ]
+        }
+      ],
+      "required_inputs": [
+        {
+          "key": "test_protocol",
+          "meaning": "载荷范围、压入和卸载速率；同一样件/压头、预载后调零的参考力及 C0、力/位移/电容的同步时间戳、重复次数与允许误差。"
+        }
+      ],
+      "custom_work": [
+        "实现实测电容与独立标定数据的匹配、有效范围与多值性检查、载荷反演及不确定度；模型辅助可另组合正向链。"
+      ],
+      "checks": [
+        "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+        "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。",
+        "报告同一样件/压头/速率的重复性和偏差，独立样件验收时同时给定力误差 N、压力的面积口径与名义单位 Pa。动态或抓取闭环须另行验证。"
+      ],
+      "sources": [
+        {
+          "id": "ccx",
+          "kind": "version_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "2.22 *STATIC, *BOUNDARY, *CLOAD, *DLOAD, *NODE FILE, contact and hyperelastic materials",
+          "claim": "静力位移与材料、载荷、接触按具体输入文件定义；不证明指垫求解或精度。"
+        },
+        {
+          "id": "gmsh",
+          "kind": "version_manual",
+          "url": "https://gmsh.info/doc/texinfo/gmsh.pdf",
+          "locator": "4.15.2 §2.1 t1 Physical Groups",
+          "claim": "几何实体可定义物理组并导出网格；跨求解器与变形后标签一致性需自检。"
+        },
+        {
+          "id": "getdp",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+          "claim": "静电标势、全局电势和电荷及其后处理设施；特定传感器需自行构建。"
+        },
+        {
+          "id": "paper",
+          "kind": "physics_reference",
+          "url": "https://www.mdpi.com/2072-666X/15/5/628",
+          "locator": "§2.1, Figure 1; §3, Figures 4–5 and gripping experiments; DOI 10.3390/mi15050628",
+          "claim": "论文展示两种指定压缩形态的静电模拟与实物压头、抓取实验；不证明连续力学-静电耦合或经验证的载荷反演。"
+        }
+      ]
+    },
+    {
+      "id": "flexible_capacitance_fixed_geometry",
+      "status": "custom",
+      "scope": "固定、未加载或已知变形几何的端子电容候选；线性介质且工作频率下导电损耗和电磁传播可忽略时，用静电电荷或电容矩阵近似端口导纳的电容成分。开源个案尚未运行。",
+      "steps": [
+        {
+          "id": "electrostatic",
+          "operation": "在固定几何上求静电势与电极总电荷",
+          "equation": "E=−∇φ，D=εE，∇·D=ρ_free；电极等势，指定 V 和参考端；Q=∫electrode D·n_e dA，n_e 从电极指向介质，或用等价全局电荷自由度。",
+          "receives": [
+            "待测状态下的已知几何与电极/介质/空气物理组"
+          ],
+          "produces": [
+            "φ V、电极总电荷 Q C"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "capacitance",
+          "operation": "由电荷计算电容",
+          "equation": "无内部自由电荷、无预偏置且线性受控二端时 C=Q/ΔV，ΔV≠0；固定空间电荷或偏置时固定其他端条件并用增量 ΔQ/ΔV；非线性时需工作点微分 dQ/dV。多端需电容矩阵与端条件。",
+          "receives": [
+            "电极电荷 C、电势差 V、工作点和其余端条件"
+          ],
+          "produces": [
+            "电容 F"
+          ],
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ],
+          "depends_on": [
+            "electrostatic"
+          ]
+        }
+      ],
+      "closures": [
+        {
+          "name": "固定几何、电准静态闭合",
+          "relation": "独立 εr、适用频率及端口边界已知时解静电；相同端口定义下，理想线性电容满足 Im(Y)/ω=C。损耗、泄漏或传播不可忽略时需频域复导纳模型。",
+          "applicability": "介电响应近线性、低损耗、尺寸远小于波长且几何已确定",
+          "implementation": "custom",
+          "evidence": [
+            "getdp"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "依据实际电极几何、空气外界和接线构造静电输入，实施电荷读回并核对目标测量端口。"
+      ],
+      "checks": [
+        "核对端子定义、外边界及网格收敛；区分独立 εr 与用电容反算的校准值，校准样本不能再次充作独立实验验收。"
+      ],
+      "sources": [
+        {
+          "id": "getdp",
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+          "claim": "静电标势、全局电势和电荷及其后处理设施；特定传感器需自行构建。"
+        }
+      ]
+    }
+  ]
+}

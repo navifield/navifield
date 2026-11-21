@@ -1,0 +1,1573 @@
+[
+  {
+    "id": "yao2022-bellow-soft-pneumatic-actuator",
+    "doi": "10.1109/RoboSoft54090.2022.9762153",
+    "title": "A Simulation-Based Toolbox to Expedite the Digital Design of Bellow Soft Pneumatic Actuators",
+    "authors": "Yao Yao, Liang He, Perla Maiolino",
+    "year": 2022,
+    "software": "COMSOL",
+    "software_version": "5.6.0.401",
+    "industry": "软体机器人 / 气动执行器",
+    "targets": [
+      "free_bending_angle",
+      "blocked_tip_force"
+    ],
+    "keywords": [
+      "Yao",
+      "soft pneumatic actuator",
+      "波纹软指",
+      "Neo Hooke",
+      "内压",
+      "自由弯曲角",
+      "堵转力"
+    ],
+    "source_url": "https://ora.ox.ac.uk/objects/uuid%3A084f2777-3efd-4bcf-b3e5-2953e52c4b5e",
+    "source_locator": "Table I; Figs. 2, 3, 7–8; §§III-B, IV-B, V",
+    "conditions": [
+      "表 I 为名义基准几何，图 8(b) 取六个波纹；图 3 GUI 材料示例的 E=450 kPa、ν=0.49、ρ=1160 kg/m³ 尚未确认就是图 8(b) 试件材料域。",
+      "自由端测角为端盖相对框架连接件的角度；文中标注重力零压偏移，尚不能确定参考取法或擅自减零。堵转力来自另一个夹持/止挡工况。"
+    ],
+    "model_chain": [
+      "作者用 COMSOL 的 Neo-Hookean 固体力学与独立 MATLAB 理论模型。5.6.0.401 来自作者 Bellow_SPA_Toolbox 的存档元数据及脚本导出版本；未证实图 8(b) 出自该存档的哪次计算。",
+      "CalculiX 2.22 在原作者五域完整角点拓扑上采用 Neo-Hooke 有限体积惩罚，硬域有限弹性，+x 重力与逐面随动内压。入库双步结果包括 C3D4 和直边 C3D10，并核查反力、单元 J 和边 816 位移。"
+    ],
+    "required_inputs": [
+      "确认对应图 8(b) 的样件 CAD、端盖/加强层/软体材料域、压力参考与受压面、夹持几何和重力安装姿态。",
+      "确认图 3 材料参考与目标试样本构的一致性，获取应变范围、准确角度零点和重复实验原始序列/误差。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "free_bending_angle",
+        "detail": "图读实验连续曲线，三处读数并非三次独立原始观测；图读裕度不是仪器不确定度。",
+        "locator": "Fig. 8(b), printed p.34"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "free_bending_angle",
+        "detail": "图读作者 COMSOL FEA 浅蓝加号。已取得作者候选存档及其版本，图 8(b) 与其保存结果的对应关系待证。",
+        "locator": "Fig. 8(b), printed p.34"
+      }
+    ],
+    "limitations": [
+      "后续 SPADA 仓库的例题及材料参数与 2022 样件未证等价，禁止用后续示例网格或材料填补未知。",
+      "整机原生结果仅覆盖所列压力/单元/体积模量；C3D4 可能出现薄壁弯曲和体积锁死，C3D10 以共边几何中点建立，仍可能锁死。图 8(b) 仅为图形对照，实验验收门槛未设；堵转力另为独立工况。",
+      "三次较早的 C3D10 原生运行仅完成重力末态，求解器 RF 合计一致性未知；新独立运行只完成至 0.5 kPa，当前二次单元没有已完成的 2 kPa 目标帧。"
+    ],
+    "provenance": "IEEE 原论文由 Oxford Research Archive 提供，三份独立用途的冻结证据附 SHA-256。",
+    "reproduction": {
+      "status": "native_readback_acceptance_not_set",
+      "scope": "原作者六波纹整机自由弯曲。C3D4 完成重力及 0.5/2 kPa；直边 C3D10 K/μ=50 完成重力及 0.5 kPa，已通过原生数值门并对照期刊图形。三个较早的 C3D10 未完成压力工况单列；实验容差、网格独立性及作者保存解身份待核实。",
+      "routes": [
+        {
+          "chain": "soft_pneumatic_static_actuator",
+          "solver": "calculix",
+          "version": "2.22",
+          "requires_explicit_doi": true
+        }
+      ],
+      "cases": [
+        {
+          "case": "c3d4-r50",
+          "solver": "CalculiX",
+          "version": "2.22",
+          "element": "C3D4",
+          "K_over_mu": 50.0,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "run_id": "r001",
+          "duration_s": 70.06,
+          "sampled_solver_peak_rss_bytes": 251170816,
+          "numerical_result": "NUMERICAL_GATES_PASS",
+          "experimental_acceptance": "NOT_SET",
+          "review_receipt": {
+            "name": "result-c3d4-r50.json",
+            "sha256": "bba1f751df34a17c41356163c69ac90fa664d1e113d3c2901b2669aabca231fa"
+          },
+          "station_receipt_sha256": "39bcc352b6a81abb9264205334e7c289d8449b10cdb5ad84fe368ea132ddfee6",
+          "station_archive_sha256": "7e3938eeada3e2c212453b722d4ffa51d24d6e5e1d1e5f94ed96ccdbc8609951",
+          "solver_binary_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+          "frd_reference": {
+            "deck": "4a3558e84dfad50778b52e75de3168409b620085bcdec2bd5274312b78e8a820",
+            "element": "C3D4",
+            "sha256_FRD": "7f5bb609068c9d962921ba4d2be739e7ff853c56ae79530d6a5acad303924d2b",
+            "node_count": 23208,
+            "threshold_abs_mm": 0.0002,
+            "max_F20_minus_FRD_mm": 5.301132999591118e-05,
+            "all_F20_consistent_with_FRD_rounding": true,
+            "n_F20_FRD_components_outside_rounding": 0,
+            "n_target_node_err_above_threshold": 0,
+            "worst_node": 738,
+            "worst_coordinate_error_mm": 5.301132999591118e-05,
+            "nonpositive_corners": 0,
+            "FRD_nonpositive_native_Gauss_points": 0,
+            "range_J_FRD": [
+              0.9991644715584478,
+              1.0010767847195758
+            ],
+            "reported_negative_element_ids": 0,
+            "corner_inversions_also_reported": 0,
+            "input_gate": "PASS"
+          },
+          "field_file_sha256": {
+            "deck": "4a3558e84dfad50778b52e75de3168409b620085bcdec2bd5274312b78e8a820",
+            "dat": "b16cbe82101a2540ebdaf3c8c47cd9ad435d041e25430a91dc08a1f0318df480",
+            "sta": "3a71a58f1aefcf9652034b9aadbdb069d12a6c2e46a529a2fa41538b3d0bdd3d",
+            "log": "320d666f096f74c25c726553595af4f5a62be468ce1c8b626b31e7339a8d2f06"
+          },
+          "protocol_sha256": "0594ac38aaeb2e86efbf8f1e81f4ff966a33d006adf6c37b7626a6550fa3e408",
+          "absolute_angle_change_deg_reference": 4.688386817576493,
+          "published_comparison_receipt": {
+            "name": "compare-c3d4-r50.json",
+            "sha256": "76bba17731f91414837a58cdb3b636fc74706c29b3de27bc2199a2ace413299a"
+          },
+          "change_from_zero_graph_context_deg": {
+            "native": 4.688386817576493,
+            "graph_experiment": 7.520486640284209,
+            "graph_author_FEA": 8.626162810427212,
+            "native_minus_graph_experiment": -2.8320998227077157,
+            "native_minus_graph_FEA": -3.937775992850719
+          },
+          "sta_end_rows": [
+            [
+              "1",
+              "4",
+              "1",
+              "3",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ],
+            [
+              "2",
+              "4",
+              "1",
+              "2",
+              "0.200000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ]
+          ],
+          "frames": [
+            {
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 4.937798455673585,
+              "angle_deg_deformed": 4.93779845717348,
+              "soft_domain_J": {
+                "min": 0.9947982857602781,
+                "p1_unweighted": 0.9984617905058212,
+                "median_unweighted": 1.0000195365887548,
+                "p99_unweighted": 1.0022884305422084,
+                "max": 1.0074363552770793,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11199.67515445852,
+                "net_volume_ratio": 1.000019602792156
+              },
+              "max_displacement_mm": 3.2592283159528552,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "support_reaction_N": [
+                -0.15012670343036397,
+                3.2338750007932307e-09,
+                2.936780995905358e-09
+              ],
+              "force_residual_N": [
+                -5.366160293895916e-10,
+                3.2338750007932307e-09,
+                2.936780995905358e-09
+              ],
+              "moment_residual_Nmm": [
+                -2.53211203330838e-08,
+                2.00299281605254e-08,
+                -1.151102642675192e-09
+              ],
+              "equilibrium_tol_N": 0.0015012670289374795,
+              "deformed_pressure_wall_area_mm2": 5674.972335277592,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "native_minus_experiment_deg": -2.7866553807830305,
+                "native_minus_author_fea_deg": -5.319995591253775,
+                "native_minus_experiment_percent": -36.075759397137304,
+                "native_minus_author_fea_percent": -51.86295968622355
+              }
+            },
+            {
+              "pressure_kPa": 0.5,
+              "angle_deg_reference": 9.626185273250078,
+              "angle_deg_deformed": 9.626185221165567,
+              "soft_domain_J": {
+                "min": 0.991663901761216,
+                "p1_unweighted": 0.9971470799443612,
+                "median_unweighted": 1.0001109000677793,
+                "p99_unweighted": 1.0041244384345331,
+                "max": 1.012188537791458,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11200.517355829497,
+                "net_volume_ratio": 1.00009480299831
+              },
+              "max_displacement_mm": 6.525777953915099,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.00346569199021933,
+                -6.4534381460121075e-18,
+                -8.869248109381889e-16
+              ],
+              "support_reaction_N": [
+                -0.15359239387025467,
+                3.1098306035079026e-09,
+                -5.025329357939007e-09
+              ],
+              "force_residual_N": [
+                1.0137125999731822e-09,
+                3.1098305970544644e-09,
+                -5.025330244863818e-09
+              ],
+              "moment_residual_Nmm": [
+                -8.545187182312582e-07,
+                -0.0003169690886494214,
+                7.317269203272261e-08
+              ],
+              "equilibrium_tol_N": 0.0015359239488396726,
+              "deformed_pressure_wall_area_mm2": 5685.579342466225,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "native_minus_experiment_deg": -5.618755203490746,
+                "native_minus_author_fea_deg": -9.257771584104495,
+                "native_minus_experiment_percent": -36.856524379765666,
+                "native_minus_author_fea_percent": -49.02453259153126
+              }
+            }
+          ]
+        },
+        {
+          "case": "c3d4-r100",
+          "solver": "CalculiX",
+          "version": "2.22",
+          "element": "C3D4",
+          "K_over_mu": 100.0,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "run_id": "r001",
+          "duration_s": 67.02,
+          "sampled_solver_peak_rss_bytes": 250785792,
+          "numerical_result": "NUMERICAL_GATES_PASS",
+          "experimental_acceptance": "NOT_SET",
+          "review_receipt": {
+            "name": "result-c3d4-r100.json",
+            "sha256": "cc66890e7acb829abfc349b0da41905fa72d3e4ec0db99094ed541e49334cc78"
+          },
+          "station_receipt_sha256": "7c0dd70e40aaf5a83e96650f7d9c7824b3131561e815af4f22cad53c80af9e99",
+          "station_archive_sha256": "0bc115586000f9ba914c768f791f12a1584238bf3486592ff5e8f16db8c2e4ad",
+          "solver_binary_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+          "frd_reference": {
+            "deck": "f4d88b582fb07fd1371c2fb4860ec882081e1341981c79d096a80ce131cbe0d9",
+            "element": "C3D4",
+            "sha256_FRD": "529442049673f84e9448f00bb5ca85c000bb73d2cda54ed1b627567da027aa4d",
+            "node_count": 23208,
+            "threshold_abs_mm": 0.0002,
+            "max_F20_minus_FRD_mm": 5.301132999591118e-05,
+            "all_F20_consistent_with_FRD_rounding": true,
+            "n_F20_FRD_components_outside_rounding": 0,
+            "n_target_node_err_above_threshold": 0,
+            "worst_node": 738,
+            "worst_coordinate_error_mm": 5.301132999591118e-05,
+            "nonpositive_corners": 0,
+            "FRD_nonpositive_native_Gauss_points": 0,
+            "range_J_FRD": [
+              0.9991644715584478,
+              1.0010767847195758
+            ],
+            "reported_negative_element_ids": 0,
+            "corner_inversions_also_reported": 0,
+            "input_gate": "PASS"
+          },
+          "field_file_sha256": {
+            "deck": "f4d88b582fb07fd1371c2fb4860ec882081e1341981c79d096a80ce131cbe0d9",
+            "dat": "1ed81985d7005274f0b4175e985e70b8acd03a3f53aeae633dfc303cd711a323",
+            "sta": "8fe79a9fb4d11dd3c3c3002d12dcc6720c50e9a2b55c58f4647bde67ef7266a0",
+            "log": "67afbeccc4ba6d3924e18fe544f3dce5fb2dca22092186b06294a45ccf999a3f"
+          },
+          "protocol_sha256": "0594ac38aaeb2e86efbf8f1e81f4ff966a33d006adf6c37b7626a6550fa3e408",
+          "absolute_angle_change_deg_reference": 3.776379655729179,
+          "published_comparison_receipt": {
+            "name": "compare-c3d4-r100.json",
+            "sha256": "2a482e68c94bbcc5c268e697bd4482f28a00a1136dce2fc1c7a91b6c684b0bee"
+          },
+          "change_from_zero_graph_context_deg": {
+            "native": 3.776379655729179,
+            "graph_experiment": 7.520486640284209,
+            "graph_author_FEA": 8.626162810427212,
+            "native_minus_graph_experiment": -3.74410698455503,
+            "native_minus_graph_FEA": -4.8497831546980334
+          },
+          "sta_end_rows": [
+            [
+              "1",
+              "4",
+              "1",
+              "3",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ],
+            [
+              "2",
+              "4",
+              "1",
+              "2",
+              "0.200000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ]
+          ],
+          "frames": [
+            {
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 4.020876907273567,
+              "angle_deg_deformed": 4.020876910837467,
+              "soft_domain_J": {
+                "min": 0.9959045681115024,
+                "p1_unweighted": 0.9988147182029768,
+                "median_unweighted": 1.000009636537065,
+                "p99_unweighted": 1.0015423138699346,
+                "max": 1.0059796311200992,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11199.566661014509,
+                "net_volume_ratio": 1.000009915406648
+              },
+              "max_displacement_mm": 2.656506771996976,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "support_reaction_N": [
+                -0.15012670059937896,
+                -3.491935601351165e-09,
+                -1.5220140356375644e-09
+              ],
+              "force_residual_N": [
+                2.294368972588501e-09,
+                -3.491935601351165e-09,
+                -1.5220140356375644e-09
+              ],
+              "moment_residual_Nmm": [
+                -9.563524910579171e-09,
+                -1.4755904165220102e-08,
+                5.579585369728732e-08
+              ],
+              "equilibrium_tol_N": 0.0015012670289374795,
+              "deformed_pressure_wall_area_mm2": 5674.522205845215,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "native_minus_experiment_deg": -3.7035769291830487,
+                "native_minus_author_fea_deg": -6.2369171396537935,
+                "native_minus_experiment_percent": -47.946133248974974,
+                "native_minus_author_fea_percent": -60.80173876684541
+              }
+            },
+            {
+              "pressure_kPa": 0.5,
+              "angle_deg_reference": 7.797256563002746,
+              "angle_deg_deformed": 7.7972565085513175,
+              "soft_domain_J": {
+                "min": 0.9936139399248051,
+                "p1_unweighted": 0.9978320775575488,
+                "median_unweighted": 1.0000506406584058,
+                "p99_unweighted": 1.0027806672324497,
+                "max": 1.0090805151183075,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11199.986619116664,
+                "net_volume_ratio": 1.000047413488397
+              },
+              "max_displacement_mm": 5.281239487572534,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.003465691990220971,
+                -7.055149175917881e-18,
+                -1.0388689691484543e-16
+              ],
+              "support_reaction_N": [
+                -0.1535923888969239,
+                1.176730621716424e-08,
+                6.971721446241003e-09
+              ],
+              "force_residual_N": [
+                5.987045016003778e-09,
+                1.176730621010909e-08,
+                6.971721342354106e-09
+              ],
+              "moment_residual_Nmm": [
+                -2.0064351921153317e-07,
+                -0.00016103030954239816,
+                -4.5282359599756877e-07
+              ],
+              "equilibrium_tol_N": 0.0015359239488396891,
+              "deformed_pressure_wall_area_mm2": 5683.525331643503,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "native_minus_experiment_deg": -7.447683913738079,
+                "native_minus_author_fea_deg": -11.086700294351827,
+                "native_minus_experiment_percent": -48.85347978302044,
+                "native_minus_author_fea_percent": -58.70962520248496
+              }
+            }
+          ]
+        },
+        {
+          "case": "c3d4-r50-p2",
+          "solver": "CalculiX",
+          "version": "2.22",
+          "element": "C3D4",
+          "K_over_mu": 50.0,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "run_id": "r001",
+          "duration_s": 102.47,
+          "sampled_solver_peak_rss_bytes": 251875328,
+          "numerical_result": "NUMERICAL_GATES_PASS",
+          "experimental_acceptance": "NOT_SET",
+          "review_receipt": {
+            "name": "result-c3d4-r50-p2.json",
+            "sha256": "90f621b01e57104745912895d3c9a6eb8f85cbe296b9c3b0269c5366e1251f76"
+          },
+          "station_receipt_sha256": "9fe363b1b99732b66ebe279ddb220bad8d6612c93e7baf0d2fc4f0e0260f57d2",
+          "station_archive_sha256": "3cef4bdd479608a312d047cca667b84c06301f94338bbf49543e2b05ef97b832",
+          "solver_binary_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+          "frd_reference": {
+            "deck": "a50698b3f2ada80f0fa03c16560dc4009ec37dd12272c8aa4b4c01b1982e0cd4",
+            "element": "C3D4",
+            "sha256_FRD": "3f64f3904238190ae8f58d8e4700476b932a0bd369ad0b768ff1ee51860b6888",
+            "node_count": 23208,
+            "threshold_abs_mm": 0.0002,
+            "max_F20_minus_FRD_mm": 5.301132999591118e-05,
+            "all_F20_consistent_with_FRD_rounding": true,
+            "n_F20_FRD_components_outside_rounding": 0,
+            "n_target_node_err_above_threshold": 0,
+            "worst_node": 738,
+            "worst_coordinate_error_mm": 5.301132999591118e-05,
+            "nonpositive_corners": 0,
+            "FRD_nonpositive_native_Gauss_points": 0,
+            "range_J_FRD": [
+              0.9991644715584478,
+              1.0010767847195758
+            ],
+            "reported_negative_element_ids": 0,
+            "corner_inversions_also_reported": 0,
+            "input_gate": "PASS"
+          },
+          "field_file_sha256": {
+            "deck": "a50698b3f2ada80f0fa03c16560dc4009ec37dd12272c8aa4b4c01b1982e0cd4",
+            "dat": "4b425d6facff7c07a4fe123fcb4b384494217c6a007e769f6684bf0ca2fc146a",
+            "sta": "8a9a00b36cec35daeac0788f46569ba9ab9fc1349ded148d348a7f0756b0f7d8",
+            "log": "6754de347dfb9e22393651e4ee7134742d310d8bea7b9768bbb7c353c7ce5ab7"
+          },
+          "protocol_sha256": "0594ac38aaeb2e86efbf8f1e81f4ff966a33d006adf6c37b7626a6550fa3e408",
+          "absolute_angle_change_deg_reference": 18.064277099697144,
+          "published_comparison_receipt": {
+            "name": "compare-c3d4-r50-p2.json",
+            "sha256": "5e90f80dbe7041414afed64fe8fe313a2c864e8acd592700d1239e52a459b906"
+          },
+          "change_from_zero_graph_context_deg": {
+            "native": 18.064277099697144,
+            "graph_experiment": 28.23998839175216,
+            "graph_author_FEA": 33.918970134605246,
+            "native_minus_graph_experiment": -10.175711292055016,
+            "native_minus_graph_FEA": -15.854693034908102
+          },
+          "sta_end_rows": [
+            [
+              "1",
+              "4",
+              "1",
+              "3",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ],
+            [
+              "2",
+              "4",
+              "1",
+              "6",
+              "0.200000E+01",
+              "0.100000E+01",
+              "0.250000E+00"
+            ]
+          ],
+          "frames": [
+            {
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 4.937798455673585,
+              "angle_deg_deformed": 4.93779845717348,
+              "soft_domain_J": {
+                "min": 0.9947982857602781,
+                "p1_unweighted": 0.9984617905058212,
+                "median_unweighted": 1.0000195365887548,
+                "p99_unweighted": 1.0022884305422084,
+                "max": 1.0074363552770793,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11199.67515445852,
+                "net_volume_ratio": 1.000019602792156
+              },
+              "max_displacement_mm": 3.2592283159528552,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "support_reaction_N": [
+                -0.15012670343036397,
+                3.2338750007932307e-09,
+                2.936780995905358e-09
+              ],
+              "force_residual_N": [
+                -5.366160293895916e-10,
+                3.2338750007932307e-09,
+                2.936780995905358e-09
+              ],
+              "moment_residual_Nmm": [
+                -2.53211203330838e-08,
+                2.00299281605254e-08,
+                -1.151102642675192e-09
+              ],
+              "equilibrium_tol_N": 0.0015012670289374795,
+              "deformed_pressure_wall_area_mm2": 5674.972335277592,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "native_minus_experiment_deg": -2.7866553807830305,
+                "native_minus_author_fea_deg": -5.319995591253775,
+                "native_minus_experiment_percent": -36.075759397137304,
+                "native_minus_author_fea_percent": -51.86295968622355
+              }
+            },
+            {
+              "pressure_kPa": 2.0,
+              "angle_deg_reference": 23.00207555537073,
+              "angle_deg_deformed": 23.00207473383714,
+              "soft_domain_J": {
+                "min": 0.9815259024178896,
+                "p1_unweighted": 0.992521255865403,
+                "median_unweighted": 1.0003721605719342,
+                "p99_unweighted": 1.0107445811558085,
+                "max": 1.0256943478196006,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11203.203926668884,
+                "net_volume_ratio": 1.0003346870544658
+              },
+              "max_displacement_mm": 15.981605802106696,
+              "gravity_N": [
+                0.15012670289374794,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.013862767960877318,
+                1.0372257252307809e-16,
+                1.6045379001156101e-15
+              ],
+              "support_reaction_N": [
+                -0.16398950137031088,
+                1.749620095494158e-08,
+                5.101569399562633e-09
+              ],
+              "force_residual_N": [
+                -3.051568561902862e-08,
+                1.7496201058664153e-08,
+                5.101571004100533e-09
+              ],
+              "moment_residual_Nmm": [
+                4.176001541404586e-06,
+                -0.004419127515972621,
+                7.977585561143134e-06
+              ],
+              "equilibrium_tol_N": 0.0016398947085462525,
+              "deformed_pressure_wall_area_mm2": 5722.649869167035,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 2.0,
+                "experiment_angle_deg": 35.964442228208775,
+                "author_fea_angle_deg": 44.176764181532604,
+                "curve_sampling": "path vertex",
+                "native_minus_experiment_deg": -12.962366672838044,
+                "native_minus_author_fea_deg": -21.174688626161874,
+                "native_minus_experiment_percent": -36.04217351846204,
+                "native_minus_author_fea_percent": -47.931732933517154
+              }
+            }
+          ]
+        },
+        {
+          "case": "c3d10-r50-checkpoint",
+          "solver": "CalculiX",
+          "version": "2.22",
+          "element": "C3D10",
+          "K_over_mu": 50.0,
+          "source_commit": "42786edadb04446685c46191890ab53d8b42f909",
+          "run_id": "r001",
+          "duration_s": 3793.89,
+          "sampled_solver_peak_rss_bytes": 7654821888,
+          "numerical_result": "NUMERICAL_GATES_PASS",
+          "experimental_acceptance": "NOT_SET",
+          "review_receipt": {
+            "name": "result-checkpoint-c3d10-r50.json",
+            "sha256": "ecf0736ce283317fc05a38c7429a00cbe26a0fc00658935121bebe824ccb7d75"
+          },
+          "station_receipt_sha256": "2c76714a12ce0f66aa98cc0c68d30fda45f405581583ce4c29258b1d04c1cd59",
+          "station_archive_sha256": "50714eaaacc9c557292ee8f01d17626791afe192c6e565e39ab8e6a19918b8a4",
+          "solver_binary_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+          "frd_reference": {
+            "deck": "755a147aa6f5c2e0ef249d6776fbb82728562a5e792e540ab4f34287cbbca606",
+            "element": "C3D10",
+            "sha256_FRD": "ef65be671324412b54f5a826c71268f0b507bed94c19f75730deefbcc6f5256c",
+            "node_count": 157143,
+            "threshold_abs_mm": 0.0002,
+            "max_F20_minus_FRD_mm": 5.365192001249852e-05,
+            "all_F20_consistent_with_FRD_rounding": true,
+            "n_F20_FRD_components_outside_rounding": 0,
+            "n_target_node_err_above_threshold": 0,
+            "worst_node": 68047,
+            "worst_coordinate_error_mm": 5.365192001249852e-05,
+            "nonpositive_corners": 0,
+            "FRD_nonpositive_native_Gauss_points": 0,
+            "range_J_FRD": [
+              0.9973477766264892,
+              1.0014519707154539
+            ],
+            "reported_negative_element_ids": 0,
+            "corner_inversions_also_reported": 0,
+            "input_gate": "PASS"
+          },
+          "field_file_sha256": {
+            "deck": "755a147aa6f5c2e0ef249d6776fbb82728562a5e792e540ab4f34287cbbca606",
+            "dat": "fc350cc8068e4c893a0876b159c63590dd1ae79ba3d51491a759ebe1c9ac5122",
+            "sta": "9f915fe1ee928b8243f2e4fa831e80863c7a616a019cedf0163b0a6bb164b5d2",
+            "log": "de0c786e14a408b988a3646b0e9c0855e04eedf332fbfbd335a1e3b634fce685"
+          },
+          "protocol_sha256": "0594ac38aaeb2e86efbf8f1e81f4ff966a33d006adf6c37b7626a6550fa3e408",
+          "absolute_angle_change_deg_reference": 9.587834421919196,
+          "published_comparison_receipt": {
+            "name": "compare-checkpoint-c3d10-r50.json",
+            "sha256": "68958ac45d1d99eac2b192e27747c616592c79ae4bccf610418f4ac8be28c35b"
+          },
+          "change_from_zero_graph_context_deg": {
+            "native": 9.587834421919196,
+            "graph_experiment": 7.520486640284209,
+            "graph_author_FEA": 8.626162810427212,
+            "native_minus_graph_experiment": 2.067347781634987,
+            "native_minus_graph_FEA": 0.9616716114919832
+          },
+          "sta_end_rows": [
+            [
+              "1",
+              "4",
+              "1",
+              "4",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.250000E+00"
+            ],
+            [
+              "2",
+              "4",
+              "1",
+              "4",
+              "0.200000E+01",
+              "0.100000E+01",
+              "0.125000E+00"
+            ]
+          ],
+          "frames": [
+            {
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 9.962552529050088,
+              "angle_deg_deformed": 9.962552527217522,
+              "soft_domain_J": {
+                "min": 0.9960822086615679,
+                "p1_unweighted": 0.9996676789228374,
+                "median_unweighted": 1.0000367840856614,
+                "p99_unweighted": 1.0008749339230782,
+                "max": 1.0026518395625525,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11199.675503390275,
+                "net_volume_ratio": 1.0000196339482912
+              },
+              "max_displacement_mm": 6.582358634458003,
+              "gravity_N": [
+                0.15012670289374525,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "support_reaction_N": [
+                -0.15012670255781085,
+                1.630488050836342e-09,
+                -7.092045353762622e-11
+              ],
+              "force_residual_N": [
+                3.359343914155488e-10,
+                1.630488050836342e-09,
+                -7.092045353762622e-11
+              ],
+              "moment_residual_Nmm": [
+                7.206986693135791e-09,
+                -1.0513943449197427e-07,
+                -1.0595887878531943e-08
+              ],
+              "equilibrium_tol_N": 0.0015012670289374524,
+              "deformed_pressure_wall_area_mm2": 5677.974886848749,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "native_minus_experiment_deg": 2.2380986925934723,
+                "native_minus_author_fea_deg": -0.2952415178772725,
+                "native_minus_experiment_percent": 28.97419985903029,
+                "native_minus_author_fea_percent": -2.878216471559104
+              }
+            },
+            {
+              "pressure_kPa": 0.5,
+              "angle_deg_reference": 19.550386950969283,
+              "angle_deg_deformed": 19.550386786587033,
+              "soft_domain_J": {
+                "min": 0.9969930787295636,
+                "p1_unweighted": 0.9994815508898166,
+                "median_unweighted": 1.0001729376277964,
+                "p99_unweighted": 1.0016339265608754,
+                "max": 1.0037224113692913,
+                "negative_or_zero_gauss": 0,
+                "reference_volume_mm3": 11199.455613857863,
+                "current_volume_mm3": 11200.546768670429,
+                "net_volume_ratio": 1.0000974292724742
+              },
+              "max_displacement_mm": 13.399227839468931,
+              "gravity_N": [
+                0.15012670289374525,
+                0.0,
+                0.0
+              ],
+              "pressure_N": [
+                0.0034656919902194584,
+                1.7898144988662268e-16,
+                5.409050757212291e-16
+              ],
+              "support_reaction_N": [
+                -0.15359238994587318,
+                -5.230232906792759e-10,
+                -2.1071901410517195e-09
+              ],
+              "force_residual_N": [
+                4.938091522493915e-09,
+                -5.23023111697826e-10,
+                -2.1071896001466437e-09
+              ],
+              "moment_residual_Nmm": [
+                -2.8135168371530633e-07,
+                -0.0005870004296271158,
+                1.59337145926155e-07
+              ],
+              "equilibrium_tol_N": 0.001535923948839647,
+              "deformed_pressure_wall_area_mm2": 5696.001135060038,
+              "gates": {
+                "finite_positive_gauss_J": true,
+                "all_fixed": true,
+                "positive_angle_denominator": true,
+                "angle_converged": true,
+                "RF_sum_consistent": true,
+                "resultant_equilibrium": true
+              },
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "native_minus_experiment_deg": 4.305446474228459,
+                "native_minus_author_fea_deg": 0.6664300936147107,
+                "native_minus_experiment_percent": 28.241805737433154,
+                "native_minus_author_fea_percent": 3.5290807887816262
+              }
+            }
+          ],
+          "step_profile": "checkpointed_full_initial_increment"
+        }
+      ],
+      "brief_results": [
+        {
+          "kind": "native_actuator_numerical_readback",
+          "conditions": "边 816 参考线绝对角，含重力。与图形相减只供诊断；两者的实验相机和作者保存解身份仍待核对。",
+          "measurements": [
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r50",
+              "element": "C3D4",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 0.0,
+              "value": 4.937798455673585,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -2.7866553807830305,
+              "native_minus_author_fea_deg": -5.319995591253775,
+              "native_minus_experiment_percent": -36.075759397137304,
+              "native_minus_author_fea_percent": -51.86295968622355
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r50",
+              "element": "C3D4",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 0.5,
+              "value": 9.626185273250078,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -5.618755203490746,
+              "native_minus_author_fea_deg": -9.257771584104495,
+              "native_minus_experiment_percent": -36.856524379765666,
+              "native_minus_author_fea_percent": -49.02453259153126
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r100",
+              "element": "C3D4",
+              "K_over_mu": 100.0,
+              "pressure_kPa": 0.0,
+              "value": 4.020876907273567,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -3.7035769291830487,
+              "native_minus_author_fea_deg": -6.2369171396537935,
+              "native_minus_experiment_percent": -47.946133248974974,
+              "native_minus_author_fea_percent": -60.80173876684541
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r100",
+              "element": "C3D4",
+              "K_over_mu": 100.0,
+              "pressure_kPa": 0.5,
+              "value": 7.797256563002746,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -7.447683913738079,
+              "native_minus_author_fea_deg": -11.086700294351827,
+              "native_minus_experiment_percent": -48.85347978302044,
+              "native_minus_author_fea_percent": -58.70962520248496
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r50-p2",
+              "element": "C3D4",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 0.0,
+              "value": 4.937798455673585,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -2.7866553807830305,
+              "native_minus_author_fea_deg": -5.319995591253775,
+              "native_minus_experiment_percent": -36.075759397137304,
+              "native_minus_author_fea_percent": -51.86295968622355
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d4-r50-p2",
+              "element": "C3D4",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 2.0,
+              "value": 23.00207555537073,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 2.0,
+                "experiment_angle_deg": 35.964442228208775,
+                "author_fea_angle_deg": 44.176764181532604,
+                "curve_sampling": "path vertex",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": -12.962366672838044,
+              "native_minus_author_fea_deg": -21.174688626161874,
+              "native_minus_experiment_percent": -36.04217351846204,
+              "native_minus_author_fea_percent": -47.931732933517154
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d10-r50-checkpoint",
+              "element": "C3D10",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 0.0,
+              "value": 9.962552529050088,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.0,
+                "experiment_angle_deg": 7.7244538364566155,
+                "author_fea_angle_deg": 10.25779404692736,
+                "curve_sampling": "path vertex",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": 2.2380986925934723,
+              "native_minus_author_fea_deg": -0.2952415178772725,
+              "native_minus_experiment_percent": 28.97419985903029,
+              "native_minus_author_fea_percent": -2.878216471559104,
+              "status": "NUMERICAL_GATES_PASS",
+              "experimental_acceptance": "NOT_SET"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "native_actuator_reference_line_angle",
+              "case": "c3d10-r50-checkpoint",
+              "element": "C3D10",
+              "K_over_mu": 50.0,
+              "pressure_kPa": 0.5,
+              "value": 19.550386950969283,
+              "unit": "deg",
+              "published_graph_context": {
+                "pressure_kPa": 0.5,
+                "experiment_angle_deg": 15.244940476740824,
+                "author_fea_angle_deg": 18.883956857354573,
+                "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices",
+                "locator": "Fig. 8(b), N=6, left axis"
+              },
+              "native_minus_experiment_deg": 4.305446474228459,
+              "native_minus_author_fea_deg": 0.6664300936147107,
+              "native_minus_experiment_percent": 28.241805737433154,
+              "native_minus_author_fea_percent": 3.5290807887816262,
+              "status": "NUMERICAL_GATES_PASS",
+              "experimental_acceptance": "NOT_SET"
+            }
+          ],
+          "partial_zero_pressure_endpoints": [
+            {
+              "element": "C3D10",
+              "K_over_mu": 50,
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 9.962552529050088,
+              "status": "GRAVITY_ENDPOINT_FIVE_CHECKS_MET_REPORTED_RF_TOTAL_UNAVAILABLE",
+              "experimental_acceptance": "NOT_SET",
+              "pressurized_endpoint": "NOT_COMPLETED",
+              "run_scope": "historical_incomplete_runs",
+              "same_zero_angle_as_completed_case": "c3d10-r50-checkpoint"
+            },
+            {
+              "element": "C3D10",
+              "K_over_mu": 100,
+              "pressure_kPa": 0.0,
+              "angle_deg_reference": 9.886981961813342,
+              "status": "GRAVITY_ENDPOINT_FIVE_CHECKS_MET_REPORTED_RF_TOTAL_UNAVAILABLE",
+              "experimental_acceptance": "NOT_SET",
+              "pressurized_endpoint": "NOT_COMPLETED",
+              "run_scope": "historical_incomplete_runs"
+            }
+          ],
+          "partial_pressurization_progress": [
+            {
+              "element": "C3D10",
+              "K_over_mu": 50,
+              "target_pressure_kPa": 0.5,
+              "last_converged_applied_pressure_kPa": 0.125,
+              "pressure_angle_available": false,
+              "status": "TARGET_PRESSURE_NOT_COMPLETED",
+              "stage_review_sha256": "3bddc0c03be284b1087f92779666db323eb8655bffcd50c876ba6b2acd99a70b"
+            },
+            {
+              "element": "C3D10",
+              "K_over_mu": 100,
+              "target_pressure_kPa": 0.5,
+              "last_converged_applied_pressure_kPa": 0.125,
+              "pressure_angle_available": false,
+              "status": "TARGET_PRESSURE_NOT_COMPLETED",
+              "stage_review_sha256": "b43224ab2eff326d0cd9f3763727e6ae8e487bbd0c8fac05c47d542acf04795f"
+            },
+            {
+              "element": "C3D10",
+              "K_over_mu": 50,
+              "target_pressure_kPa": 2.0,
+              "last_converged_applied_pressure_kPa": 0.25,
+              "pressure_angle_available": false,
+              "status": "TARGET_PRESSURE_NOT_COMPLETED",
+              "stage_review_sha256": "9e18455fb28b5c522038b7f0128e4ec4c351511bcfaa87e61456b38275cbc3f4"
+            }
+          ],
+          "quadratic_readback_scope": "新运行的 C3D10 K/μ=50 完成重力和 0.5 kPa 双端点，两步六项数值门通过。三个较早工况单列为未完成，旧 K/μ=50 的相同零压结果在旧工况中去重；旧加压停点没有压力位移角。",
+          "same_pressure_element_order_comparison": {
+            "pressure_kPa": 0.5,
+            "K_over_mu": 50,
+            "C3D4_reference_angle_deg": 9.626185273250078,
+            "C3D10_reference_angle_deg": 19.550386950969283,
+            "C3D10_minus_C3D4_deg": 9.924201677719205,
+            "interpretation": "同角点拓扑和体积惩罚；单元阶次与增量设置同时不同，不能将全部差异唯一归因于单元阶次。"
+          }
+        },
+        {
+          "kind": "published_vector_centerline",
+          "conditions": "图 8(b) 六波纹左纵轴中心线；0.5 kPa 由 0 与 1 kPa 绘制顶点线性插值。数位精度不代表实验不确定度。",
+          "measurements": [
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_experiment_vector_angle",
+              "pressure_kPa": 0.0,
+              "value": 7.7244538364566155,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_author_fea_vector_angle",
+              "pressure_kPa": 0.0,
+              "value": 10.25779404692736,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_experiment_vector_angle",
+              "pressure_kPa": 0.5,
+              "value": 15.244940476740824,
+              "unit": "deg",
+              "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_author_fea_vector_angle",
+              "pressure_kPa": 0.5,
+              "value": 18.883956857354573,
+              "unit": "deg",
+              "curve_sampling": "linear interpolation between 0 and 1 kPa drawn vertices"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_experiment_vector_angle",
+              "pressure_kPa": 2.0,
+              "value": 35.964442228208775,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_author_fea_vector_angle",
+              "pressure_kPa": 2.0,
+              "value": 44.176764181532604,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_experiment_vector_angle",
+              "pressure_kPa": 5.0,
+              "value": 71.31160410747145,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_author_fea_vector_angle",
+              "pressure_kPa": 5.0,
+              "value": 80.88196253274857,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_experiment_vector_angle",
+              "pressure_kPa": 8.0,
+              "value": 100.28142855694013,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "published_author_fea_vector_angle",
+              "pressure_kPa": 8.0,
+              "value": 109.78958903041926,
+              "unit": "deg",
+              "curve_sampling": "path vertex"
+            }
+          ]
+        },
+        {
+          "kind": "published_graph_comparison",
+          "conditions": "图 8(b) 自由角；图读值，非原始离散测量或未见验证。",
+          "measurements": [
+            {
+              "quantity": "free_bending_angle",
+              "kind": "experimental_curve_graph_readback",
+              "pressure_kPa_approx": 1.96,
+              "value": 36.3,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "experimental_curve_graph_readback",
+              "pressure_kPa_approx": 5.0,
+              "value": 71.7,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "experimental_curve_graph_readback",
+              "pressure_kPa_approx": 8.04,
+              "value": 100.9,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "author_comsol_fea_graph_readback",
+              "pressure_kPa_approx": 1.96,
+              "value": 44.6,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "author_comsol_fea_graph_readback",
+              "pressure_kPa_approx": 5.0,
+              "value": 81.0,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            },
+            {
+              "quantity": "free_bending_angle",
+              "kind": "author_comsol_fea_graph_readback",
+              "pressure_kPa_approx": 8.04,
+              "value": 110.1,
+              "unit": "deg",
+              "pressure_graphical_halfwidth_kPa": 0.15,
+              "angle_graphical_halfwidth_deg": 3,
+              "locator": "Fig. 8(b), printed p.34"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "原作者的二阶曲边位移场、图 8(b) 保存解身份与实验相机测角基准待核实。",
+        "有限体积惩罚与位移单元存在离散误差，需做网格与 K/μ 敏感性及更高压力覆盖；实验原始序列和不确定度缺失。"
+      ],
+      "input_receipt": {
+        "name": "paper-input.json",
+        "sha256": "a0abbfbd1ba85195e30a794257cff6c6354d50ae74ea5b4f3b7a7cc5e4f467f4"
+      },
+      "experimental_curve_receipt": {
+        "name": "experimental-holdout.json",
+        "sha256": "14abd6408426502998b7ce041f57d0fcfdb8a6c877384f4947913e3a6e085fce"
+      },
+      "author_fea_curve_receipt": {
+        "name": "author-fea-holdout.json",
+        "sha256": "9bbccc862bcdd16b43eb8918475f5f8cdbbdf4886b67cb9c120342cbc8f66a80"
+      },
+      "later_repository": {
+        "url": "https://github.com/ORI-SRL/SPADA",
+        "commit": "af8994b1de367418472f6f0f32502b7785e2956e",
+        "relationship": "later SPADA 2023 toolbox, not proved same as 2022 Figure 8(b)"
+      },
+      "experimental_acceptance": "NOT_SET",
+      "author_model_archive": {
+        "repository": "https://github.com/ORI-SRL/Bellow_SPA_Toolbox",
+        "commit": "3f3609b65e1c204c2d5770eb106735a69d3d208a",
+        "filename": "BellowSPADeflection.mph",
+        "sha256": "33addfea5f757a0d0a6a7523bf8841ba8af4b5d387433a5807566e8c44baf27b",
+        "comsol_version": "5.6.0.401",
+        "source_inspection_sha256": "8f55dd0d98aded3efd60edf2a2d1f8e1463bafb5b05f4ff41545ba7c4b30b067",
+        "selection_audit_sha256": "b4e68dc55deee0e4ff5c52cc34ac9a997ce4f1c508a53d58fcdeb0cd15dc0178",
+        "status": "AUTHOR_MODEL_SOURCE_INSPECTED_NOT_RUN_NOT_FIGURE_IDENTITY_PROVED",
+        "notes": "存档含 23,208 角点、96,354 正体积四面体；固定的 2,404 面片含 105 个材料界面面片，压力 11,866 面片仅软域一侧且保留 20 段开环。测角边 816 有七段、长 15 mm。原作者解的二阶位移与图件身份待核实。",
+        "embedded_mesh_independent_audit_sha256": "e8e495ac64026d9893f2d5f28e901cd9821b70e75ee5fba49ba77226053d9f5b"
+      },
+      "figure_vector_readback": {
+        "vector_evidence_sha256": "190763586b71b5223a13343173c60a3f100d694dab5043fb0b71ea7439ad9010",
+        "samples_sha256": "ae11c91f5af568a50b825dee9b3fb54448e4efc146e3284c79d5d12f1fda5539",
+        "source_pdf_sha256": "61f5fc317243d17a7300de29048a4186c9fa5e50e4426084af34da6e2ac00893",
+        "locator": "Fig. 8(b), N=6, left axis"
+      },
+      "retained_failed_attempts": [
+        {
+          "case": "c3d10-r50",
+          "source_commit": "24c44120b74cf80ca3485f3efee5b5b7813ea41e",
+          "cli_exit": 201,
+          "status": "NATIVE_INCOMPLETE",
+          "deck_sha256": "b91354c2258e998096710c2418852286ae0dbf712938dd70a02b1799faba59db",
+          "frd_sha256": "f2625ff6e52e73d5bb572e3d50594fb51f19c65f685471e9ad2c3136b986a047",
+          "native_log_sha256": "cfabcb850d44fb5efff8ed120838a7dbacb49f78db8fb8baf61d2facf45f1913",
+          "station_receipt_sha256": "7e4c7990e525c24cd3307286e5121bc289eb12dca52c34b92fb10fe61b04a996",
+          "diagnosis": "早期 deck 节点坐标超过 F20 读入字段，原生 FRD 显示读入变形并导致初始非正 Jacobian。"
+        },
+        {
+          "case": "c3d4-r100",
+          "source_commit": "24c44120b74cf80ca3485f3efee5b5b7813ea41e",
+          "cli_exit": 201,
+          "status": "NATIVE_INCOMPLETE",
+          "deck_sha256": "8a2653915a2b1a11ac1013a2de49a5a90936cd86b171381cd358a6c9d3bad23b",
+          "frd_sha256": "fa3c9142acfeb6ab4d59e146e7d45371112603b37f7667dffb2ff37935b9a6fe",
+          "native_log_sha256": "57e45c180511b89c3542091b107f53241cb6852c9e1831d4d135af5fa5cbc579",
+          "station_receipt_sha256": "60bc87570bb367e08b6f6d90c49256644e1eae4abb440062644bf3e2c0af8b35",
+          "diagnosis": "早期 deck 节点坐标超过 F20 读入字段，原生 FRD 显示读入变形并导致初始非正 Jacobian。"
+        },
+        {
+          "case": "c3d4-r50",
+          "source_commit": "24c44120b74cf80ca3485f3efee5b5b7813ea41e",
+          "cli_exit": 201,
+          "status": "NATIVE_INCOMPLETE",
+          "deck_sha256": "a04548cb5e521e51e55a56992d5a11031e061e32a26e22f09a8f38826d194736",
+          "frd_sha256": "cc2cad0b3fb6537c94ccb9a988d7c66675894fe4b9445fb4d42e5a4827ce45ea",
+          "native_log_sha256": "034131d7d731f610c18d0f9ba2760c5f7417147a4dcb81b58dd482b9ce69f69b",
+          "station_receipt_sha256": "e498edc8f95ceb1eaa644c25043d7e75a46af9d498a64cadadc83afe834cadf7",
+          "diagnosis": "早期 deck 节点坐标超过 F20 读入字段，原生 FRD 显示读入变形并导致初始非正 Jacobian。"
+        }
+      ],
+      "partial_endpoints": [
+        {
+          "K_over_mu": 50,
+          "element": "C3D10",
+          "pressure_kPa": 0.0,
+          "status": "GRAVITY_ENDPOINT_FIVE_CHECKS_MET_REPORTED_RF_TOTAL_UNAVAILABLE",
+          "absolute_angle_deg_reference": 9.962552529050088,
+          "absolute_angle_deg_deformed": 9.962552527217522,
+          "soft_domain_J": {
+            "min": 0.9960822086615679,
+            "p1_unweighted": 0.9996676789228374,
+            "median_unweighted": 1.0000367840856614,
+            "p99_unweighted": 1.0008749339230782,
+            "max": 1.0026518395625525,
+            "negative_or_zero_gauss": 0,
+            "reference_volume_mm3": 11199.455613857863,
+            "current_volume_mm3": 11199.675503390275,
+            "net_volume_ratio": 1.0000196339482912
+          },
+          "support_reaction_N": [
+            -0.15012670255781085,
+            1.630488050836342e-09,
+            -7.092045353762622e-11
+          ],
+          "force_residual_N": [
+            3.359343914155488e-10,
+            1.630488050836342e-09,
+            -7.092045353762622e-11
+          ],
+          "gates": {
+            "finite_positive_gauss_J": true,
+            "all_fixed": true,
+            "positive_angle_denominator": true,
+            "angle_converged": true,
+            "RF_sum_consistent": null,
+            "resultant_equilibrium": true
+          },
+          "published_graph_context": {
+            "csv_sha256": "ae11c91f5af568a50b825dee9b3fb54448e4efc146e3284c79d5d12f1fda5539",
+            "pressure_kPa": 0,
+            "native_angle_deg": 9.962552529050088,
+            "experiment_graph_deg": 7.7244538364566155,
+            "author_FEA_graph_deg": 10.25779404692736,
+            "native_minus_experiment_deg": 2.2380986925934723,
+            "native_minus_FEA_deg": -0.2952415178772725,
+            "locator": "Fig. 8(b), N=6, left axis",
+            "curve_sampling": "path vertex"
+          },
+          "review_sha256s": [
+            "3bddc0c03be284b1087f92779666db323eb8655bffcd50c876ba6b2acd99a70b",
+            "9e18455fb28b5c522038b7f0128e4ec4c351511bcfaa87e61456b38275cbc3f4"
+          ]
+        },
+        {
+          "K_over_mu": 100,
+          "element": "C3D10",
+          "pressure_kPa": 0.0,
+          "status": "GRAVITY_ENDPOINT_FIVE_CHECKS_MET_REPORTED_RF_TOTAL_UNAVAILABLE",
+          "absolute_angle_deg_reference": 9.886981961813342,
+          "absolute_angle_deg_deformed": 9.88698196004209,
+          "soft_domain_J": {
+            "min": 0.9976048721451605,
+            "p1_unweighted": 0.999806341187102,
+            "median_unweighted": 1.000018709515243,
+            "p99_unweighted": 1.0004832752746442,
+            "max": 1.0020900057373001,
+            "negative_or_zero_gauss": 0,
+            "reference_volume_mm3": 11199.455613857863,
+            "current_volume_mm3": 11199.56756454013,
+            "net_volume_ratio": 1.0000099960824995
+          },
+          "support_reaction_N": [
+            -0.15012670351814317,
+            -8.508271645097794e-10,
+            2.5512035872334395e-09
+          ],
+          "force_residual_N": [
+            -6.243979222553264e-10,
+            -8.508271645097794e-10,
+            2.5512035872334395e-09
+          ],
+          "gates": {
+            "finite_positive_gauss_J": true,
+            "all_fixed": true,
+            "positive_angle_denominator": true,
+            "angle_converged": true,
+            "RF_sum_consistent": null,
+            "resultant_equilibrium": true
+          },
+          "published_graph_context": {
+            "csv_sha256": "ae11c91f5af568a50b825dee9b3fb54448e4efc146e3284c79d5d12f1fda5539",
+            "pressure_kPa": 0,
+            "native_angle_deg": 9.886981961813342,
+            "experiment_graph_deg": 7.7244538364566155,
+            "author_FEA_graph_deg": 10.25779404692736,
+            "native_minus_experiment_deg": 2.162528125356727,
+            "native_minus_FEA_deg": -0.370812085114018,
+            "locator": "Fig. 8(b), N=6, left axis",
+            "curve_sampling": "path vertex"
+          },
+          "review_sha256s": [
+            "b43224ab2eff326d0cd9f3763727e6ae8e487bbd0c8fac05c47d542acf04795f"
+          ]
+        }
+      ],
+      "partial_runs": [
+        {
+          "name": "partial-nodal-c3d10-r50.json",
+          "review_sha256": "3bddc0c03be284b1087f92779666db323eb8655bffcd50c876ba6b2acd99a70b",
+          "target_pressure_kPa": 0.5,
+          "K_over_mu": 50,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "solver_run_id": "r001",
+          "deck_sha256": "e8d430c26ccedbb48bfdf4525ade9beace768a549feaabbc9a105d32f379091a",
+          "archive_sha256": "66cbcabf337ad4f6e8b7d8ae141a7a497166ffcdb790391869e1100ef58ab18d",
+          "station_receipt_sha256": "b1177de672a48f2bc7ccf6b32fc83e9ccd1d8d34a7fabd1a53841a70c3e69e6e",
+          "status": "INCOMPLETE_PRESSURIZED_ENDPOINT_NOT_RUN_TO_COMPLETION",
+          "completed_gravity_sta": [
+            [
+              "1",
+              "4",
+              "1",
+              "4",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.250000E+00"
+            ]
+          ],
+          "terminal_sta": [
+            "2",
+            "1",
+            "1",
+            "4",
+            "0.125000E+01",
+            "0.250000E+00",
+            "0.250000E+00"
+          ]
+        },
+        {
+          "name": "partial-nodal-c3d10-r100.json",
+          "review_sha256": "b43224ab2eff326d0cd9f3763727e6ae8e487bbd0c8fac05c47d542acf04795f",
+          "target_pressure_kPa": 0.5,
+          "K_over_mu": 100,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "solver_run_id": "r001",
+          "deck_sha256": "c7ac0f59bce146a2851cd54c3dbbdc6e45821237d770fafd2f8e578daafc41e5",
+          "archive_sha256": "c5b68871a409756a8d14fefb303828ec1d211710b895a34388890fa4e80e2d2d",
+          "station_receipt_sha256": "12ad381905492430be3c1aa9793d9724bb98f3401118bace5d892f4153429b88",
+          "status": "INCOMPLETE_PRESSURIZED_ENDPOINT_NOT_RUN_TO_COMPLETION",
+          "completed_gravity_sta": [
+            [
+              "1",
+              "4",
+              "1",
+              "4",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.250000E+00"
+            ]
+          ],
+          "terminal_sta": [
+            "2",
+            "1",
+            "1",
+            "4",
+            "0.125000E+01",
+            "0.250000E+00",
+            "0.250000E+00"
+          ]
+        },
+        {
+          "name": "partial-nodal-c3d10-r50-p2.json",
+          "review_sha256": "9e18455fb28b5c522038b7f0128e4ec4c351511bcfaa87e61456b38275cbc3f4",
+          "target_pressure_kPa": 2.0,
+          "K_over_mu": 50,
+          "source_commit": "e81b310dc24a7b3595f9d2223fbeaa6f549e4509",
+          "solver_run_id": "r001",
+          "deck_sha256": "8239b6ac1e830eda21bd22ce13650c46fbe24c138849648cbb927a35ae3a1993",
+          "archive_sha256": "664672d2a13e36baae686094428eadb27e16bd87954df639939ce636c4b85ae5",
+          "station_receipt_sha256": "0532f06ff33c397c5d5ff508a669f316c5c3eeb947b0d89799cef9aadf9d2ac8",
+          "status": "INCOMPLETE_PRESSURIZED_ENDPOINT_NOT_RUN_TO_COMPLETION",
+          "completed_gravity_sta": [
+            [
+              "1",
+              "4",
+              "1",
+              "4",
+              "0.100000E+01",
+              "0.100000E+01",
+              "0.250000E+00"
+            ]
+          ],
+          "terminal_sta": [
+            "2",
+            "2",
+            "1",
+            "4",
+            "0.112500E+01",
+            "0.125000E+00",
+            "0.625000E-01"
+          ]
+        }
+      ]
+    }
+  }
+]

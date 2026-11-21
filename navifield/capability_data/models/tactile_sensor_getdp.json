@@ -1,0 +1,223 @@
+{
+  "domain": "tactile_sensor",
+  "solver": "getdp",
+  "version": "3.5.0",
+  "models": [
+    {
+      "id": "tactile_pad_forward",
+      "label": "触觉指垫变形到电荷与电容（需自研）",
+      "capability_ids": [
+        "getdp.electrostatics_dielectric",
+        "getdp.electrode_charge_readback",
+        "getdp.tactile_capacitance_from_charge"
+      ],
+      "mechanisms": [
+        "solid_elasticity",
+        "electrostatics",
+        "calibration"
+      ],
+      "goals": [
+        "tactile_capacitance",
+        "electrode_charge"
+      ],
+      "conditions": {
+        "operation": [
+          "quasistatic"
+        ],
+        "geometry": [
+          "tactile_pad"
+        ],
+        "electrical_model": [
+          "electrostatic"
+        ],
+        "coupling": [
+          "one_way"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "sensor_geometry",
+          "meaning": "指垫固体、介质、空气和每个电极的三维几何及米制坐标，电极和区域唯一标识。"
+        },
+        {
+          "key": "mechanical_properties",
+          "meaning": "泡沫软材料须提供拟合压缩曲线和经验证的可压缩大变形本构、适用范围及接触性质；若不具备则保持未解决，不能用线弹性替代。"
+        },
+        {
+          "key": "mechanical_bc",
+          "meaning": "支承、加载面、法向、接触体和载荷 N 或位移 m，含历史与初始状态。"
+        },
+        {
+          "key": "dielectric_properties",
+          "meaning": "各区域介电常数 F/m，适用频率、应变和温度范围。"
+        },
+        {
+          "key": "electrical_bc",
+          "meaning": "每个电极的电势 V、参考端和外边界，ΔV 非零；浮置电极需另行定义。"
+        }
+      ],
+      "outputs": [
+        "电极电荷 C",
+        "电容 F"
+      ],
+      "assumptions": [
+        "准静态、单向耦合，介质为给定线性介电常数；电场力不显著。"
+      ],
+      "limitations": [
+        "模型与映射、反演均需自研及独立验证；标定外、滞回或未知接触位置不能保证唯一反演。"
+      ],
+      "basis": "仅无内部自由电荷、无预偏置、线性受控二端可用 C=Q/ΔV；偏置或固定空间电荷时固定其余端条件用 ΔQ/ΔV，非线性用工作点微分。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "§7.8.1–7.8.2, §7.10–7.11",
+          "claim": "标势有限元、全局电荷及输出；指垫几何映射和标定反演未由此证明。"
+        }
+      ],
+      "couplings": [
+        {
+          "from_field": "solid_displacement",
+          "to_field": "electrostatic_geometry",
+          "quantity": "位移与变形后区域几何",
+          "transfer": "按位置和区域 ID 映射并重网格",
+          "custom_work": "实现映射、标签保留及几何质量验证"
+        }
+      ]
+    },
+    {
+      "id": "tactile_pad_change",
+      "label": "同预载零点电容变化（需自研）",
+      "capability_ids": [
+        "getdp.electrostatics_dielectric",
+        "getdp.electrode_charge_readback",
+        "getdp.tactile_capacitance_from_charge"
+      ],
+      "mechanisms": [
+        "solid_elasticity",
+        "electrostatics",
+        "calibration"
+      ],
+      "goals": [
+        "capacitance_change"
+      ],
+      "conditions": {
+        "operation": [
+          "quasistatic"
+        ],
+        "geometry": [
+          "tactile_pad"
+        ],
+        "electrical_model": [
+          "electrostatic"
+        ],
+        "coupling": [
+          "one_way"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "sensor_geometry",
+          "meaning": "指垫固体、介质、空气和每个电极的三维几何及米制坐标，电极和区域唯一标识。"
+        },
+        {
+          "key": "mechanical_properties",
+          "meaning": "泡沫软材料须提供拟合压缩曲线和经验证的可压缩大变形本构、适用范围及接触性质；若不具备则保持未解决，不能用线弹性替代。"
+        },
+        {
+          "key": "mechanical_bc",
+          "meaning": "支承、加载面、法向、接触体和载荷 N 或位移 m，含历史与初始状态。"
+        },
+        {
+          "key": "dielectric_properties",
+          "meaning": "各区域介电常数 F/m，适用频率、应变和温度范围。"
+        },
+        {
+          "key": "electrical_bc",
+          "meaning": "每个电极的电势 V、参考端和外边界，ΔV 非零；浮置电极需另行定义。"
+        },
+        {
+          "key": "baseline_capacitance",
+          "meaning": "与当前值同预载零点、同电极和频率的 C0，F；求相对变化时非零。"
+        }
+      ],
+      "outputs": [
+        "ΔC，F；可选 ΔC/C0，无量纲"
+      ],
+      "assumptions": [
+        "准静态、单向耦合，介质为给定线性介电常数；电场力不显著。"
+      ],
+      "limitations": [
+        "模型与映射、反演均需自研及独立验证；标定外、滞回或未知接触位置不能保证唯一反演。"
+      ],
+      "basis": "ΔC=C−C0；相对变化定义为 ΔC/C0 且 C0 非零。电容本身按电荷偏置与工作点确定。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "§7.8.1–7.8.2, §7.10–7.11",
+          "claim": "标势有限元、全局电荷及输出；指垫几何映射和标定反演未由此证明。"
+        }
+      ],
+      "couplings": [
+        {
+          "from_field": "solid_displacement",
+          "to_field": "electrostatic_geometry",
+          "quantity": "位移与变形后区域几何",
+          "transfer": "按位置和区域 ID 映射并重网格",
+          "custom_work": "实现映射、标签保留及几何质量验证"
+        }
+      ]
+    },
+    {
+      "id": "tactile_pad_inverse",
+      "label": "经标定电容反演接触载荷（需自研）",
+      "capability_ids": [],
+      "mechanisms": [
+        "solid_elasticity",
+        "electrostatics",
+        "calibration"
+      ],
+      "goals": [
+        "calibrated_contact_load"
+      ],
+      "conditions": {
+        "operation": [
+          "quasistatic"
+        ],
+        "geometry": [
+          "tactile_pad"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "calibration_data",
+          "meaning": "独立标定曲线和误差及有效范围。"
+        },
+        {
+          "key": "measured_capacitance",
+          "meaning": "指定电极的实测电容 F。"
+        }
+      ],
+      "outputs": [
+        "载荷 N 与不确定度"
+      ],
+      "assumptions": [
+        "测量配置、接触位置、材料、温度和加载路径处于独立标定有效域。"
+      ],
+      "limitations": [
+        "模型与映射、反演均需自研及独立验证；标定外、滞回或未知接触位置不能保证唯一反演。"
+      ],
+      "basis": "独立标定和可辨识性是反演的前提；不要求前向求解或提供待求载荷。",
+      "evidence": [
+        {
+          "kind": "version_manual",
+          "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+          "locator": "§7.8.1–7.8.2, §7.10–7.11",
+          "claim": "标势有限元、全局电荷及输出；指垫几何映射和标定反演未由此证明。"
+        }
+      ],
+      "couplings": []
+    }
+  ]
+}

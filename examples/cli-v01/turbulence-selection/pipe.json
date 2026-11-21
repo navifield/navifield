@@ -1,0 +1,15 @@
+{
+  "description": "Estimate distributed pressure loss in the fully developed section of a smooth circular process-water transfer pipe. Exclude entrance and fitting losses. The wall mesh is planned for a wall-function treatment.",
+  "flow": "fully_developed_pipe",
+  "target": "pressure_drop",
+  "regime": "fully_turbulent",
+  "fluid": "single_phase_incompressible_newtonian",
+  "surface": "smooth",
+  "wall_mode": "wall_function",
+  "planned_y_plus": 60,
+  "velocity_m_s": 2,
+  "velocity_basis": "bulk",
+  "length_m": 0.05,
+  "length_basis": "diameter",
+  "nu_m2_s": 0.000001
+}

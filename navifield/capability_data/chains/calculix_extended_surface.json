@@ -1,0 +1,75 @@
+{
+  "solver": "calculix",
+  "version": "2.22",
+  "chains": [
+    {
+      "id": "steady_extended_surface_conduction",
+      "status": "custom",
+      "scope": "CalculiX 2.22 稳态扩展表面导热。直圆棒、均匀各向同性材料、给定基温、均匀侧壁换热和绝热末端可用 navifield fin build 建模，以 navifield fin read 读取轴向温度及基部热率。",
+      "steps": [
+        {
+          "id": "solid",
+          "operation": "构造固体域及热边界",
+          "equation": "−∇·(k∇T)=0；侧壁 Robin q_out=h_eff(T−T∞)，基端及末端按已知条件。均匀直翅片可在一维截面近似下解 kA T″−hP(T−T∞)=0。",
+          "receives": [
+            "翅片几何、材料导热率、基端及末端边界、侧壁 h_eff 与环境温度"
+          ],
+          "produces": [
+            "稳态温度场与侧壁热流"
+          ],
+          "depends_on": [],
+          "evidence": [
+            "ccx_manual"
+          ],
+          "implementation": "custom"
+        },
+        {
+          "id": "readback",
+          "operation": "按位置读取温度与基端热流",
+          "equation": "读取指定点或截面温度，汇总基端温度反力与侧壁散热并核对单位、法向及能量守恒。",
+          "receives": [
+            "测点或截面、基端与侧壁的热流口径"
+          ],
+          "produces": [
+            "测站温度",
+            "基端热流"
+          ],
+          "depends_on": [
+            "solid"
+          ],
+          "evidence": [
+            "ccx_manual"
+          ],
+          "implementation": "custom"
+        }
+      ],
+      "closures": [
+        {
+          "name": "侧壁等效散热",
+          "relation": "指定 h_eff 已合并对流及线性化辐射时，不再重复添加辐射；如果需分解则给实际发射率及辐射环境。",
+          "applicability": "一维近似须检查横向温度梯度，复杂截面或接触用三维固体。",
+          "implementation": "custom",
+          "evidence": [
+            "ccx_manual"
+          ]
+        }
+      ],
+      "required_inputs": [],
+      "custom_work": [
+        "非圆或变截面、接触、非均匀换热、独立辐射和其他基端或末端边界需要另行建模。通用圆棒工具的外周测站温度按周长加权，给定端温时的传热率按 W 报告。"
+      ],
+      "checks": [
+        "核对冷热端与侧壁热收支、网格收敛与截面近似，区分等效 h 与真实流固传热。"
+      ],
+      "sources": [
+        {
+          "id": "ccx_manual",
+          "url": "https://www.dhondt.de/ccx_2.22.pdf",
+          "locator": "*HEAT TRANSFER, *CONDUCTIVITY, *BOUNDARY, *FILM, *NODE PRINT NT/RFL",
+          "claim": "稳态固体导热、定温和膜边界及节点温度与热反力读回；逐面建模和守恒需自研。",
+          "kind": "version_manual"
+        }
+      ]
+    }
+  ]
+}

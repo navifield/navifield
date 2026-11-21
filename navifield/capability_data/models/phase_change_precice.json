@@ -1,0 +1,74 @@
+{
+  "domain": "phase_change",
+  "solver": "precice",
+  "version": "3.5.0",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "coupling_only",
+      "scope": "可负责多个参与者之间的传量映射、时间窗和耦合迭代。官方加热板例说明温度和热流传递，未提供熔凝闭合。",
+      "custom_work": "相变参与者供应焓、潜热、固液相分数及其演化。按接口分工交换温度与法向热流，需传递前沿位置或相分数时编写适配，并核对能量守恒及移动接口处理。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+          "locator": "Participant 类，setMeshVertices、writeData、readData、advance",
+          "claim": "v3.5.0 参与者 API 交换已由参与者计算的数据，管理耦合步，并以注册的空间网格识别传量位置。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://raw.githubusercontent.com/precice/tutorials/98a78fe2dc2f6c5d84b2b30d35d00352782236f8/flow-over-heated-plate/precice-config.xml",
+          "locator": "data:scalar、participant、mapping 及 coupling-scheme",
+          "claim": "官方固定提交的单相流固共轭传热配置交换壁温和热流。示例未交换相间质量，也未求解相变。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "coupling_only",
+      "scope": "v3.5.0 可映射壁面热工量和参与者声明的自定义数据。库本身不计算沸腾质量源、气泡动力学或壁面沸腾闭合。",
+      "custom_work": "两相参与者供应饱和物性、潜热和适用的气化质量源；约定壁温、热流、必要的质量通量、法向及单位。核实适配器字段、面积积分守恒与耦合收敛。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+          "locator": "Participant 类，setMeshVertices、writeData、readData、advance",
+          "claim": "v3.5.0 参与者 API 交换已由参与者计算的数据，管理耦合步，并以注册的空间网格识别传量位置。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+          "locator": "MappingConfiguration：direction、constraint 与映射方法",
+          "claim": "固定版本代码定义一致或守恒等空间映射选项。传量的物理含义、单位和界面闭合由参与者及适配器定义。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "coupling_only",
+      "scope": "可交换冷壁温度、法向热流和参与者定义的其他接口字段。现有通用映射和单相传热例不验证冷凝模型。",
+      "custom_work": "气相或液膜求解器提供饱和关系、凝结质量通量、潜热释放及需要时的不凝气体或液膜量；按实际适配器配置交换单位和符号，并检查热量与质量平衡。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+          "locator": "Participant 类，setMeshVertices、writeData、readData、advance",
+          "claim": "v3.5.0 参与者 API 交换已由参与者计算的数据，管理耦合步，并以注册的空间网格识别传量位置。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+          "locator": "MappingConfiguration：direction、constraint 与映射方法",
+          "claim": "固定版本代码定义一致或守恒等空间映射选项。传量的物理含义、单位和界面闭合由参与者及适配器定义。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://raw.githubusercontent.com/precice/tutorials/98a78fe2dc2f6c5d84b2b30d35d00352782236f8/flow-over-heated-plate/precice-config.xml",
+          "locator": "data:scalar、participant、mapping 及 coupling-scheme",
+          "claim": "官方固定提交的单相流固共轭传热配置交换壁温和热流。示例未交换相间质量，也未求解相变。"
+        }
+      ]
+    }
+  ],
+  "models": []
+}

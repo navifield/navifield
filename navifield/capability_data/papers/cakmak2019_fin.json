@@ -1,0 +1,219 @@
+[
+  {
+    "id": "cakmak2019-brass-fin-thermal",
+    "doi": "10.17482/uumfd.446304",
+    "title": "A Discovery Based Case Study to Teach the Concepts of Computational Simulation and Measurement Uncertainty in Heat Transfer",
+    "authors": "M. E. Çakmak, Ç. Taylan",
+    "year": 2019,
+    "software": "COMSOL",
+    "software_version": "5.2",
+    "industry": "固体稳态导热与环境散热",
+    "targets": [
+      "solid_temperature",
+      "heat_transfer_rate"
+    ],
+    "keywords": [
+      "brass fin",
+      "黄铜棒",
+      "稳态导热",
+      "翅片",
+      "thermal fin"
+    ],
+    "source_url": "https://dergipark.org.tr/en/download/article-file/819672",
+    "source_locator": "pp. 540–542, Table 1, Table 3; pp. 544–545",
+    "conditions": [
+      "黑漆黄铜圆棒长 0.327 m、直径 0.01 m，k=110 W/(m K)，基端 57.4 °C，环境 20.5 °C，末端绝热。",
+      "侧面等效 h=15.7 W/(m² K) 是作者依关联式及黑体假设得到的自然对流与辐射合并系数，不应重复施加辐射。"
+    ],
+    "model_chain": [
+      "稳态固体导热；定温基端，圆棒侧面按等效膜系数散热，末端绝热。",
+      "CalculiX 2.22 两档多边形近似圆截面 DC3D8 真机求解，逐测站外周 NT 与基端 RFL；独立检查共享侧膜修正与热收支。"
+    ],
+    "required_inputs": [
+      "圆棒几何、导热系数、热端温度、空气温度、合并膜系数及末端条件。",
+      "观测轴向位置、真实热电偶深度、测量精度定义及实际边界不确定度。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "solid_temperature",
+        "detail": "Table 1 的 T 型热电偶 ST2–ST8、ST10 共八点；ST1/ST9 因技术问题缺失。论文报告温度仪表误差 ±0.75%（百分比基准未说明）及轴向位置误差 ±0.5 mm。",
+        "locator": "p.541 Table 1 experimental column"
+      },
+      {
+        "kind": "simulated",
+        "quantity": "solid_temperature",
+        "detail": "同表作者 COMSOL 5.2 列是数值结果，不能作为实验。",
+        "locator": "p.541 Table 1 COMSOL-2D column"
+      }
+    ],
+    "limitations": [
+      "仪表误差为 ±0.75%（基准不明），轴向位置误差为 ±0.5 mm。原始时序、重复统计及整体验收阈值缺失，无法据此确定总体实验不确定度。",
+      "作者 h 同时包含对流及线性化辐射，并非实测系数；真实环境与等效模型不确定度未闭合。",
+      "两档网格温度和热收支已作独审；圆形多边形逼近、测点深度/接触及未披露的实验系统误差仍限制实验验证。"
+    ],
+    "provenance": "期刊公开原文 PDF SHA256 9516afe6ff512e44fb9bd27794a117586c40ae50d4716f98b10137779eed4315；输入和实验表分别预先冻结。",
+    "reproduction": {
+      "status": "PASS_NATIVE_NUMERICAL_CONTROL_EXPERIMENT_DIFFERENCE",
+      "scope": "固定论文名义 h=15.7（含辐射）的稳态翅片，两档 CalculiX 2.22 原生及独审；细网与作者 COMSOL 近合，对照实验八点全部偏低。温度仪表误差 ±0.75%（基准不明），轴向位置误差 ±0.5 mm，整体验收阈值未给定。",
+      "routes": [
+        {
+          "chain": "steady_extended_surface_conduction",
+          "solver": "calculix",
+          "version": "2.22",
+          "requires_case_reference": true
+        }
+      ],
+      "cases": [
+        {
+          "case": "cakmak2019_brass_fin",
+          "readback_definition": "8 个轴向实测站处外周节点温度的平均值；同一 x 的实验热电偶深度未披露。温差为 CalculiX − 对照。",
+          "points": [
+            {
+              "sensor": "ST2",
+              "x_m": 0.045,
+              "experiment_C": 47.9,
+              "comsol_C": 46.95,
+              "calculix_fine_C": 46.91583558644015,
+              "fine_minus_experiment_K": -0.9841644135598457,
+              "fine_minus_comsol_K": -0.034164413559850004
+            },
+            {
+              "sensor": "ST3",
+              "x_m": 0.075,
+              "experiment_C": 44.88,
+              "comsol_C": 41.75,
+              "calculix_fine_C": 41.712467326801594,
+              "fine_minus_experiment_K": -3.1675326731984086,
+              "fine_minus_comsol_K": -0.03753267319840603
+            },
+            {
+              "sensor": "ST4",
+              "x_m": 0.105,
+              "experiment_C": 40.5,
+              "comsol_C": 37.65,
+              "calculix_fine_C": 37.60930753784727,
+              "fine_minus_experiment_K": -2.890692462152728,
+              "fine_minus_comsol_K": -0.040692462152726705
+            },
+            {
+              "sensor": "ST5",
+              "x_m": 0.135,
+              "experiment_C": 36.88,
+              "comsol_C": 34.44,
+              "calculix_fine_C": 34.393522566367395,
+              "fine_minus_experiment_K": -2.486477433632608,
+              "fine_minus_comsol_K": -0.04647743363260304
+            },
+            {
+              "sensor": "ST6",
+              "x_m": 0.165,
+              "experiment_C": 33.7,
+              "comsol_C": 31.94,
+              "calculix_fine_C": 31.898322159531727,
+              "fine_minus_experiment_K": -1.801677840468276,
+              "fine_minus_comsol_K": -0.041677840468274496
+            },
+            {
+              "sensor": "ST7",
+              "x_m": 0.195,
+              "experiment_C": 32.18,
+              "comsol_C": 30.04,
+              "calculix_fine_C": 29.99429660793137,
+              "fine_minus_experiment_K": -2.1857033920686284,
+              "fine_minus_comsol_K": -0.045703392068627835
+            },
+            {
+              "sensor": "ST8",
+              "x_m": 0.225,
+              "experiment_C": 29.23,
+              "comsol_C": 28.63,
+              "calculix_fine_C": 28.58269362871336,
+              "fine_minus_experiment_K": -0.6473063712866391,
+              "fine_minus_comsol_K": -0.04730637128663773
+            },
+            {
+              "sensor": "ST10",
+              "x_m": 0.285,
+              "experiment_C": 27.7,
+              "comsol_C": 27.01,
+              "calculix_fine_C": 26.966268937654036,
+              "fine_minus_experiment_K": -0.7337310623459636,
+              "fine_minus_comsol_K": -0.04373106234596591
+            }
+          ],
+          "fine_heat": {
+            "raw_base_RFL_total": 2.266113,
+            "raw_base_RFL_nodal_sum": 2.26611302,
+            "reintegrated_base_conduction_KT": 2.2661130916544816,
+            "shared_lateral_sink_on_base_nodes": 0.09945758539510072,
+            "reintegrated_base_full_including_film": 2.365570677049582,
+            "raw_RFL_matches": "conductive_KT",
+            "corrected_base_supply": 2.3655705853951003,
+            "lateral_loss_integral": 2.365570645627498,
+            "relative_corrected_energy_imbalance": -2.546210053910869e-08,
+            "ideal_round_1D_supply": 2.3745831802746733
+          },
+          "coarse_fine_max_difference_K": 0.12867352055350523,
+          "coarse_fine_supply_difference_fraction": 0.01097968370434916,
+          "receipt_sha256": "60d4fa62070bf8e00cfbf5b588fdbfeb5e9993e39155f73444341920573cb42b",
+          "independent_review_sha256": "66b897d05c4adafd48005d5aeb0df976217fa0063e380fef525f89b70f0a9306",
+          "solver_sha256": "59b8fbc2eb90eec60e5e4c80014baf0f1cb6c892288ad8ba24f5e5235feb2774",
+          "source_commit": "14d0312ec84da034e1bc641044a2f9874ac499c4",
+          "runs": [
+            {
+              "mesh": "coarse",
+              "run_id": "r001",
+              "deck_sha256": "a6151f258d159bfa63367974c62da950554c5897e6d98a086f48db7d107d5806",
+              "dat_sha256": "26b788fa53c7932526403e883db8eed2893d3abd20a4df24d39317523e95d14c",
+              "review_sha256": "631b7eaf22589329b9f336bc6d195b5a6b0c7f9435f577acaad8a2892740b1dc"
+            },
+            {
+              "mesh": "fine",
+              "run_id": "r002",
+              "deck_sha256": "00c27139d0bd4ea54fe39481dbb5b71423b3d4128861046dbad1cb85935493f8",
+              "dat_sha256": "c0b28a65f8b873c53eb4379e4162011cd6cf0777a1051d951b2ad0b1412362dd",
+              "review_sha256": "5b552c314ee92c564c2355f8acdc5fff8d69b365f7d859a89d86e999a9b991d4"
+            }
+          ]
+        }
+      ],
+      "brief_results": [
+        {
+          "kind": "published_and_native_comparison",
+          "conditions": "八个轴向传感器位置，细网外周平均温度。差值为 CalculiX 2.22 减对照，单位 K。原文报告温度仪表误差 ±0.75%（基准不明）及轴向位置误差 ±0.5 mm，整体验收阈值未给定。",
+          "measurements": [
+            {
+              "quantity": "solid_temperature",
+              "kind": "experimental_difference",
+              "value": 1.8621607060891372,
+              "unit": "K",
+              "metric": "MAE eight points vs independent thermocouples",
+              "detail": "细网八点全偏低；RMSE 2.07729 K，最大偏差 3.16753 K（x=0.075 m）。"
+            },
+            {
+              "quantity": "solid_temperature",
+              "kind": "author_simulation_difference",
+              "value": 0.04216070608913647,
+              "unit": "K",
+              "metric": "MAE eight points vs COMSOL 5.2",
+              "detail": "最大偏差 0.04731 K；作者数值不是实验。"
+            },
+            {
+              "quantity": "heat_transfer_rate",
+              "kind": "native_heat_balance",
+              "value": 2.3655705853951003,
+              "unit": "W",
+              "metric": "corrected base supply",
+              "detail": "原始基端 RFL 2.266113 W 加共享侧膜损 0.09945759 W；侧面积分散热 2.36557065 W。"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "作者 h 来自关联式及黑体假设，未独立实测。原始时序、探头深度及总体实验不确定度仍待核实。原文报告温度仪表误差 ±0.75%（基准不明）及轴向位置误差 ±0.5 mm；整体验收阈值未给定。",
+        "粗网解析温度最大误差 0.17246 K 超过专为细网设置的 0.15 K 门，粗网按网格对照保留，不代表细网或完整工作流失败。"
+      ]
+    }
+  }
+]

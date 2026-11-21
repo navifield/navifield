@@ -1,0 +1,3866 @@
+{
+  "schema_version": 1,
+  "solver": "opengeosys",
+  "version": "6.5.6",
+  "capabilities": [
+    {
+      "id": "opengeosys.poroelastic_consolidation",
+      "module": "HydroMechanics / fixed-stress split",
+      "scope": "饱和多孔介质小应变固结。排水边界控制孔压消散，骨架应变与孔压相互影响；该基准为单向压缩柱。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2"
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s"
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa"
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1"
+        },
+        {
+          "id": "initial_pore_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "hydraulic_boundary_history",
+          "unit": "Pa or m/s"
+        },
+        {
+          "id": "surface_traction",
+          "unit": "Pa"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙水压力",
+            "孔压"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "effective_stress",
+          "unit": "Pa",
+          "aliases": [
+            "有效应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "saturated_porous_medium",
+        "poroelasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-mechanics/consolidationbenchmark/",
+            "scope": "Consolidation benchmark with the staggered scheme，顶部施加载荷并排水，比较固定应力分裂、单体求解和解析解。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用一维排水柱比较孔压、竖向位移和有效应力随深度及时间的曲线，细化时间步并检查排水端孔压。 重现该解析解时采用均质材料、零储存系数并忽略体力。",
+      "couplings": [
+        {
+          "from_field": "液相渗流",
+          "to_field": "多孔骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "Biot 孔压进入有效应力；双向共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "多孔骨架力学",
+          "to_field": "液相渗流",
+          "quantity": "volumetric_strain",
+          "unit": "1",
+          "transfer": "体变率进入储水项；双向共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.porous_heat_advection",
+      "module": "HT / stationary Darcy flow and transient heat transport",
+      "scope": "饱和多孔介质内的达西流输运热量。本条依据为稳态流场驱动的瞬态温度传播，强温变黏度反馈需另查。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2"
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s"
+        },
+        {
+          "id": "porosity",
+          "unit": "1"
+        },
+        {
+          "id": "hydraulic_boundary_history",
+          "unit": "Pa or m/s"
+        },
+        {
+          "id": "effective_volumetric_heat_capacity",
+          "unit": "J/(m^3 K)"
+        },
+        {
+          "id": "effective_thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "initial_temperature",
+          "unit": "K"
+        },
+        {
+          "id": "inlet_temperature",
+          "unit": "K"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度",
+            "温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "porous_heat_transport",
+        "stationary_darcy_flow",
+        "saturated_porous_medium"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-thermal/heattransportinstationaryflow/",
+            "scope": "One dimensional heat transport in stationary flow，边界与材料定义、温度剖面和参考解曲线。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "施加入流温度阶跃，用相同的热容和导热率核对一维温度前锋位置、扩散宽度及时间步敏感性；对照时统一摄氏度与开尔文。 对齐出口热通量和施加的压力边界。",
+      "couplings": [
+        {
+          "from_field": "饱和液相渗流",
+          "to_field": "岩土等效热场",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "Darcy 通量进入能量对流项；恒定物性基准单向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.constrained_thermal_pressurization",
+      "module": "ThermoHydroMechanics / saturated thermal pressurization",
+      "scope": "完全饱和多孔骨架与液体热膨胀不同，在封闭受限条件下升温会产生孔压和有效应力。此条覆盖均匀加热，带排水和温度梯度的工况需另外验证。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "initial_pore_pressure",
+          "unit": "Pa"
+        },
+        {
+          "id": "porosity",
+          "unit": "1"
+        },
+        {
+          "id": "biot_coefficient",
+          "unit": "1"
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2"
+        },
+        {
+          "id": "fluid_compressibility",
+          "unit": "1/Pa"
+        },
+        {
+          "id": "solid_thermal_expansivity",
+          "unit": "1/K"
+        },
+        {
+          "id": "fluid_volumetric_thermal_expansivity",
+          "unit": "1/K"
+        },
+        {
+          "id": "prescribed_temperature_history",
+          "unit": "K"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙水压力",
+            "孔压"
+          ]
+        },
+        {
+          "id": "effective_stress",
+          "unit": "Pa",
+          "aliases": [
+            "有效应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "saturated_porous_medium",
+        "undrained",
+        "thermo_poroelasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-hydro-mechanics/heating-homogeneous-domain/",
+            "scope": "Heating of a homogeneous volume，hex_THM.prj；密闭边界、法向位移约束及孔压与有效应力历程。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "复核封闭立方体在均匀升温期间的孔压和有效应力；先检查体积约束、热膨胀系数定义与无流边界。",
+      "couplings": [
+        {
+          "from_field": "热场",
+          "to_field": "饱和孔液储存",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "温升经孔液与骨架热膨胀差改变孔压",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "热场",
+          "to_field": "骨架力学",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "温升进入热应变，边界约束产生应力",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "液相渗流",
+          "to_field": "骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "孔压进入 Biot 应力；过程共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "骨架力学",
+          "to_field": "液相渗流",
+          "quantity": "volumetric_strain",
+          "unit": "1",
+          "transfer": "体应变率进入储存项；过程共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.two_phase_heat_pipe",
+      "module": "TH2M / porous two-phase heat and mass transport",
+      "scope": "多孔材料内气液两相传热传质，包含蒸发、蒸气输运和冷凝；基准比较一维热管的平衡剖面，不能直接用于带回流管和自由液面的装置。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2"
+        },
+        {
+          "id": "porosity",
+          "unit": "1"
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa"
+        },
+        {
+          "id": "relative_permeability_curves",
+          "unit": "1"
+        },
+        {
+          "id": "phase_thermal_properties",
+          "unit": "phase-specific SI properties"
+        },
+        {
+          "id": "imposed_heat_flux",
+          "unit": "W/m^2"
+        },
+        {
+          "id": "reference_gas_pressure",
+          "unit": "Pa"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度",
+            "温度场"
+          ]
+        },
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        },
+        {
+          "id": "gas_phase_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "气相压力"
+          ]
+        },
+        {
+          "id": "gas_air_mole_fraction",
+          "unit": "1",
+          "aliases": [
+            "气相空气摩尔分数"
+          ]
+        }
+      ],
+      "conditions": [
+        "porous_medium",
+        "two_phase_flow",
+        "phase_change"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/th2m/heatpipe/",
+            "scope": "Heat pipe verification problem，Analytical solution、Numerical solution 及按变量分列的误差曲线。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在一致的毛细压力与相对渗透率模型下比较液相饱和度、温度、气相空气摩尔分数和气压的空间剖面；复核输入热通量与两相质量守恒。",
+      "couplings": [
+        {
+          "from_field": "气液热场",
+          "to_field": "气液质量守恒",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "温度影响汽液平衡和组分迁移，双向 TH2M",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "气液迁移",
+          "to_field": "多孔体能量守恒",
+          "quantity": "effective_liquid_saturation",
+          "unit": "1",
+          "transfer": "有效饱和度先转换为实际饱和度再用于有效导热率；双向 TH2M。",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "气液迁移",
+          "to_field": "多孔体能量守恒",
+          "quantity": "phase_enthalpy_flux",
+          "unit": "W/m^2",
+          "transfer": "实际迁移流携带相焓，通量计入能量守恒；双向 TH2M。",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.borehole_heat_exchanger",
+      "module": "Heat Transport BHE",
+      "scope": "围岩连续体和井内管路离散相耦合的埋管换热，可设置 U 型管路及工况控制。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "effective_thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "等效导热率"
+          ]
+        },
+        {
+          "id": "pipe_inlet_temperature",
+          "unit": "K",
+          "aliases": [
+            "管路入口温度"
+          ]
+        },
+        {
+          "id": "volumetric_flow_rate",
+          "unit": "m^3/s",
+          "aliases": [
+            "管路体积流量"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "pipe_fluid_temperature",
+          "unit": "K",
+          "aliases": [
+            "管内流体温度"
+          ]
+        }
+      ],
+      "conditions": [
+        "ground_heat_exchanger",
+        "borehole_heat_transport"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/heat-transport-bhe/",
+            "scope": "Heat Transport BHE 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "圆柱围岩恒热流基准核对井壁温升与井管两端焓差，做时步与近井网格细化。",
+      "couplings": [
+        {
+          "from_field": "井管流体热场",
+          "to_field": "井周固体热场",
+          "quantity": "pipe_fluid_temperature",
+          "unit": "K",
+          "transfer": "井线—围岩共解，计算井孔热阻传热",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "井周固体热场",
+          "to_field": "井管流体热场",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "同一耦合热阻反向传递，核对管路焓差与围岩受热",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.heat_conduction",
+      "module": "Heatconduction",
+      "scope": "连续体稳态或瞬态热传导，区域热物性可分配。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "effective_thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "等效导热率"
+          ]
+        },
+        {
+          "id": "effective_volumetric_heat_capacity",
+          "unit": "J/(m^3 K)",
+          "aliases": [
+            "等效体积热容"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        }
+      ],
+      "conditions": [
+        "heat_conduction"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/heatconduction/",
+            "scope": "Heatconduction 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "一维平板解析温度和表面热通量，检查网格收敛。"
+    },
+    {
+      "id": "opengeosys.hydro_component_transport",
+      "module": "Hydro-Component",
+      "scope": "饱和多孔介质的压力—单组分浓度传输，按模型定义使用浓度依赖密度，考虑流动、对流和弥散。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "solute_diffusivity",
+          "unit": "m^2/s",
+          "aliases": [
+            "溶质扩散率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度"
+          ]
+        }
+      ],
+      "conditions": [
+        "saturated_porous_flow",
+        "solute_advection_dispersion"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-component/",
+            "scope": "Hydro-Component 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先用恒密度的一维对流弥散解析解核对穿透曲线，再核对密度差驱动的对流方向。",
+      "couplings": [
+        {
+          "from_field": "多孔体液相流动",
+          "to_field": "溶质输运",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "Darcy 通量进入溶质对流，恒密度可单向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "溶质输运",
+          "to_field": "液相流动",
+          "quantity": "solute_concentration",
+          "unit": "mol/m^3",
+          "transfer": "开启浓度依赖密度时通过浮力反馈",
+          "implementation": "native",
+          "custom_work": "提供同一浓度基准上的密度曲线。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.large_deformation_solid",
+      "module": "Large Deformations",
+      "scope": "有限应变固体变形，按有限变形定义施加荷载和输出应力。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "solid_constitutive_law",
+          "unit": "model-dependent",
+          "aliases": [
+            "有限变形本构"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "cauchy_stress",
+          "unit": "Pa",
+          "aliases": [
+            "柯西应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "finite_strain",
+        "large_deformation"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/large-deformations/",
+            "scope": "官方 Processes 索引与 F-bar on large deformation problems with locking 基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "单元拉伸与刚体转动检验应力客观性，再核对反力—位移曲线。"
+    },
+    {
+      "id": "opengeosys.saturated_liquid_flow",
+      "module": "Liquid Flow",
+      "scope": "饱和介质单液相 Darcy 地下水流动。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "density",
+          "unit": "kg/m^3",
+          "aliases": [
+            "液体密度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "darcy_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "达西速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "darcy_flow",
+        "saturated_porous_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/liquid-flow/",
+            "scope": "Liquid Flow 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀柱体已知水头差，核对达西通量和上下游质量平衡。"
+    },
+    {
+      "id": "opengeosys.phase_field_fracture",
+      "module": "Phase-Field",
+      "scope": "脆性裂纹相场与小变形力学耦合，通过正则化长度弥散裂纹。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa",
+          "aliases": [
+            "排水弹性模量"
+          ]
+        },
+        {
+          "id": "fracture_energy",
+          "unit": "J/m^2",
+          "aliases": [
+            "断裂能"
+          ]
+        },
+        {
+          "id": "phase_field_length_scale",
+          "unit": "m",
+          "aliases": [
+            "相场长度尺度"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "fracture_phase_field",
+          "unit": "1",
+          "aliases": [
+            "裂纹相场"
+          ]
+        }
+      ],
+      "conditions": [
+        "brittle_fracture",
+        "phase_field"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/phase-field/",
+            "scope": "Phase-Field 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "缺口拉伸核对加载峰值、裂纹路径和能量耗散，随网格和正则长度分别细化。",
+      "couplings": [
+        {
+          "from_field": "固体弹性",
+          "to_field": "裂纹相场",
+          "quantity": "elastic_energy_density",
+          "unit": "J/m^3",
+          "transfer": "应变能驱动损伤；交替或共解以实际设置为准",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "裂纹相场",
+          "to_field": "固体弹性",
+          "quantity": "fracture_phase_field",
+          "unit": "1",
+          "transfer": "相场降阶弹性储能；双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.reactive_solute_transport",
+      "module": "Reactive Transport",
+      "scope": "多孔介质溶质迁移与配置的化学反应联算，可将输运浓度交给反应模型再更新组分。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "chemical_reaction_model",
+          "unit": "model-dependent",
+          "aliases": [
+            "化学反应模型与数据库"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度"
+          ]
+        }
+      ],
+      "conditions": [
+        "reactive_transport",
+        "aqueous_chemistry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/reactive-transport/",
+            "scope": "Reactive Transport 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "一维输运加单反应，核对反应前沿和各元素质量平衡，检查算子分裂的时步误差。",
+      "couplings": [
+        {
+          "from_field": "液相输运",
+          "to_field": "水溶液化学",
+          "quantity": "solute_concentration",
+          "unit": "mol/m^3",
+          "transfer": "组分浓度交给反应积分；分步更新",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "水溶液化学",
+          "to_field": "液相输运",
+          "quantity": "solute_concentration",
+          "unit": "mol/m^3",
+          "transfer": "反应后浓度回写输运；双向分步",
+          "implementation": "configured",
+          "custom_work": "按体系配置化学数据库及 molality 与体积浓度换算。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.richards_unsaturated_flow",
+      "module": "Richards Flow",
+      "scope": "气压给定的非饱和介质液相流动，使用毛细压力—饱和度及相对渗透率。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力曲线"
+          ]
+        },
+        {
+          "id": "relative_permeability_curves",
+          "unit": "1",
+          "aliases": [
+            "相对渗透率曲线"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        }
+      ],
+      "conditions": [
+        "richards_flow",
+        "unsaturated_porous_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/richards-flow/",
+            "scope": "Richards Flow 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "一维入渗核对湿润锋和蓄水质量，做时步与空间收敛。"
+    },
+    {
+      "id": "opengeosys.unsaturated_poromechanics",
+      "module": "Richards Mechanics",
+      "scope": "非饱和多孔体中 Richards 流与小变形平衡耦合，气相压力按过程假定处理。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa",
+          "aliases": [
+            "排水弹性模量"
+          ]
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力曲线"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "effective_stress",
+          "unit": "Pa",
+          "aliases": [
+            "有效应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "unsaturated_porous_flow",
+        "unsaturated_poromechanics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/richards-mechanics/",
+            "scope": "Richards Mechanics 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "入渗柱比较湿润锋和沉降并核对初始应力平衡。",
+      "couplings": [
+        {
+          "from_field": "非饱和液相渗流",
+          "to_field": "骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "吸力与饱和状态进入有效应力；双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "骨架力学",
+          "to_field": "液相渗流",
+          "quantity": "volumetric_strain",
+          "unit": "1",
+          "transfer": "体变进入水分储存；双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.small_deformation_solid",
+      "module": "Small Deformations",
+      "scope": "小应变固体静力，使用边值问题指定弹性材料及载荷。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "杨氏模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "surface_traction",
+          "unit": "Pa",
+          "aliases": [
+            "表面载荷"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "small_strain",
+        "linear_elasticity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/small-deformations/",
+            "scope": "官方 Processes 索引列出 Small Deformations 及 Kirsch 算例。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀拉伸核对轴向位移、泊松收缩和反力平衡。"
+    },
+    {
+      "id": "opengeosys.steady_state_diffusion",
+      "module": "Steady State Diffusion",
+      "scope": "固定系数下的标量稳态扩散边值问题。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "solute_diffusivity",
+          "unit": "m^2/s",
+          "aliases": [
+            "溶质扩散率"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady_diffusion"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/elliptic/",
+            "scope": "Steady State Diffusion 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "双端固定浓度平板核对线性浓度与边界通量。"
+    },
+    {
+      "id": "opengeosys.thermal_two_phase_flow",
+      "module": "Thermal-Two-Phase Flow",
+      "scope": "多孔介质气液两相非等温过程，以相压力与温度求解，并配置相物性及毛细关系。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力曲线"
+          ]
+        },
+        {
+          "id": "phase_thermal_properties",
+          "unit": "phase-specific SI properties",
+          "aliases": [
+            "各相热物性"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        },
+        {
+          "id": "gas_phase_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "气相压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "two_phase_porous_flow",
+        "nonisothermal"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermal-two-phase-flow/",
+            "scope": "Thermal-Two-Phase Flow 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "简单一维气液介质加热，对水质量和总能量积分并检查时步收敛。",
+      "couplings": [
+        {
+          "from_field": "气液热场",
+          "to_field": "气液流动",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "相物性随温度更新；双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "气液流动",
+          "to_field": "气液热场",
+          "quantity": "phase_enthalpy_flux",
+          "unit": "W/m^2",
+          "transfer": "相流携热进入能量方程；双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.thermomechanical_solid",
+      "module": "Thermo-Mechanics",
+      "scope": "非均匀温度与固体小变形热应变联算，适用于热弹应力。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "effective_thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "等效导热率"
+          ]
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa",
+          "aliases": [
+            "排水弹性模量"
+          ]
+        },
+        {
+          "id": "solid_thermal_expansivity",
+          "unit": "1/K",
+          "aliases": [
+            "固体热膨胀系数"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "thermoelasticity",
+        "small_strain"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-mechanics/",
+            "scope": "Thermo-Mechanics 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "均匀升温杆，分别核对自由伸长和端部约束热应力。",
+      "couplings": [
+        {
+          "from_field": "温度场",
+          "to_field": "固体力学",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "节点温度经热膨胀本构产生应变；本条热弹基准单向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.nonisothermal_unsaturated_poromechanics",
+      "module": "Thermo-Richards-Mechanics",
+      "scope": "非等温非饱和多孔体，结合传热、Richards 水迁移与固体变形。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "effective_thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "等效导热率"
+          ]
+        },
+        {
+          "id": "drained_elastic_moduli",
+          "unit": "Pa",
+          "aliases": [
+            "排水弹性模量"
+          ]
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力曲线"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力"
+          ]
+        },
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "unsaturated_porous_flow",
+        "thermo_richards_mechanics"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-richards-mechanics/",
+            "scope": "Thermo-Richards-Mechanics 的该项能力或公开基准。"
+          },
+          {
+            "source": "https://doxygen.opengeosys.org/6.5.6/d7/db7/ogs_file_param__prj__processes__process__THERMO_RICHARDS_MECHANICS.html",
+            "scope": "6.5.6 process formulation defining the Bishop and Biot terms."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先做等温一维入渗与单独导热回归，再核对受热非饱和柱温度、含水量和沉降。",
+      "couplings": [
+        {
+          "from_field": "液相渗流",
+          "to_field": "多孔介质热场",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "液相携带热量进入能量方程；共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "热场",
+          "to_field": "骨架力学",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "温升经材料热膨胀系数进入应变；共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "液相渗流",
+          "to_field": "骨架力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "孔压与饱和度经 Bishop(S) 与 Biot 系数进入骨架有效应力；共解。",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "骨架力学",
+          "to_field": "水分储存",
+          "quantity": "volumetric_strain",
+          "unit": "1",
+          "transfer": "骨架体变改变储存；共解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.isothermal_two_phase_darcy",
+      "module": "Two-phase Flow",
+      "scope": "多孔介质两不混溶相 Darcy 流，基于压力与饱和状态，适用于定温毛细驱替。",
+      "inputs": [
+        {
+          "id": "ogs_porous_domain",
+          "unit": "VTU mesh and material IDs"
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "本征渗透率"
+          ]
+        },
+        {
+          "id": "porosity",
+          "unit": "1",
+          "aliases": [
+            "孔隙率"
+          ]
+        },
+        {
+          "id": "capillary_pressure_curve",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力曲线"
+          ]
+        },
+        {
+          "id": "relative_permeability_curves",
+          "unit": "1",
+          "aliases": [
+            "相对渗透率曲线"
+          ]
+        },
+        {
+          "id": "boundary_conditions",
+          "unit": "problem-dependent",
+          "aliases": [
+            "边界条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "effective_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "有效液相饱和度"
+          ]
+        },
+        {
+          "id": "gas_phase_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "气相压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "two_phase_porous_flow",
+        "isothermal"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/two-phase-flow/",
+            "scope": "Two-phase Flow 的该项能力或公开基准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "McWhorter 毛细驱替基准，比较饱和度曲线并核对两相质量平衡。",
+      "couplings": [
+        {
+          "from_field": "气相渗流",
+          "to_field": "液相渗流",
+          "quantity": "gas_phase_pressure",
+          "unit": "Pa",
+          "transfer": "经毛细压差与饱和度闭合，双向求解",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        },
+        {
+          "from_field": "液相渗流",
+          "to_field": "气相渗流",
+          "quantity": "effective_liquid_saturation",
+          "unit": "1",
+          "transfer": "饱和度经相对渗透率影响气相迁移率，双向",
+          "implementation": "native",
+          "custom_work": "配置材料关系和区域，内置过程无需另写映射器。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.python_boundary_callback",
+      "module": "Python Boundary Conditions",
+      "scope": "配置与自研接口。Python 回调接收时间、坐标、当前主变量，按点返回激活状态及 Dirichlet 值或 Neumann 通量。解依赖的 Neumann 条件可返回按主变量顺序排列的导数。",
+      "inputs": [
+        {
+          "id": "ogs_boundary_python_script",
+          "unit": "Python source",
+          "aliases": [
+            "边界回调脚本"
+          ]
+        },
+        {
+          "id": "boundary_coordinates",
+          "unit": "m",
+          "aliases": [
+            "边界求值坐标"
+          ]
+        },
+        {
+          "id": "time",
+          "unit": "s",
+          "aliases": [
+            "回调时刻"
+          ]
+        },
+        {
+          "id": "boundary_primary_variables",
+          "unit": "process-dependent",
+          "aliases": [
+            "边界主变量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "boundary_value",
+          "unit": "process-dependent",
+          "aliases": [
+            "指定值边界"
+          ]
+        },
+        {
+          "id": "boundary_normal_flux",
+          "unit": "process-dependent",
+          "aliases": [
+            "指定通量边界"
+          ]
+        },
+        {
+          "id": "boundary_flux_jacobian",
+          "unit": "flux unit / primary variable unit",
+          "aliases": [
+            "通量对各主变量的导数"
+          ]
+        }
+      ],
+      "conditions": [
+        "python_enabled_ogs_build",
+        "registered_boundary_callback",
+        "compatible_flux_sign_convention"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/python-bc/laplace-equation/",
+            "scope": "二维制造解验证 Dirichlet 与 Neumann 回调"
+          },
+          {
+            "source": "https://doxygen.opengeosys.org/6.5.6/d7/d6b/PythonBoundaryConditionPythonSideInterface_8h_source.html",
+            "scope": "getDirichletBCValue 和 getFlux 的 6.5.6 签名"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "复算制造解，逐边核对激活条件、法向和通量符号，再用中心差分验证解依赖通量的导数顺序。"
+    },
+    {
+      "id": "opengeosys.python_elastic_piston_gas_feedback",
+      "module": "Python Boundary Conditions",
+      "scope": "自研边界闭式。密封等温理想气体腔以弹性活塞下表面局部轴向位移计算气压，再将气压作为同一表面的法向牵引及导数回写到力学方程。官方测试忽略活塞壁摩擦。 该示例以各积分点的局部位移分别代入等温压力闭式，通用非均匀变形气腔需另建全界面体积积分。",
+      "inputs": [
+        {
+          "id": "axial_displacement",
+          "unit": "m",
+          "aliases": [
+            "活塞顶面规定的轴向位移"
+          ]
+        },
+        {
+          "id": "gas_initial_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "腔体初始绝对气压"
+          ]
+        },
+        {
+          "id": "chamber_initial_height",
+          "unit": "m",
+          "aliases": [
+            "腔体初始高度"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "活塞弹性模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "活塞泊松比"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "chamber_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "理想气体腔压"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "活塞位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "活塞应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "python_enabled_ogs_build",
+        "sealed_ideal_gas_chamber",
+        "small_deformation_elastic_piston",
+        "frictionless_wall",
+        "isothermal_gas_compression"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/python-bc/piston/",
+            "scope": "弹性活塞官方算例、应力与压力体积曲线比较"
+          },
+          {
+            "source": "https://gitlab.opengeosys.org/ogs/ogs/-/blob/6.5.6/Tests/Data/Mechanics/Linear/PythonPiston/piston_bc.py",
+            "scope": "BC_Y.getFlux：下表面局部主变量 uy、气压与 Jacobian"
+          },
+          {
+            "source": "https://gitlab.opengeosys.org/ogs/ogs/-/blob/6.5.6/Tests/Data/Mechanics/Linear/PythonPiston/chamber.py",
+            "scope": "等温压力体积关系 pV=p0V0 与轴向位移导数"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "改变规定顶面位移，比较腔体压缩解析曲线、下表面牵引和活塞轴向应力；单独用差分检查边界导数。",
+      "couplings": [
+        {
+          "from_field": "structural_mechanics",
+          "to_field": "gas_chamber_pressure_law",
+          "quantity": "axial_displacement",
+          "unit": "m",
+          "transfer": "下表面积分点处 getFlux 从 primary_vars 取 uy",
+          "implementation": "custom",
+          "custom_work": "按容器和变形假设编写体积或高度关系并校验有效范围。"
+        },
+        {
+          "from_field": "gas_chamber_pressure_law",
+          "to_field": "structural_mechanics",
+          "quantity": "chamber_pressure",
+          "unit": "Pa",
+          "transfer": "getFlux 施加法向牵引，并返回压力对位移的导数",
+          "implementation": "custom",
+          "custom_work": "提供压力闭式，核对牵引方向并通过差分验证边界 Jacobian。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.python_elder_density_transport",
+      "module": "Python Boundary Conditions",
+      "scope": "原生 ComponentTransport 配合自研边界选择。饱和重力渗流中浓度改变水相密度，达西速度对溶质作平流输运。Python 负责按坐标激活浓度及压力 Dirichlet 边界。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "固有渗透率"
+          ]
+        },
+        {
+          "id": "pore_diffusivity",
+          "unit": "m^2/s",
+          "aliases": [
+            "孔隙扩散系数"
+          ]
+        },
+        {
+          "id": "liquid_density_concentration_law",
+          "unit": "kg/m^3 vs fraction",
+          "aliases": [
+            "液体密度浓度关系"
+          ]
+        },
+        {
+          "id": "solute_boundary_fraction",
+          "unit": "1",
+          "aliases": [
+            "所选边界的浓度分数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "饱和孔隙压力"
+          ]
+        },
+        {
+          "id": "solute_fraction",
+          "unit": "1",
+          "aliases": [
+            "无量纲溶质浓度"
+          ]
+        },
+        {
+          "id": "darcy_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "达西速度"
+          ]
+        }
+      ],
+      "conditions": [
+        "python_enabled_ogs_build",
+        "saturated_porous_medium",
+        "buoyancy_driven_transport",
+        "linear_density_concentration_law"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/python-bc/elder/",
+            "scope": "官方 Python 边界验证及原始 Elder 例关联"
+          },
+          {
+            "source": "https://gitlab.opengeosys.org/ogs/ogs/-/blob/6.5.6/Tests/Data/Parabolic/ComponentTransport/elder/elder-python.prj",
+            "scope": "ComponentTransport、浓度相关 AqueousLiquid 密度及 darcy_velocity 输出"
+          },
+          {
+            "source": "https://gitlab.opengeosys.org/ogs/ogs/-/blob/6.5.6/Tests/Data/Parabolic/ComponentTransport/elder/elder-python-bcs.py",
+            "scope": "分别选择压力和浓度 Dirichlet 约束位置"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在相同网格与时步下与常规边界 Elder 工程对照浓度剖面、压力与达西速度，再检查溶质质量收支。",
+      "couplings": [
+        {
+          "from_field": "species_transport",
+          "to_field": "saturated_pore_flow",
+          "quantity": "liquid_density",
+          "unit": "kg/m^3",
+          "transfer": "同网格浓度进入水相密度材料关系并参与重力项",
+          "implementation": "native",
+          "custom_work": "配置浓度基准、密度斜率、重力和边界选区。"
+        },
+        {
+          "from_field": "saturated_pore_flow",
+          "to_field": "species_transport",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "同一 ComponentTransport 过程内达西速度进入溶质平流",
+          "implementation": "native",
+          "custom_work": "核对速度定义、孔隙率及入口与出口的溶质通量。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.python_hertz_contact_boundary",
+      "module": "Python Boundary Conditions",
+      "scope": "自研接触边界。对称光滑同半径弹性球的官方算例由 Python 迭代选择活动边界并给定竖向位移，比较 Hertz 接触半径和总力，压力误差单独考核。 对称半模型使用两球中心相向总位移的一半作为规定边界位移。",
+      "inputs": [
+        {
+          "id": "sphere_radius",
+          "unit": "m",
+          "aliases": [
+            "球半径"
+          ]
+        },
+        {
+          "id": "youngs_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "弹性模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "sphere_approach",
+          "unit": "m",
+          "aliases": [
+            "球心相向位移"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "contact_patch_radius",
+          "unit": "m",
+          "aliases": [
+            "Hertz 接触半径"
+          ]
+        },
+        {
+          "id": "normal_contact_force",
+          "unit": "N",
+          "aliases": [
+            "总法向接触力"
+          ]
+        },
+        {
+          "id": "contact_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "接触压力"
+          ]
+        }
+      ],
+      "conditions": [
+        "python_enabled_ogs_build",
+        "symmetric_frictionless_spheres",
+        "small_strain",
+        "problem_specific_contact_boundary"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/python-bc/hertz-contact/",
+            "scope": "官方迭代 Python 接触边界、压强偏差及网格解释"
+          },
+          {
+            "source": "https://gitlab.opengeosys.org/ogs/ogs/-/blob/6.5.6/Tests/Data/Mechanics/Linear/PythonHertzContact/hertz_contact.prj",
+            "scope": "官方 Hertz 边界案例工程"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较半径平方根律与总力随半径的立方律；加密接触区并独立检查压强和面积积分。"
+    },
+    {
+      "id": "opengeosys.hydraulic_phase_field_fracture",
+      "module": "HM_PHASE_FIELD / staggered",
+      "scope": "以压力场、位移场和无量纲相场变量描述多孔介质水力断裂。流体压力改变有效应力，位移与相场损伤改变骨架响应和裂缝输运，三个场通过同一 OGS 项目的交错耦合迭代交换。限定该进程的小变形、指定相场模型和裂缝导流设置。商业工程模型仍需工况编排、裂缝开度/渗透率闭合及网格收敛验收。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "基质渗透率"
+          ]
+        },
+        {
+          "id": "fluid_dynamic_viscosity",
+          "unit": "Pa s",
+          "aliases": [
+            "流体动力黏度"
+          ]
+        },
+        {
+          "id": "fracture_toughness_energy",
+          "unit": "J/m^2",
+          "aliases": [
+            "断裂能"
+          ]
+        },
+        {
+          "id": "phase_field_length",
+          "unit": "m",
+          "aliases": [
+            "相场特征长度"
+          ]
+        },
+        {
+          "id": "hydraulic_boundary_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "注入或边界压力"
+          ]
+        },
+        {
+          "id": "solid_boundary_traction",
+          "unit": "Pa",
+          "aliases": [
+            "固体边界牵引"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "流体压力场"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "骨架位移场"
+          ]
+        },
+        {
+          "id": "phase_field",
+          "unit": "1",
+          "aliases": [
+            "裂缝相场变量"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_hm_phase_field_process",
+        "staggered_coupling",
+        "specified_fracture_model",
+        "specified_hydraulic_closure"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/CreateHMPhaseFieldProcess.cpp",
+            "scope": "HM_PHASE_FIELD factory, named fields and staggered scheme"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/Data/HMPhaseField/KGD/KGD.prj",
+            "scope": "固定版本 KGD 耦合配置"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L166",
+            "scope": "积分点的 Biot 孔压进入骨架动量平衡。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L411",
+            "scope": "在相场子步读取拉伸应变能，组装损伤驱动力。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L315",
+            "scope": "在满足裂纹增强条件时，相场与裂纹宽度共同调整渗透张量。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L112",
+            "scope": "将积分点相场变为退化函数，更新骨架本构响应。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L418",
+            "scope": "压力平方项与拉伸应变能共同构成相场驱动力。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/HMPhaseFieldFEM-impl.h#L308",
+            "scope": "将位移梯度导出的体积应变率按 Biot 系数计入流体质量残差。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用 KGD 基准核对裂缝长度、压力和位移随时间的响应。减小相场长度与网格尺寸并比较反应，核对流体质量余额。",
+      "couplings": [
+        {
+          "from_field": "液相渗流",
+          "to_field": "固体力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "积分点的 Biot 孔压进入骨架动量平衡。",
+          "implementation": "native",
+          "custom_work": "校准 Biot 参数和压力基准，核对有效应力符号。"
+        },
+        {
+          "from_field": "液相渗流",
+          "to_field": "裂纹相场",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "压力平方项与拉伸应变能共同构成相场驱动力。",
+          "implementation": "native",
+          "custom_work": "校核压力尺度、能量分裂、交错步收敛和裂纹演化。"
+        },
+        {
+          "from_field": "固体力学",
+          "to_field": "液相渗流",
+          "quantity": "volumetric_strain_rate",
+          "unit": "1/s",
+          "transfer": "将位移梯度导出的体积应变率按 Biot 系数计入流体质量残差。",
+          "implementation": "native",
+          "custom_work": "确认位移时间层及应变符号，核对孔隙储量。"
+        },
+        {
+          "from_field": "固体力学",
+          "to_field": "裂纹相场",
+          "quantity": "tensile_strain_energy_density",
+          "unit": "J/m^3",
+          "transfer": "在相场子步读取拉伸应变能，组装损伤驱动力。",
+          "implementation": "native",
+          "custom_work": "选择能量分裂方法、断裂能和相场长度，验证网格收敛。"
+        },
+        {
+          "from_field": "裂纹相场",
+          "to_field": "流体渗流",
+          "quantity": "phase_field",
+          "unit": "1",
+          "transfer": "在满足裂纹增强条件时，相场与裂纹宽度共同调整渗透张量。",
+          "implementation": "native",
+          "custom_work": "定义并标定渗透率增强闭合，检查交错迭代和注入质量平衡。"
+        },
+        {
+          "from_field": "裂纹相场",
+          "to_field": "固体力学",
+          "quantity": "phase_field",
+          "unit": "1",
+          "transfer": "将积分点相场变为退化函数，更新骨架本构响应。",
+          "implementation": "native",
+          "custom_work": "校核刚度退化、残余刚度和力学边界。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.nonisothermal_richards_flow",
+      "module": "THERMO_RICHARDS_FLOW / monolithic",
+      "scope": "非饱和多孔介质液相压力-温度双场求解。压力和含水状态控制液相运动及对流热输运，温度通过所选材料关系影响流体性质。固定版将温度与压力组装进同一次隐式求解。本卡限定无骨架力学的整体式配置；材料闭合、时间步与边界读回需项目验证。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "基质渗透率"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)",
+          "aliases": [
+            "等效导热系数"
+          ]
+        },
+        {
+          "id": "hydraulic_boundary_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "水力边界压力"
+          ]
+        },
+        {
+          "id": "boundary_temperature",
+          "unit": "K",
+          "aliases": [
+            "边界温度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "液相压力场"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度场"
+          ]
+        },
+        {
+          "id": "saturation",
+          "unit": "1",
+          "aliases": [
+            "液相饱和度"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_thermo_richards_flow",
+        "monolithic_coupling",
+        "unsaturated_porous_material"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/ThermoRichardsFlow/CreateThermoRichardsFlowProcess.cpp",
+            "scope": "固定版本采用温度和压力主变量，整体式耦合"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/ThermoRichardsFlow/ThermoRichardsFlowFEM-impl.h#L491",
+            "scope": "积分点从液相压力梯度及所选材料系数计算液相达西速度，进入能量对流项。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/ThermoRichardsFlow/ThermoRichardsFlowFEM-impl.h#L257",
+            "scope": "积分点温度送入材料模型，压力方程含热膨胀贡献。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用非等温入渗柱检查质量和能量收支，对比等温 Richards 限制工况并逐级缩小时间步。",
+      "couplings": [
+        {
+          "from_field": "非饱和渗流",
+          "to_field": "多孔介质传热",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "积分点从液相压力梯度及所选材料系数计算液相达西速度，进入能量对流项。",
+          "implementation": "native",
+          "custom_work": "提供保水和相对渗透率曲线，核对液体通量及带入热量。"
+        },
+        {
+          "from_field": "多孔介质传热",
+          "to_field": "非饱和渗流",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "积分点温度送入材料模型，压力方程含热膨胀贡献。",
+          "implementation": "native",
+          "custom_work": "指定温度相关材料和适用温区，检验关闭热反馈时的等温极限。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.unsaturated_solute_advection_dispersion",
+      "module": "RichardsComponentTransport / monolithic",
+      "scope": "非饱和多孔介质浓度和液相压力联合求解。压力驱动 Darcy 输运，饱和度影响水相储存，流动与纵横向弥散共同输运溶质。固定版两个主场同一求解步组装；交错配置明确未实现。项目仍需选择浓度单位、保水曲线及扩散/弥散闭合。",
+      "inputs": [
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "基质渗透率"
+          ]
+        },
+        {
+          "id": "longitudinal_dispersivity",
+          "unit": "m",
+          "aliases": [
+            "纵向弥散度"
+          ]
+        },
+        {
+          "id": "transverse_dispersivity",
+          "unit": "m",
+          "aliases": [
+            "横向弥散度"
+          ]
+        },
+        {
+          "id": "solute_boundary_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "入口溶质浓度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "液相压力场"
+          ]
+        },
+        {
+          "id": "solute_concentration",
+          "unit": "mol/m^3",
+          "aliases": [
+            "溶质浓度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_richards_component_transport",
+        "monolithic_coupling",
+        "consistent_molar_concentration_basis"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/RichardsComponentTransport/CreateRichardsComponentTransportProcess.cpp",
+            "scope": "固定版本采用浓度和压力主变量，交错方案未实现"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/RichardsComponentTransport/RichardsComponentTransportFEM-impl.h#L189",
+            "scope": "按压力和相对渗透率算出的速度参与溶质平流和机械弥散张量组装。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/RichardsComponentTransport/RichardsComponentTransportFEM-impl.h#L125",
+            "scope": "根据毛细压力计算饱和度，带入含水储量与输运系数。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/RichardsComponentTransport/RichardsComponentTransportFEM-impl.h#L136",
+            "scope": "示例单位约定为摩尔体积浓度，积分点浓度传入材料状态；采用浓度相关密度或黏度时产生流动反馈。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用饱和极限的平流扩散对照和非饱和入渗脉冲校核浓度前沿，核对溶质质量平衡。",
+      "couplings": [
+        {
+          "from_field": "非饱和渗流",
+          "to_field": "溶质输运",
+          "quantity": "darcy_velocity",
+          "unit": "m/s",
+          "transfer": "按压力和相对渗透率算出的速度参与溶质平流和机械弥散张量组装。",
+          "implementation": "native",
+          "custom_work": "指定纵横向弥散度、参考浓度和边界通量并做质量核算。"
+        },
+        {
+          "from_field": "孔隙持水状态",
+          "to_field": "溶质输运",
+          "quantity": "liquid_saturation",
+          "unit": "1",
+          "transfer": "根据毛细压力计算饱和度，带入含水储量与输运系数。",
+          "implementation": "native",
+          "custom_work": "校核非饱和储量和孔隙率定义。"
+        },
+        {
+          "from_field": "溶质输运",
+          "to_field": "液相物性与渗流",
+          "quantity": "solute_concentration",
+          "unit": "mol/m^3",
+          "transfer": "示例单位约定为摩尔体积浓度，积分点浓度传入材料状态；采用浓度相关密度或黏度时产生流动反馈。",
+          "implementation": "native",
+          "custom_work": "工程端需提供相同浓度基准下的物性关系；常物性时此反馈不生效。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.lie_hydromechanical_fracture",
+      "module": "HYDRO_MECHANICS_WITH_LIE",
+      "scope": "已有裂缝用低维界面单元表征。注入引起孔压升高并改变弹性骨架与裂缝法向变形，开度变化反馈到裂缝导流。该基准在同一计算域求解含预置裂缝的 Darcy 流和小变形，限定线弹性与已知裂缝拓扑。网格标记、初始开度、压力载荷和界面闭合需要案例明确。",
+      "inputs": [
+        {
+          "id": "fluid_injection_rate",
+          "unit": "m^3/s",
+          "aliases": [
+            "注入体积流量"
+          ]
+        },
+        {
+          "id": "intrinsic_permeability",
+          "unit": "m^2",
+          "aliases": [
+            "基质渗透率"
+          ]
+        },
+        {
+          "id": "initial_fracture_aperture",
+          "unit": "m",
+          "aliases": [
+            "裂缝初始开度"
+          ]
+        },
+        {
+          "id": "elastic_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "骨架弹性模量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "pore_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "孔隙压力场"
+          ]
+        },
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "骨架位移"
+          ]
+        },
+        {
+          "id": "fracture_aperture",
+          "unit": "m",
+          "aliases": [
+            "裂缝开度"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_lie_interface_elements",
+        "pre_existing_fracture",
+        "small_deformation",
+        "elastic_matrix",
+        "darcy_flow"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/benchmarks/hydro-mechanics/lie-hm-linear-single-fracture/index.md",
+            "scope": "固定版本单裂缝注入基准及开度响应"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/Data/LIE/HydroMechanics/single_fracture.prj",
+            "scope": "固定版本可读项目输入"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/LIE/HydroMechanics/LocalAssembler/HydroMechanicsLocalAssemblerFracture-impl.h#L301",
+            "scope": "在同一局部组装中，裂隙压力按 Biot 系数进入位移跳跃方程。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/LIE/HydroMechanics/LocalAssembler/HydroMechanicsLocalAssemblerFracture-impl.h#L272",
+            "scope": "初始开度加法向位移跳跃并截断负值；开度进入渗透率、储量和导流组装。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照固定版 500 s 孔压与裂缝开度图，并区分单元场和插值显示。核对体积收支及网格敏感性。",
+      "couplings": [
+        {
+          "from_field": "裂隙渗流",
+          "to_field": "裂隙界面力学",
+          "quantity": "pore_pressure",
+          "unit": "Pa",
+          "transfer": "在同一局部组装中，裂隙压力按 Biot 系数进入位移跳跃方程。",
+          "implementation": "native",
+          "custom_work": "提供裂隙材料标记、初始应力、法向约定及压力基准。"
+        },
+        {
+          "from_field": "裂隙界面力学",
+          "to_field": "裂隙渗流",
+          "quantity": "fracture_aperture",
+          "unit": "m",
+          "transfer": "初始开度加法向位移跳跃并截断负值；开度进入渗透率、储量和导流组装。",
+          "implementation": "native",
+          "custom_work": "指定开度与渗透率关系，核对裂隙闭合和注入量。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.lie_elastic_fracture_slip",
+      "module": "SMALL_DEFORMATION_WITH_LIE",
+      "scope": "通过低维界面单元模拟已有裂缝上的位移跳跃。外部机械载荷改变体位移和裂缝滑移，裂缝界面模型在同一小应变力学求解步内提供牵引。单裂缝基准采用弹性体，无孔压或渗流耦合输入。",
+      "inputs": [
+        {
+          "id": "elastic_modulus",
+          "unit": "Pa",
+          "aliases": [
+            "弹性模量"
+          ]
+        },
+        {
+          "id": "poisson_ratio",
+          "unit": "1",
+          "aliases": [
+            "泊松比"
+          ]
+        },
+        {
+          "id": "boundary_traction",
+          "unit": "Pa",
+          "aliases": [
+            "边界牵引"
+          ]
+        },
+        {
+          "id": "initial_fracture_aperture",
+          "unit": "m",
+          "aliases": [
+            "裂缝初始开度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "体位移"
+          ]
+        },
+        {
+          "id": "displacement_jump",
+          "unit": "m",
+          "aliases": [
+            "界面位移跳跃"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_lie_interface_elements",
+        "pre_existing_fracture",
+        "small_deformation",
+        "elastic_matrix"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/benchmarks/small-deformations/lie-m-linear-single-fracture/index.md",
+            "scope": "固定版本已有单裂缝小变形滑移基准"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照固定版界面的沿裂缝滑移方向、位移跳跃与反力平衡。"
+    },
+    {
+      "id": "opengeosys.wellbore_pressure_enthalpy_flow",
+      "module": "WELLBORE_SIMULATOR",
+      "scope": "在离散井筒上解压力、速度和比焓，并用配置的水/蒸汽热物性输出温度和相质量流率。以固定版单相 Newton 输入为锚点。井筒参考状态、参考地层压力温度和井筒几何用于同一过程组装。动态地层模型交换及多相工况验收需要另行实现。",
+      "inputs": [
+        {
+          "id": "reference_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "井筒参考压力"
+          ]
+        },
+        {
+          "id": "reference_enthalpy",
+          "unit": "J/kg",
+          "aliases": [
+            "井筒参考比焓"
+          ]
+        },
+        {
+          "id": "reservoir_temperature",
+          "unit": "K",
+          "aliases": [
+            "地层参考温度"
+          ]
+        },
+        {
+          "id": "reservoir_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "地层参考压力"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "fluid_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "井内压力"
+          ]
+        },
+        {
+          "id": "fluid_velocity",
+          "unit": "m/s",
+          "aliases": [
+            "井内速度"
+          ]
+        },
+        {
+          "id": "fluid_specific_enthalpy",
+          "unit": "J/kg",
+          "aliases": [
+            "井内比焓"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "井内温度"
+          ]
+        },
+        {
+          "id": "liquid_mass_flow_rate",
+          "unit": "kg/s",
+          "aliases": [
+            "液相质量流率"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_wellbore_simulator",
+        "single_phase_validation_case",
+        "prescribed_reservoir_reference",
+        "configured_fluid_materials"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/Data/WellboreSimulator/1Phase_wellbore_small_newton.prj",
+            "scope": "固定版本压力、速度、比焓和温度输出"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/WellboreSimulator/CreateWellboreSimulatorProcess.cpp",
+            "scope": "固定版本井筒过程工厂"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/WellboreSimulator/WellboreSimulatorFEM-impl.h#L153",
+            "scope": "在井筒积分点将压力与比焓共同传入相态和热物性求值。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/WellboreSimulator/WellboreSimulatorFEM-impl.h#L154",
+            "scope": "积分点比焓与压力一起用于确定温度和相态。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/WellboreSimulator/WellboreSimulatorFEM-impl.h#L101",
+            "scope": "读取项目定义的地层温度参数，插值到井筒；该卡为已给地层条件。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/WellboreSimulator/WellboreSimulatorFEM-impl.h#L361",
+            "scope": "井筒压力与给定地层压力之差乘井产能指数进入质量交换项。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对照固定版单相井筒 Newton 基准检查沿深度的压力、温度和质量流率。核对边界功率与井段能量收支。",
+      "couplings": [
+        {
+          "from_field": "井筒流动",
+          "to_field": "水汽热物性",
+          "quantity": "fluid_pressure",
+          "unit": "Pa",
+          "transfer": "在井筒积分点将压力与比焓共同传入相态和热物性求值。",
+          "implementation": "native",
+          "custom_work": "提供一致的热力学参考状态及有效压力范围。"
+        },
+        {
+          "from_field": "井筒能量",
+          "to_field": "水汽热物性",
+          "quantity": "fluid_specific_enthalpy",
+          "unit": "J/kg",
+          "transfer": "积分点比焓与压力一起用于确定温度和相态。",
+          "implementation": "native",
+          "custom_work": "校核焓基准、边界能量通量与选定材料模型。"
+        },
+        {
+          "from_field": "给定地层条件",
+          "to_field": "井筒过程",
+          "quantity": "reservoir_temperature",
+          "unit": "K",
+          "transfer": "读取项目定义的地层温度参数，插值到井筒；该卡为已给地层条件。",
+          "implementation": "configured",
+          "custom_work": "动态地层求解器的双向温度和热流交换须另行开发。"
+        },
+        {
+          "from_field": "给定地层条件",
+          "to_field": "井筒质量方程",
+          "quantity": "reservoir_pressure",
+          "unit": "Pa",
+          "transfer": "井筒压力与给定地层压力之差乘井产能指数进入质量交换项。",
+          "implementation": "configured",
+          "custom_work": "需要标定井产能指数；动态地层压力反馈须另行开发。"
+        }
+      ]
+    },
+    {
+      "id": "opengeosys.van_genuchten_material_water_retention",
+      "module": "SaturationVanGenuchten",
+      "scope": "用 van Genuchten 保水关系把毛细压力转换为液相饱和度。参数包含两相残余饱和度、进气压力尺度及指数。同一步材料点计算可供 Richards 等压力驱动过程使用，实际曲线参数需要土样或介质数据校准。此处为常规 MPL 保水模型，未计入应变闭合。",
+      "inputs": [
+        {
+          "id": "capillary_pressure",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力"
+          ]
+        },
+        {
+          "id": "pore_pressure_scale",
+          "unit": "Pa",
+          "aliases": [
+            "毛细压力尺度"
+          ]
+        },
+        {
+          "id": "residual_liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "液相残余饱和度"
+          ]
+        },
+        {
+          "id": "residual_gas_saturation",
+          "unit": "1",
+          "aliases": [
+            "气相残余饱和度"
+          ]
+        },
+        {
+          "id": "saturation_exponent",
+          "unit": "1",
+          "aliases": [
+            "保水指数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "liquid_saturation",
+          "unit": "1",
+          "aliases": [
+            "液相饱和度"
+          ]
+        }
+      ],
+      "conditions": [
+        "ogs_material_property_library",
+        "van_genuchten_saturation",
+        "calibrated_retention_curve"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Documentation/ProjectFile/properties/property/SaturationVanGenuchten/c_SaturationVanGenuchten.md",
+            "scope": "固定版本 MPL 保水模型选择"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/MaterialLib/TestMPLSaturationVanGenuchten.cpp",
+            "scope": "固定版本 MPL 保水本构测试"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "扫毛细压力，核对端点、单调性与曲线导数，并统一压力符号。"
+    },
+    {
+      "id": "opengeosys.utility_g_m_s_h2_o_g_s",
+      "module": "Mesh preparation and inspection utilities / GMSH2OGS",
+      "scope": "将 Gmsh 2.1/MSH2 网格转换为 OGS VTU；可选排除线单元和按物理组生成边界网格，须核实材料编号和边界归属。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "input_mesh",
+          "unit": "Gmsh MSH2；坐标为显式长度单位",
+          "aliases": [
+            "Gmsh 输入网格"
+          ]
+        },
+        {
+          "id": "conversion_options",
+          "unit": "CLI -i/-o/-e/-b/-v；标签为整数",
+          "aliases": [
+            "转换与边界提取选项"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_converted_mesh",
+          "unit": "mesh",
+          "aliases": [
+            "VTU；坐标单位沿用输入",
+            "Gmsh 网格转 OGS结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "gmsh_2_1_msh2_input",
+        "check_material_ids_and_boundary_groups"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/fileio/GMSH2OGS/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/FileConverter/GMSH2OGS.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_extract_boundary",
+      "module": "Mesh preparation and inspection utilities / ExtractBoundary",
+      "scope": "从二维体网格提取边线、从三维体网格提取边界面；输出携带原网格节点、单元和面编号以供边界条件定位。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "bulk_mesh",
+          "unit": "VTU；坐标为显式长度单位",
+          "aliases": [
+            "体网格"
+          ]
+        },
+        {
+          "id": "options",
+          "unit": "CLI -i/-o；可选 ASCII 输出",
+          "aliases": [
+            "提取选项"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_boundary_mesh",
+          "unit": "boundary_mesh",
+          "aliases": [
+            "VTU；坐标单位沿用输入",
+            "提取体网格边界结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "correct_element_node_ordering",
+        "check_bulk_ids_and_normals"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/meshing-submeshes/extract-boundary/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/ExtractBoundary.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_extract_surface",
+      "module": "Mesh preparation and inspection utilities / ExtractSurface",
+      "scope": "根据给定法向及容许夹角提取网格表面，输出原网格节点、单元和面编号；默认法向为 (0,0,-1)。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "bulk_mesh",
+          "unit": "VTU；坐标为显式长度单位",
+          "aliases": [
+            "体网格"
+          ]
+        },
+        {
+          "id": "normal_and_angle",
+          "unit": "法向分量无量纲；夹角为度",
+          "aliases": [
+            "法向与夹角"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_directional_surface_mesh",
+          "unit": "surface_mesh",
+          "aliases": [
+            "VTU；坐标单位沿用输入",
+            "按方向提取网格表面结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "correct_element_node_ordering",
+        "verify_normal_orientation_and_angle"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/meshing-submeshes/extract-surface/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/ExtractSurface.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_add_element_quality",
+      "module": "Mesh preparation and inspection utilities / AddElementQuality",
+      "scope": "按选定质量指标在网格上添加逐单元数据；评价值含义取决于指标，不等于求解精度验收。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "VTU 或 MSH；坐标为显式长度单位",
+          "aliases": [
+            "输入网格"
+          ]
+        },
+        {
+          "id": "criterion",
+          "unit": "工具支持的质量指标名称",
+          "aliases": [
+            "质量指标"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_quality_annotated_mesh",
+          "unit": "quality_mesh",
+          "aliases": [
+            "VTU 或 MSH；值的单位依指标而定",
+            "计算网格单元质量结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "supported_quality_criterion",
+        "interpret_criterion_before_acceptance"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/model-preparation/add-element-quality/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/AddElementQuality.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_check_mesh",
+      "module": "Mesh preparation and inspection utilities / checkMesh",
+      "scope": "输出网格信息，可选择验证网格及打印属性；检查结果不能替代所有数值和物理验收。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "VTU 或 MSH；坐标为显式长度单位",
+          "aliases": [
+            "待检查网格"
+          ]
+        },
+        {
+          "id": "options",
+          "unit": "-v 验证；-p 打印属性",
+          "aliases": [
+            "检查选项"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_mesh_diagnostics",
+          "unit": "mesh_diagnostics",
+          "aliases": [
+            "文本日志；属性单位由源网格确定",
+            "检查网格与属性结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "interpret_diagnostics_and_solver_requirements"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/meshing/checkMesh/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/checkMesh.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_edit_material_i_d",
+      "module": "Mesh preparation and inspection utilities / editMaterialID",
+      "scope": "替换、压缩材料 ID，或按单元类型指定新编号；编号变化后须同步检查材料模型和边界映射。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "VTU 或 MSH；MaterialIDs 为整数",
+          "aliases": [
+            "输入材料网格"
+          ]
+        },
+        {
+          "id": "id_operation",
+          "unit": "-r/-c/-s 及 -m/-n/-e",
+          "aliases": [
+            "编号编辑规则"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_material_id_edited_mesh",
+          "unit": "edited_mesh",
+          "aliases": [
+            "VTU 或 MSH；MaterialIDs 为整数",
+            "编辑材料区域编号结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "confirm_id_remapping_and_material_model"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/preprocessing/EditMaterialID/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/editMaterialID.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_mesh_mapping",
+      "module": "Mesh preparation and inspection utilities / MeshMapping",
+      "scope": "用栅格、另一二维网格或指定高程调整二维网格节点高程；x、y 坐标保持不变，可选低通及缺失数据处理。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "VTU 或 MSH；坐标为显式长度单位",
+          "aliases": [
+            "二维输入网格"
+          ]
+        },
+        {
+          "id": "elevation_data",
+          "unit": "ASC/GRD/XYZ 栅格、VTU 网格或静态高程；与模型同一长度单位",
+          "aliases": [
+            "高程来源"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_elevation_mapped_mesh",
+          "unit": "mapped_mesh",
+          "aliases": [
+            "VTU；坐标单位沿用输入",
+            "二维网格高程映射结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "consistent_coordinate_system_and_elevation_unit",
+        "verify_uncovered_points_and_element_quality"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/preprocessing/MeshMapping/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/MeshMapping.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_integrate_boreholes_into_mesh",
+      "module": "Mesh preparation and inspection utilities / IntegrateBoreholesIntoMesh",
+      "scope": "将 GML 中井位与三维网格中匹配的节点连接为井线单元并分配材料 ID；未匹配或网格外的点会被忽略，可按高程或材料 ID 限制范围。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "bulk_mesh",
+          "unit": "VTU；坐标为显式长度单位",
+          "aliases": [
+            "三维网格"
+          ]
+        },
+        {
+          "id": "borehole_geometry",
+          "unit": "GML；坐标和高程与网格单位一致",
+          "aliases": [
+            "井线几何"
+          ]
+        },
+        {
+          "id": "limits",
+          "unit": "材料 ID 整数；高程为几何长度单位",
+          "aliases": [
+            "材料与高程范围"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_mesh_with_borehole_lines",
+          "unit": "well_mesh",
+          "aliases": [
+            "VTU；材料 ID 为整数",
+            "将井线并入网格结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "matching_xy_mesh_nodes_required",
+        "audit_ignored_points_and_new_material_ids"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/preprocessing/IntegrateBoreholesIntoMesh/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshGeoTools/IntegrateBoreholesIntoMesh.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_extract_materials",
+      "module": "Mesh preparation and inspection utilities / ExtractMaterials",
+      "scope": "根据 MaterialID 提取子网格；不指定 ID 时按现存材料 ID 分别生成网格。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "VTU；MaterialIDs 为整数",
+          "aliases": [
+            "输入网格"
+          ]
+        },
+        {
+          "id": "material_id",
+          "unit": "整数；可选",
+          "aliases": [
+            "目标材料编号"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_material_submesh",
+          "unit": "material_submesh",
+          "aliases": [
+            "VTU；坐标单位沿用输入",
+            "按材料编号提取子网格结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "verify_material_id_and_output_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/meshing-submeshes/ExtractMaterials/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/ExtractMaterials.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_identify_subdomains",
+      "module": "Mesh preparation and inspection utilities / identifySubdomains",
+      "scope": "为边界或子域网格建立或检查 bulk_node_ids、bulk_element_ids，以关联体网格上的边界条件和源项。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "bulk_and_submeshes",
+          "unit": "VTU；坐标为同一长度单位",
+          "aliases": [
+            "体网格与子网格"
+          ]
+        },
+        {
+          "id": "search_length",
+          "unit": "几何长度单位，非负",
+          "aliases": [
+            "节点匹配搜索长度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_bulk_id_mapped_submesh",
+          "unit": "mapped_submeshes",
+          "aliases": [
+            "VTU；节点和单元索引",
+            "建立子网格到体网格映射结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "consistent_coordinates_and_search_tolerance",
+        "check_mapping_completeness"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/meshing-submeshes/identifySubdomains/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshGeoTools/identifySubdomains.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_compute_node_areas_from_surface_mesh",
+      "module": "Mesh preparation and inspection utilities / ComputeNodeAreasFromSurfaceMesh",
+      "scope": "计算表面网格各节点的关联面积并输出文本及 CSV；默认用 bulk_node_ids 关联体网格，可用于边界项装配。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "surface_mesh",
+          "unit": "VTU；坐标为显式长度单位",
+          "aliases": [
+            "表面网格"
+          ]
+        },
+        {
+          "id": "id_property",
+          "unit": "属性名，默认 bulk_node_ids",
+          "aliases": [
+            "体网格节点编号属性"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_surface_nodal_areas",
+          "unit": "nodal_areas",
+          "aliases": [
+            "TXT/CSV；几何长度单位的平方",
+            "计算表面节点面积结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "surface_mesh_with_valid_bulk_node_ids",
+        "verify_area_sum_against_surface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/model-preparation/compute-node-areas-from-surface-mesh/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/ModelPreparation/ComputeNodeAreasFromSurfaceMesh.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_create_quadratic_mesh",
+      "module": "Mesh preparation and inspection utilities / createQuadraticMesh",
+      "scope": "将线性网格转换为二次阶网格，可选添加中心节点；改变单元阶次不自动证明曲面或网格质量。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "linear_mesh",
+          "unit": "VTU 或 MSH；坐标为显式长度单位",
+          "aliases": [
+            "线性网格"
+          ]
+        },
+        {
+          "id": "add_centre_node",
+          "unit": "布尔开关 -c",
+          "aliases": [
+            "添加中心节点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_quadratic_mesh",
+          "unit": "quadratic_mesh",
+          "aliases": [
+            "VTU 或 MSH；坐标单位沿用输入",
+            "生成二次网格结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "supported_element_types",
+        "check_element_quality_and_geometry"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/preprocessing/createQuadraticMesh/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/createQuadraticMesh.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    },
+    {
+      "id": "opengeosys.utility_convert_to_linear_mesh",
+      "module": "Mesh preparation and inspection utilities / convertToLinearMesh",
+      "scope": "移除高阶单元附加节点并写出线性网格；降阶可能改变曲面几何和结果解释。 本记录为 6.5.6 上游工具能力，不表示 NaviField 已集成、工具已安装或工程结果已验证。",
+      "inputs": [
+        {
+          "id": "higher_order_mesh",
+          "unit": "VTU 或 MSH；坐标为显式长度单位",
+          "aliases": [
+            "高阶网格"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "ogs_linear_mesh",
+          "unit": "linear_mesh",
+          "aliases": [
+            "VTU 或 MSH；坐标单位沿用输入",
+            "转换为线性网格结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "opengeosys_6_5_6_utility_available",
+        "verify_length_units_and_mesh_format",
+        "supported_element_types",
+        "check_geometry_change_after_order_reduction"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/tools/preprocessing/convertToLinearMesh/index.md",
+            "scope": "固定提交的用户工具文档。"
+          },
+          {
+            "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/MeshEdit/convertToLinearMesh.cpp",
+            "scope": "固定提交的工具入口和选项实现。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在小型已知输入上核对输出单元、属性、量纲和边界映射；此验证尚未执行。"
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "Heat Transport BHE",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/heat-transport-bhe/",
+      "records": [
+        "opengeosys.borehole_heat_exchanger"
+      ],
+      "gaps": [
+        "热泵功率曲线控制及多井管网尚未按控制类型和接口展开。"
+      ]
+    },
+    {
+      "module": "Heatconduction",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/heatconduction/",
+      "records": [
+        "opengeosys.heat_conduction"
+      ],
+      "gaps": [
+        "温变材料与各向异性尚未逐个核对版本基准。"
+      ]
+    },
+    {
+      "module": "Hydro Mechanics",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-mechanics/",
+      "records": [
+        "opengeosys.poroelastic_consolidation",
+        "opengeosys.lie_hydromechanical_fracture"
+      ],
+      "gaps": [
+        "已登记低维界面单裂缝线弹性 HM。多裂缝、交汇、其他开度—渗透率和界面闭合仍需独立登记。"
+      ]
+    },
+    {
+      "module": "Hydro-Component",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-component/",
+      "records": [
+        "opengeosys.hydro_component_transport"
+      ],
+      "gaps": [
+        "浓度依赖黏度、各向异性弥散及结合反应的适用组合需逐个核对。"
+      ]
+    },
+    {
+      "module": "Hydro-Thermal",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/hydro-thermal/",
+      "records": [
+        "opengeosys.porous_heat_advection"
+      ],
+      "gaps": [
+        "热弥散、非均质热容及密度反馈尚未独立拆条。"
+      ]
+    },
+    {
+      "module": "Large Deformations",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/large-deformations/",
+      "records": [
+        "opengeosys.large_deformation_solid"
+      ],
+      "gaps": [
+        "有限应变塑性、本构软件构建依赖及 F-bar 适用单元需独立核对。"
+      ]
+    },
+    {
+      "module": "Liquid Flow",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/liquid-flow/",
+      "records": [
+        "opengeosys.saturated_liquid_flow"
+      ],
+      "gaps": [
+        "井源汇及边界时程的解析样例尚未拆条。"
+      ]
+    },
+    {
+      "module": "Phase-Field",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/phase-field/",
+      "records": [
+        "opengeosys.phase_field_fracture"
+      ],
+      "gaps": [
+        "不同能量分裂、裂纹不可逆求解器与水力裂纹适用分支需分别核对。"
+      ]
+    },
+    {
+      "module": "Python Boundary Conditions",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/python-bc/",
+      "records": [
+        "opengeosys.python_boundary_callback",
+        "opengeosys.python_elastic_piston_gas_feedback",
+        "opengeosys.python_elder_density_transport",
+        "opengeosys.python_hertz_contact_boundary"
+      ],
+      "gaps": [
+        "目标平台 Python 回调构建、运行时解释器和并行行为仍待实测。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "目标平台 Python 回调构建、运行时解释器和并行行为仍待实测。",
+          "status": "insufficient_evidence",
+          "source": "https://doxygen.opengeosys.org/6.5.6/d7/d6b/PythonBoundaryConditionPythonSideInterface_8h_source.html",
+          "reason": "已核对回调参数和 Jacobian。构建是否提供 Python、依赖解释器和并行运行方式须按实际安装验证。"
+        }
+      ]
+    },
+    {
+      "module": "Reactive Transport",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/reactive-transport/",
+      "records": [
+        "opengeosys.reactive_solute_transport"
+      ],
+      "gaps": [
+        "矿物溶沉、表面络合、交换及裂隙相对渗透率更新依赖各自化学数据库与算例，尚未逐条定义。"
+      ]
+    },
+    {
+      "module": "Richards Flow",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/richards-flow/",
+      "records": [
+        "opengeosys.richards_unsaturated_flow",
+        "opengeosys.van_genuchten_material_water_retention"
+      ],
+      "gaps": [
+        "滞回保持曲线与地表径流耦合的版本适用条件待核对。"
+      ]
+    },
+    {
+      "module": "Richards Mechanics",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/richards-mechanics/",
+      "records": [
+        "opengeosys.unsaturated_poromechanics"
+      ],
+      "gaps": [
+        "不同吸力有效应力关系和非线性骨架本构尚未独立记录。"
+      ]
+    },
+    {
+      "module": "Small Deformations",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/small-deformations/",
+      "records": [
+        "opengeosys.small_deformation_solid",
+        "opengeosys.lie_elastic_fracture_slip"
+      ],
+      "gaps": [
+        "塑性与黏弹本构、B-bar 和 MFront 构建需按具体本构分别登记。"
+      ]
+    },
+    {
+      "module": "Steady State Diffusion",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/elliptic/",
+      "records": [
+        "opengeosys.steady_state_diffusion"
+      ],
+      "gaps": [
+        "各向异性与非均匀扩散系数的独立验证尚未展开。"
+      ]
+    },
+    {
+      "module": "TH2M",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/th2m/",
+      "records": [
+        "opengeosys.two_phase_heat_pipe"
+      ],
+      "gaps": [
+        "应变到渗透率、冷凝水汽多组分状态关系及总应力输出需为不同材料模型另建记录。"
+      ]
+    },
+    {
+      "module": "Thermal-Two-Phase Flow",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermal-two-phase-flow/",
+      "records": [
+        "opengeosys.thermal_two_phase_flow"
+      ],
+      "gaps": [
+        "不同组分相变状态关系和边界类型需逐案例核定。"
+      ]
+    },
+    {
+      "module": "Thermo-Hydro-Mechanics",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-hydro-mechanics/",
+      "records": [
+        "opengeosys.constrained_thermal_pressurization"
+      ],
+      "gaps": [
+        "有排水及自由膨胀的三场对流/热弹试验尚未拆条。"
+      ]
+    },
+    {
+      "module": "Thermo-Mechanics",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-mechanics/",
+      "records": [
+        "opengeosys.thermomechanical_solid"
+      ],
+      "gaps": [
+        "塑性耗散反馈热源和变温材料的版本适用组合尚未核实。"
+      ]
+    },
+    {
+      "module": "Thermo-Richards-Mechanics",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/thermo-richards-mechanics/",
+      "records": [
+        "opengeosys.nonisothermal_unsaturated_poromechanics"
+      ],
+      "gaps": [
+        "蒸发潜热、气相自由压力及盐效应的独立过程适用性需另核。"
+      ]
+    },
+    {
+      "module": "Two-phase Flow",
+      "source": "https://www.opengeosys.org/6.5.6/docs/benchmarks/two-phase-flow/",
+      "records": [
+        "opengeosys.isothermal_two_phase_darcy"
+      ],
+      "gaps": [
+        "压力–压力及压力–饱和度不同过程实现的版本选择条件需拆条。"
+      ]
+    },
+    {
+      "module": "Hydro-Mechanical Phase-Field",
+      "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HMPhaseField/CreateHMPhaseFieldProcess.cpp",
+      "records": [
+        "opengeosys.hydraulic_phase_field_fracture"
+      ],
+      "gaps": []
+    },
+    {
+      "module": "Thermo-Richards-Flow",
+      "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/ThermoRichardsFlow/CreateThermoRichardsFlowProcess.cpp",
+      "records": [
+        "opengeosys.nonisothermal_richards_flow"
+      ],
+      "gaps": []
+    },
+    {
+      "module": "Richards Component Transport",
+      "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/ProcessLib/RichardsComponentTransport/CreateRichardsComponentTransportProcess.cpp",
+      "records": [
+        "opengeosys.unsaturated_solute_advection_dispersion"
+      ],
+      "gaps": []
+    },
+    {
+      "module": "Wellbore Simulator",
+      "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/Data/WellboreSimulator/1Phase_wellbore_small_newton.prj",
+      "records": [
+        "opengeosys.wellbore_pressure_enthalpy_flow"
+      ],
+      "gaps": []
+    },
+    {
+      "module": "Mesh preparation and inspection utilities",
+      "source": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Applications/Utils/",
+      "records": [
+        "opengeosys.utility_g_m_s_h2_o_g_s",
+        "opengeosys.utility_extract_boundary",
+        "opengeosys.utility_extract_surface",
+        "opengeosys.utility_add_element_quality",
+        "opengeosys.utility_check_mesh",
+        "opengeosys.utility_edit_material_i_d",
+        "opengeosys.utility_mesh_mapping",
+        "opengeosys.utility_integrate_boreholes_into_mesh",
+        "opengeosys.utility_extract_materials",
+        "opengeosys.utility_identify_subdomains",
+        "opengeosys.utility_compute_node_areas_from_surface_mesh",
+        "opengeosys.utility_create_quadratic_mesh",
+        "opengeosys.utility_convert_to_linear_mesh"
+      ],
+      "gaps": [
+        "工具可执行文件的构建、安装和产品集成须分别验证。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "opengeosys.borehole_heat_exchanger",
+      "opengeosys.constrained_thermal_pressurization",
+      "opengeosys.heat_conduction",
+      "opengeosys.hydro_component_transport",
+      "opengeosys.isothermal_two_phase_darcy",
+      "opengeosys.large_deformation_solid",
+      "opengeosys.nonisothermal_unsaturated_poromechanics",
+      "opengeosys.phase_field_fracture",
+      "opengeosys.poroelastic_consolidation",
+      "opengeosys.porous_heat_advection",
+      "opengeosys.python_boundary_callback",
+      "opengeosys.python_elastic_piston_gas_feedback",
+      "opengeosys.python_elder_density_transport",
+      "opengeosys.python_hertz_contact_boundary",
+      "opengeosys.reactive_solute_transport",
+      "opengeosys.richards_unsaturated_flow",
+      "opengeosys.saturated_liquid_flow",
+      "opengeosys.small_deformation_solid",
+      "opengeosys.steady_state_diffusion",
+      "opengeosys.thermal_two_phase_flow",
+      "opengeosys.thermomechanical_solid",
+      "opengeosys.two_phase_heat_pipe",
+      "opengeosys.unsaturated_poromechanics"
+    ]
+  }
+}

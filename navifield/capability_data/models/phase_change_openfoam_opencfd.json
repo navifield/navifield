@@ -1,0 +1,642 @@
+{
+  "domain": "phase_change",
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "native",
+      "scope": "固定域内基于焓-多孔介质的熔化凝固。",
+      "custom_work": "需匹配热物性和能量、动量方程。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/fvOptions/sources/derived/solidificationMeltingSource/solidificationMeltingSource.H",
+          "locator": "src/fvOptions/sources/derived/solidificationMeltingSource/solidificationMeltingSource.H；33–56、60–115",
+          "claim": "发布版提供熔点、熔化潜热、热物性模式与焓-多孔源项；输出有 alpha1 液相率。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "native",
+      "scope": "解析工程流道但以分散 Euler–Euler 闭合描述泡群的壁面过冷核态沸腾。另有 Lee 经验体积蒸发闭合，不用于预测受热壁核态成核或热流分配。",
+      "custom_work": "按工质和壁面条件选成核、脱离和热分配。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C；约820–927；热流分配及相际质量/能量源",
+          "claim": "核态区按气泡面积分率、脱离直径/频率、汽相密度等生成 dmdt；含淬冷通量 qq 和潜热源 dmdt·L。AbyV 将界面面上源转换为体积源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/0.orig/alphat.liquid",
+          "locator": "tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/0.orig/alphat.liquid；45–74；相配置见 constant/phaseProperties:17、67–80",
+          "claim": "上游 wallBoiling 用 Lavieville/LemmertChawla/TolubinskiKostanchuk/Cole 四模型；热相变两流体系统例使用 T_sat(p) 表。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties",
+          "locator": "tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties；massTransferModel / (liquid to gas)",
+          "claim": "上游蒸发示例 C=100、Tactivate=366 K。仅作正系数配置证据，不能照搬到冷凝或当成验证。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "native",
+      "scope": "可解析纯液汽界面的固定 TSat 热阻凝结。未解析冷凝膜和非凝气场另需闭合；原包表面膜 standardPhaseChange 不能增加凝结膜质量。另有 Lee 体积温差松弛闭合，输出单元体积率，与界面热阻范围分开。",
+      "custom_work": "核对热阻、网格界面和质量热量平衡；未解析壁膜需自研/另选专用闭合。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interCondensatingEvaporatingFoam/temperaturePhaseChangeTwoPhaseMixtures/interfaceHeatResistance/interfaceHeatResistance.C",
+          "locator": "applications/solvers/multiphase/interCondensatingEvaporatingFoam/temperaturePhaseChangeTwoPhaseMixtures/interfaceHeatResistance/interfaceHeatResistance.C；66–96、243–274；updateInterface()",
+          "claim": "读取 R [W/(m²·K)] 与 spread，构造 VOF 界面面积密度；凝结/蒸发源分支为面积密度×R×相应过冷/过热温差÷潜热。输出 mDotc 体积源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/verificationAndValidation/multiphase/StefanProblem/setups.orig/interCondensatingEvaporatingFoam/constant/phaseChangeProperties",
+          "locator": "tutorials/verificationAndValidation/multiphase/StefanProblem/setups.orig/interCondensatingEvaporatingFoam/constant/phaseChangeProperties；17–24",
+          "claim": "StefanProblem 上游配置调用 interfaceHeatResistance、R=1e6、spread=3，属蒸发配置参考，不提供蒸汽冷凝器的实测精度背书。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/regionModels/surfaceFilmModels/submodels/thermo/phaseChangeModel/standardPhaseChange/standardPhaseChange.C",
+          "locator": "src/regionModels/surfaceFilmModels/submodels/thermo/phaseChangeModel/standardPhaseChange/standardPhaseChange.C；135–194；尤见189行",
+          "claim": "已有膜的蒸发或液膜沸点分支将 dMass 裁剪为非负去质量，不能当成气相向未解析壁膜的冷凝增长闭合。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C；构造函数；Kexp() 52–84；KSp()、KSu()",
+          "claim": "实现按 (from to to) 顺序读取源相，在浓度门限以上按归一温差给显式体积源，并为温度方程提供隐式分解。"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "solidificationMeltingSource",
+      "label": "焓-多孔介质熔化凝固",
+      "implementation": "native",
+      "capability_ids": [],
+      "mechanisms": [
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature",
+        "liquid_fraction"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ],
+        "time": [
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固相和液相热导率 [W/(m·K)]，必要时随温度给出。"
+        },
+        {
+          "key": "density",
+          "meaning": "材料密度 [kg/m³]，按闭合使用常值或相依属性。"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "固相和液相比热容 [J/(kg·K)]。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "melting_temperature",
+          "meaning": "相变温度 Tmelt [K]。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 [K] 或指定热流 [W/m²]，含绝热/冷却边界与材料接触设置。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]。"
+        }
+      ],
+      "outputs": [
+        "温度 [K]",
+        "液相率 alpha1 [0–1]"
+      ],
+      "assumptions": [
+        "在单一相变温度附近用迭代焓-多孔源描述固液转化；固相抑制动量，液相可流动。"
+      ],
+      "limitations": [
+        "此卡按 Tmelt 的单转变温度入库；糊状区跨宽温度或多成分相图需要另外核对闭合。",
+        "此源不代表液汽相变。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature",
+          "to_field": "liquid_fraction",
+          "quantity": "能量与液相率",
+          "transfer": "潜热焓校正",
+          "custom_work": "设置选定单元区与热物性入口。"
+        },
+        {
+          "from_field": "liquid_fraction",
+          "to_field": "momentum",
+          "quantity": "多孔阻力",
+          "transfer": "用糊状区动量源阻尼固区",
+          "custom_work": "如有熔体对流，核对浮力及阻尼敏感性。"
+        }
+      ],
+      "basis": "纯材料 PCM 加热/冷却，目标是固液转化与潜热缓冲时可用。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/fvOptions/sources/derived/solidificationMeltingSource/solidificationMeltingSource.H",
+          "locator": "src/fvOptions/sources/derived/solidificationMeltingSource/solidificationMeltingSource.H；33–56、60–115",
+          "claim": "发布版提供熔点、熔化潜热、热物性模式与焓-多孔源项；输出有 alpha1 液相率。"
+        }
+      ],
+      "correlations": [
+        "源项默认 Cu=1e5、q=0.01 用于动量阻尼；relax=0.9 用于液相率更新。不是材料通用的标定常数。"
+      ],
+      "custom_work": [
+        "按 thermoMode 提供热物性，配置 rhoRef 和热膨胀系数；如部件功能取决于熔体流动，复核浮力与 mushy 阻尼。"
+      ]
+    },
+    {
+      "id": "alphatWallBoilingWallFunction",
+      "label": "RPI 型过冷核态流动沸腾",
+      "implementation": "native",
+      "capability_ids": [],
+      "mechanisms": [
+        "boiling"
+      ],
+      "goals": [
+        "wall_heat_flux",
+        "phase_mass_transfer"
+      ],
+      "conditions": {
+        "geometry": [
+          "heated_channel"
+        ],
+        "regime": [
+          "subcooled_nucleate"
+        ],
+        "direction": [
+          "liquid_to_vapor"
+        ],
+        "wall_control": [
+          "prescribed_temperature"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液/汽密度 [kg/m³]、热导率 [W/(m·K)]、比热 [J/(kg·K)]、黏度 [Pa·s] 或运动黏度 [m²/s]，按求解器相定义和温压范围给出。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "针对所用工质与压力的 T_sat(p) [K,Pa]；若实现固定 TSat，提供代表该操作压力的温度并检查其近似。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "受热壁固定温度 [K]，按 patch 指定。其它边界按实际绝热、冷却或热接触条件设置。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量 [kg/s] 或速度 [m/s]、流体温度 [K]、操作压力 [Pa] 及出口条件。"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力向量 [m/s²]。"
+        },
+        {
+          "key": "surface_tension",
+          "meaning": "液汽表面张力 [N/m]，按相际配置和脱离闭合取值。"
+        },
+        {
+          "key": "boiling_closures",
+          "meaning": "指定成核点密度、气泡脱离直径及频率、热流分配模型和各系数。"
+        }
+      ],
+      "outputs": [
+        "壁上对流、淬冷和汽化热流密度 [W/m²]",
+        "壁面气相生成量 [kg/(m²·s)] 或邻壁体积源 [kg/(m³·s)]，以 A/V 换算"
+      ],
+      "assumptions": [
+        "体相液温低于 T_sat(p) 且壁面过热，气泡用 Euler–Euler 分散相表示，核态区有效。",
+        "能量源使用两相热力学焓差，T_sat 与局部压力一致。"
+      ],
+      "limitations": [
+        "仅确认核态壁热流分配和产汽，不将气泡表面逐个解析，也不自动保证 CHF、干涸和膜沸腾精度。",
+        "壁面产汽与汽泡随后在过冷液体中凝结是不同源；出口净含汽须同时配置并验证相际换热。",
+        "本入库路线遵从壁函数头文件的固定壁温模式。指定壁热流或直接 CHT 耦合需要独立实现依据与校验。"
+      ],
+      "couplings": [
+        {
+          "from_field": "heated_wall",
+          "to_field": "vapor_phase",
+          "quantity": "气相质量生成与潜热",
+          "transfer": "热流分配的蒸发份额进入相质量方程，潜热与能量方程互相一致",
+          "custom_work": "配对相名，检查 A/V 与质量正负号，做壁面热流和含汽率闭合。"
+        }
+      ],
+      "basis": "加热流道主体仍过冷、受热壁局部核态沸腾且要求产汽量时，选择热相变 Euler–Euler 中的该壁函数。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C；约820–927；热流分配及相际质量/能量源",
+          "claim": "核态区按气泡面积分率、脱离直径/频率、汽相密度等生成 dmdt；含淬冷通量 qq 和潜热源 dmdt·L。AbyV 将界面面上源转换为体积源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/0.orig/alphat.liquid",
+          "locator": "tutorials/multiphase/reactingTwoPhaseEulerFoam/RAS/wallBoiling/0.orig/alphat.liquid；45–74；相配置见 constant/phaseProperties:17、67–80",
+          "claim": "上游 wallBoiling 用 Lavieville/LemmertChawla/TolubinskiKostanchuk/Cole 四模型；热相变两流体系统例使用 T_sat(p) 表。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/nucleationSiteModels/LemmertChawla/LemmertChawla.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/nucleationSiteModels/LemmertChawla/LemmertChawla.C；60、73–80",
+          "claim": "Cn 默认1，按壁过热驱动成核点密度。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/departureDiameterModels/TolubinskiKostanchuk/TolubinskiKostanchuk.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/departureDiameterModels/TolubinskiKostanchuk/TolubinskiKostanchuk.C；61–89",
+          "claim": "dRef/dMax/dMin 的源码默认及基于过冷度的限幅。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/departureFrequencyModels/Cole/Cole.C",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/wallBoilingSubModels/departureFrequencyModels/Cole/Cole.C；77–100",
+          "claim": "按重力、脱离直径与两相密度计算脱离频率。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.H",
+          "locator": "src/phaseSystemModels/reactingEuler/multiphaseSystem/derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.H；33–43",
+          "claim": "原包头文件明确支持过冷核态等壁面状态，并限定采用固定壁温模式。"
+        }
+      ],
+      "correlations": [
+        "Lemmert–Chawla：N=Cn×9.922e5×[max((Tw−Tsat)/10 K,0)]^1.805，Cn 默认1；核对壁材料与活性成核。",
+        "Tolubinski–Kostanchuk：过冷度驱动脱离直径，dRef=0.0006 m、dMin=0.000001 m、dMax=0.0014 m 为本子模型默认。",
+        "Cole：脱离频率依赖重力、直径和液汽密度；教程选择 Lavieville、alphaCrit=0.2，教程值不等于通用默认。"
+      ],
+      "custom_work": [
+        "为实际工质、压力、壁面状态、过冷度和水力直径选定闭合；用壁温/热流及含汽量对照标定。"
+      ]
+    },
+    {
+      "id": "interfaceHeatResistance",
+      "label": "解析液汽界面热阻传质",
+      "implementation": "native",
+      "capability_ids": [],
+      "mechanisms": [
+        "condensation"
+      ],
+      "goals": [
+        "phase_mass_transfer"
+      ],
+      "conditions": {
+        "geometry": [
+          "resolved_interface"
+        ],
+        "regime": [
+          "saturated_interface"
+        ],
+        "direction": [
+          "vapor_to_liquid"
+        ],
+        "time": [
+          "transient"
+        ],
+        "gas_composition": [
+          "pure_vapor"
+        ],
+        "pressure_behavior": [
+          "near_constant"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液/汽密度 [kg/m³]、热导率 [W/(m·K)]、比热 [J/(kg·K)]、黏度 [Pa·s] 或运动黏度 [m²/s]，按求解器相定义和温压范围给出。"
+        },
+        {
+          "key": "saturation_relation",
+          "meaning": "针对所用工质与压力的 T_sat(p) [K,Pa]；若实现固定 TSat，提供代表该操作压力的温度并检查其近似。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 [K] 或指定热流 [W/m²]，含绝热/冷却边界与材料接触设置。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量 [kg/s] 或速度 [m/s]、流体温度 [K]、操作压力 [Pa] 及出口条件。"
+        },
+        {
+          "key": "initial_volume_fraction",
+          "meaning": "初始分相与体积分数 [0–1]，给液汽界面初始位置。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]。"
+        },
+        {
+          "key": "interface_heat_transfer_coefficient",
+          "meaning": "界面换热系数 R [W/(m²·K)]，按工质和界面热阻选定。单位面积界面热阻为 1/R。"
+        }
+      ],
+      "outputs": [
+        "mDotc 体积凝结源 [kg/(m³·s)]",
+        "由积分凝结源除以同口径下的界面面积得到面积平均凝结通量 [kg/(m²·s)]；局部非零界面面积单元可按 mDotc/aᵢ 回读"
+      ],
+      "assumptions": [
+        "interCondensatingEvaporatingFoam 路径：VOF 网格需解析连续液汽界面；采用两不可压相和固定 TSat。单组分水蒸气且压力变化足够小，可用给定压力的 T_sat。",
+        "潜热由相的形成焓差绝对值获得，确保与给定 L 对齐。"
+      ],
+      "limitations": [
+        "未解析冷凝壁膜、液滴群、凝结成核、非凝气扩散阻力及显著压力变化不在此卡范围。",
+        "温差过小且网格扩散过强时，界面面积误差、源项扩散和时间步可能控制结果。若输入明确要求非冷凝气或膜闭合，需另选模型。"
+      ],
+      "couplings": [
+        {
+          "from_field": "interface_temperature",
+          "to_field": "phase_mass_transfer",
+          "quantity": "潜热对应的界面面通量 [kg/(m²·s)]",
+          "transfer": "R·max(TSat−T,0)/L 与 VOF 界面面积密度相乘",
+          "custom_work": "做面积、体积积分与收支校验。"
+        }
+      ],
+      "basis": "当液汽界面可解析、纯蒸汽操作压力近似固定且关注凝结质量通量时，用原生界面热阻闭合。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/applications/solvers/multiphase/interCondensatingEvaporatingFoam/temperaturePhaseChangeTwoPhaseMixtures/interfaceHeatResistance/interfaceHeatResistance.C",
+          "locator": "applications/solvers/multiphase/interCondensatingEvaporatingFoam/temperaturePhaseChangeTwoPhaseMixtures/interfaceHeatResistance/interfaceHeatResistance.C；66–96、243–274；updateInterface()",
+          "claim": "读取 R [W/(m²·K)] 与 spread，构造 VOF 界面面积密度；凝结/蒸发源分支为面积密度×R×相应过冷/过热温差÷潜热。输出 mDotc 体积源。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/verificationAndValidation/multiphase/StefanProblem/setups.orig/interCondensatingEvaporatingFoam/constant/phaseChangeProperties",
+          "locator": "tutorials/verificationAndValidation/multiphase/StefanProblem/setups.orig/interCondensatingEvaporatingFoam/constant/phaseChangeProperties；17–24",
+          "claim": "StefanProblem 上游配置调用 interfaceHeatResistance、R=1e6、spread=3，属蒸发配置参考，不提供蒸汽冷凝器的实测精度背书。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H；29–84",
+          "claim": "Lee 是温差×源相密度×体积分数的经验体积率，C 必须提供，方向由符号/相序决定；不等同解析面积传质或壁膜/液滴闭合。"
+        }
+      ],
+      "correlations": [
+        "H–W 型展宽源：R 按界面热阻或对照数据标定，spread 控制展宽；Stefan 教程中的值只示例该工况。",
+        "非解析 Lee 体积率本质不同，经验系数不能用作本模型 R。"
+      ],
+      "custom_work": [
+        "从可追溯饱和关系给代表性 TSat、相焓基准与 R；对网格/时间步、积分面积和 spread 做敏感性比较。"
+      ]
+    },
+    {
+      "id": "LeeEvaporation",
+      "label": "Lee 体积松弛蒸发",
+      "implementation": "native",
+      "capability_ids": [],
+      "mechanisms": [
+        "evaporation",
+        "boiling"
+      ],
+      "goals": [
+        "phase_mass_transfer"
+      ],
+      "conditions": {
+        "geometry": [
+          "volumetric_two_phase"
+        ],
+        "regime": [
+          "temperature_relaxation"
+        ],
+        "direction": [
+          "liquid_to_vapor"
+        ],
+        "time": [
+          "transient"
+        ],
+        "pressure_behavior": [
+          "near_constant"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液/汽密度 [kg/m³]、热导率 [W/(m·K)]、比热 [J/(kg·K)]、黏度 [Pa·s] 或运动黏度 [m²/s]，按求解器相定义和温压范围给出。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 [K] 或指定热流 [W/m²]，含绝热/冷却边界与材料接触设置。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量 [kg/s] 或速度 [m/s]、流体温度 [K]、操作压力 [Pa] 及出口条件。"
+        },
+        {
+          "key": "initial_volume_fraction",
+          "meaning": "初始分相与体积分数 [0–1]，给液汽界面初始位置。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]。"
+        },
+        {
+          "key": "activation_temperature",
+          "meaning": "固定激活温度 Tactivate [K]，在近似固定操作压力下由饱和关系确定。"
+        },
+        {
+          "key": "relaxation_coefficient",
+          "meaning": "Lee C [s⁻¹]，分流向标定并检查网格及步长敏感性。"
+        }
+      ],
+      "outputs": [
+        "单元体积质量传递率 [kg/(m³·s)] 与积分质量率 [kg/s]"
+      ],
+      "assumptions": [
+        "采用固定 Tactivate 的近恒压工况，以相序、温差符号及源相分率决定体积质量源。"
+      ],
+      "limitations": [
+        "该闭合对网格、时间步、C 和相分率分布敏感。体积率没有内建界面面积换算；也未描述壁膜冷凝、液滴群、成核或壁热流分配。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature_source_phase_fraction",
+          "to_field": "phase_mass_transfer",
+          "quantity": "单元相际质量体积率 [kg/(m³·s)]",
+          "transfer": "由源相密度、体积分数和归一化温差的松弛源耦合相质量与潜热项",
+          "custom_work": "在兼容相系统内配置相序、焓差及一致的潜热，并检查全局质量与能量守恒。"
+        }
+      ],
+      "basis": "当允许用温差驱动的体积松弛率、只关心宏观相转化率，且有适用 C 的标定与网格敏感性结果时选用。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H；29–85",
+          "claim": "Lee 按相体积分数、源相密度与归一温差给质量率。C>0 激活过热路径，C<0 激活过冷路径。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C；构造函数；Kexp() 52–84；KSp()、KSu()",
+          "claim": "实现按 有序相对 顺序读取源相，在浓度门限以上按归一温差给显式体积源，并为温度方程提供隐式分解。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties",
+          "locator": "tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties；massTransferModel / (liquid to gas)",
+          "claim": "上游蒸发示例 C=100、Tactivate=366 K。仅作正系数配置证据，不能照搬到冷凝或当成验证。"
+        }
+      ],
+      "correlations": [
+        "本方向指定正 C。过热激活用 C>0 并将液相设为 from；过冷激活用 C<0 并将汽相设为 from。激活后的速率幅值为 |C|ρ_from α_from |T−Tactivate|/Tactivate。",
+        "源相体积分数先限幅至 [0,1]；仅在 α_from 超过 alphaMin 时激活，alphaMin 默认 0。"
+      ],
+      "custom_work": [
+        "用该流向的实验或参考结果标定 C；不从教程蒸发系数推断冷凝系数。另行核查相出现门限和网格/步长。"
+      ]
+    },
+    {
+      "id": "LeeCondensation",
+      "label": "Lee 体积松弛冷凝",
+      "implementation": "native",
+      "capability_ids": [],
+      "mechanisms": [
+        "condensation"
+      ],
+      "goals": [
+        "phase_mass_transfer"
+      ],
+      "conditions": {
+        "geometry": [
+          "volumetric_two_phase"
+        ],
+        "regime": [
+          "temperature_relaxation"
+        ],
+        "direction": [
+          "vapor_to_liquid"
+        ],
+        "time": [
+          "transient"
+        ],
+        "pressure_behavior": [
+          "near_constant"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "phase_properties",
+          "meaning": "液/汽密度 [kg/m³]、热导率 [W/(m·K)]、比热 [J/(kg·K)]、黏度 [Pa·s] 或运动黏度 [m²/s]，按求解器相定义和温压范围给出。"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变潜热 [J/kg]，正幅值，焓基准需一致。"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "壁温 [K] 或指定热流 [W/m²]，含绝热/冷却边界与材料接触设置。"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口流量 [kg/s] 或速度 [m/s]、流体温度 [K]、操作压力 [Pa] 及出口条件。"
+        },
+        {
+          "key": "initial_volume_fraction",
+          "meaning": "初始分相与体积分数 [0–1]，给液汽界面初始位置。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度场 [K]。"
+        },
+        {
+          "key": "activation_temperature",
+          "meaning": "固定激活温度 Tactivate [K]，在近似固定操作压力下由饱和关系确定。"
+        },
+        {
+          "key": "relaxation_coefficient",
+          "meaning": "Lee C [s⁻¹]，分流向标定并检查网格及步长敏感性。"
+        }
+      ],
+      "outputs": [
+        "单元体积质量传递率 [kg/(m³·s)] 与积分质量率 [kg/s]"
+      ],
+      "assumptions": [
+        "采用固定 Tactivate 的近恒压工况，以相序、温差符号及源相分率决定体积质量源。"
+      ],
+      "limitations": [
+        "该闭合对网格、时间步、C 和相分率分布敏感。体积率没有内建界面面积换算；也未描述壁膜冷凝、液滴群、成核或壁热流分配。"
+      ],
+      "couplings": [
+        {
+          "from_field": "temperature_source_phase_fraction",
+          "to_field": "phase_mass_transfer",
+          "quantity": "单元相际质量体积率 [kg/(m³·s)]",
+          "transfer": "由源相密度、体积分数和归一化温差的松弛源耦合相质量与潜热项",
+          "custom_work": "在兼容相系统内配置相序、焓差及一致的潜热，并检查全局质量与能量守恒。"
+        }
+      ],
+      "basis": "当允许用温差驱动的体积松弛率、只关心宏观相转化率，且有适用 C 的标定与网格敏感性结果时选用。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.H；29–85",
+          "claim": "Lee 按相体积分数、源相密度与归一温差给质量率。C>0 激活过热路径，C<0 激活过冷路径。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C",
+          "locator": "src/phaseSystemModels/multiphaseInter/phasesSystem/massTransferModels/Lee/Lee.C；构造函数；Kexp() 52–84；KSp()、KSu()",
+          "claim": "实现按 有序相对 顺序读取源相，在浓度门限以上按归一温差给显式体积源，并为温度方程提供隐式分解。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://gitlab.com/openfoam/core/openfoam/-/blob/OpenFOAM-v2606/tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties",
+          "locator": "tutorials/multiphase/icoReactingMultiphaseInterFoam/evaporationMultiComponent/constant/phaseProperties；massTransferModel / (liquid to gas)",
+          "claim": "上游蒸发示例 C=100、Tactivate=366 K。仅作正系数配置证据，不能照搬到冷凝或当成验证。"
+        }
+      ],
+      "correlations": [
+        "本方向指定负 C。过热激活用 C>0 并将液相设为 from；过冷激活用 C<0 并将汽相设为 from。激活后的速率幅值为 |C|ρ_from α_from |T−Tactivate|/Tactivate。",
+        "源相体积分数先限幅至 [0,1]；仅在 α_from 超过 alphaMin 时激活，alphaMin 默认 0。"
+      ],
+      "custom_work": [
+        "用该流向的实验或参考结果标定 C；不从教程蒸发系数推断冷凝系数。另行核查相出现门限和网格/步长。"
+      ]
+    }
+  ]
+}

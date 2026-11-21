@@ -1,0 +1,366 @@
+[
+  {
+    "solver": "calculix",
+    "version": "2.22",
+    "target": "pressure_drop",
+    "role": "configured",
+    "model": "CalculiX Hydraulic Networks：稳态不可压液体一维管网",
+    "applicability": "满管单相液体的一维节点–支路计算。用有方向的三节点网络元件组装，结点质量守恒、支路机械能方程含动压、标高、摩擦和局部损失。均匀直管可用版本内的 White–Colebrook 元件；流态、配件种类、正反向损失与泵曲线均按工况选择。",
+    "exclusions": "本卡限一维水力管网，不能外推到三维分离自由流、压缩气体网络、汽蚀、水击或多相。指定泵或不同标高时，节点静压差不能直接当不可逆损失。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "roughness",
+      "pressure_stations",
+      "flow_regime",
+      "local_loss_coefficients",
+      "gravity",
+      "pressure_boundary"
+    ],
+    "exchanges": [
+      {
+        "from": "hydraulic_network",
+        "to": "pressure_stations",
+        "quantity": "节点静压和支路质量流量",
+        "unit": "Pa; kg/s",
+        "method": "在相应网点读取 PN (*NODE PRINT) 或 PS (*NODE FILE)；质量流量按支路方向读 MF。"
+      },
+      {
+        "from": "pressure_stations",
+        "to": "pressure_drop",
+        "quantity": "静压差与机械能头损失",
+        "unit": "Pa; m",
+        "method": "静压取 p_up−p_down。水头 H=z+p/(ρg)+U²/(2g)；无泵时以 H_up−H_down 得损失，乘 ρg 得压力量纲。存在泵时单列扬程。"
+      }
+    ],
+    "rationale": "水力网络将内部流动按节点和元件降维；版本手册明确各元件压头损失与稳态网络动量方程，可以按通用管件数据直接配置。",
+    "custom_work": "从几何生成节点、支路截面/长度/直径与标高，给密度和黏度、指定边界压力或流量、管壁砂粒粗糙度或相配摩擦参数、局部 K 或内置配件数据。按每个元件给 *DLOAD 重力。局部损失不确定时以实测或标准元件资料标定。",
+    "checks": [
+      "解后核对结点质量不平衡、并联两端节点压降和支路方向。",
+      "直管按实际流态核对 Darcy–Weisbach；水平等截面无泵时，静压差应等于耗散的压力量纲。",
+      "变截面、高差及泵同时存在时逐项核对动压、重力和泵项，不把 PN/PS 标作总压。"
+    ],
+    "evidence": [
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "§6.2.33 Network elements；§6.9.17 Hydraulic Networks，式615、618–619",
+        "claim": "角节点压力、边中节点质量流率，机械能方程含静压、速度、标高、损失，水力网运行按稳态。结点压力 PN/PS。"
+      },
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "§6.5 Fluid Section Types: Liquids；§6.5.2 式162–164；*FLUID SECTION",
+        "claim": "White–Colebrook 管摩擦从 Re 与砂粒粗糙度求系数；章节提供液相支路/配件配置。"
+      },
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "§6.2.37, §§6.5.2, 6.5.8, 6.4.16 and §6.9.17",
+        "claim": "三节点网络、White–Colebrook 直管摩擦、闸阀及液体流阻元件；水力网络的节点压力为静压。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "network"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ],
+      "compressibility": [
+        "incompressible"
+      ],
+      "operation": [
+        "steady"
+      ],
+      "pressure_definition": [
+        "static_difference",
+        "total_loss"
+      ],
+      "fluid_kind": [
+        "liquid"
+      ]
+    },
+    "mechanisms": [
+      "flow",
+      "darcy_friction",
+      "local_losses"
+    ],
+    "variants": [
+      {
+        "solver": "calculix",
+        "version": "2.22",
+        "target": "pressure_drop",
+        "role": "configured",
+        "model": "CalculiX Aerodynamic Networks：一维稳态理想气体管网",
+        "applicability": "用三节点有向网络元件计算单相理想气体。直管用等截面 GAS PIPE FANNO ADIABATIC（默认）或 ISOTHERMAL；后者固定静温。按气动章节选择入口、出口、孔口、弯头、汇合或分支等可用局部损失元件。通常在亚声速工况用；只有有相应元件公式与数据时才核查临界通流。",
+        "exclusions": "本卡限理想气体的一维稳态网络。不可压液体应按 Hydraulic Networks 及其静压约定另选。局部三维分离、激波结构、瞬态压力波、真实气体和气液两相需另一模型。不能直接套用不可压动压差或未经匹配的 K 值。仅选有文档、适配几何与流向的配件；本卡不保证任意管件可用。",
+        "inputs": [
+          "geometry",
+          "flow_rate",
+          "fluid_properties",
+          "roughness",
+          "pressure_stations",
+          "flow_regime",
+          "local_loss_coefficients",
+          "pressure_boundary",
+          "inlet_temperature",
+          "thermal_boundary"
+        ],
+        "exchanges": [
+          {
+            "from": "external_network_ports",
+            "to": "aerodynamic_network",
+            "quantity": "端口总压、总温和支路有符号质量流率",
+            "unit": "Pa; K; kg/s",
+            "method": "外连接使用一端角节点为 0 的 dummy 网络元件，压力端口与 dummy 配对；显式给流入总温，确认流向可能反转时的总温/总压条件。流量给 kg/s；标况体积流量用明确基准绝压与温度算密度后换算。至少有一个支路流量留作未知，不能把所有流量强制后期待求压。"
+          },
+          {
+            "from": "aerodynamic_network",
+            "to": "pressure_drop",
+            "quantity": "气相节点总压、分支质量流率、静压差及 Mach",
+            "unit": "Pa; kg/s; 1",
+            "method": "按 *NODE PRINT 的 PN 或 *NODE FILE 的 PT 读取总压，MF 读质量流，TT/TS 区分总/静温。总压损失按指定入口到出口作差。对有明确局部状态的管端，用元件状态及截面复算 Mach 与静压，不能把单个汇合节点的总压作各支路静压。"
+          }
+        ],
+        "rationale": "固定版网络对可压缩理想气体以质量、流动关系和能量为闭合，Fanno 元件使用与流态、相对粗糙度匹配的沿程摩擦，文档提供有向局部损失元件。",
+        "custom_work": "配置网路拓扑、管长、内径/面积、砂粒粗糙度、摩擦形状因子，绝对压力、气体 R、cp及黏度，明确绝热/静温恒定或适用热边界。选用曲线、ζ、Cd 或配件几何须依该元件小节。必要时用测站面积和质量流重建局部状态；预留足够未知数和独立端口条件。",
+        "checks": [
+          "逐节点核对有符号质量守恒，入口总压或质量流量与出口条件经独立性检查；流向反转时核对配件是否允许。",
+          "核对测站总压与静压、绝压基准、流量参考温压、Mach=|U|/sqrt(γRT_s)。在定 γ 理想气体的等熵滞止换算中 p_t/p_s=[1+(γ−1)M²/2]^(γ/(γ−1))；切勿用不可压 p+ρU²/2 或将标况流量当现场体积流量。",
+          "光滑直管低 Mach 数时与相同工况的 Darcy–Weisbach 对照；可压缩沿程核对 Fanno 参考。接近临界流只按具体孔口/支路的临界公式和气体物性对照。"
+        ],
+        "evidence": [
+          {
+            "url": "https://www.dhondt.de/ccx_2.22.pdf",
+            "locator": "§6.9.16 Aerodynamic Networks；§6.2.37 Three-node network element (D)；§10.9；Table 18",
+            "claim": "理想气体，角节点总温/总压和中节点质量流率。外部边界采用 dummy 元件；已规定全部质量流率的模式不计算压力。气网 PN/PT 均是总压标签。"
+          },
+          {
+            "url": "https://www.dhondt.de/ccx_2.22.pdf",
+            "locator": "§6.4.7 Gas Pipe (Fanno)，式74–77；gaspipe10",
+            "claim": "等截面气道绝热或静温恒定处理。Re<2000 的层流摩擦系数用 64/Re（非圆截面按形状因子），湍流用含砂粒粗糙度的 White–Colebrook。"
+          },
+          {
+            "url": "https://www.dhondt.de/ccx_2.22.pdf",
+            "locator": "§6.4.4–6.4.5 孔口关系及临界流；§6.4.13–6.4.18，特别 §6.4.16 Restrictor, User",
+            "claim": "有方向的流阻元件可指定截面和 ζ 等参数；§6.4.16 仅明确以 LIQUID 参数切到不可压损失，省略时采用可压缩形式。局部元件临界流关系不代表整网任意超声速工况。"
+          },
+          {
+            "url": "https://www.dhondt.de/ccx_2.22.pdf",
+            "locator": "§6.9.17 Hydraulic Networks；§6.5.2 Pipe, White–Colebrook；§6.5.8 Gate Valve",
+            "claim": "作为邻接液体路径的区分依据：液体 PN/PS 是静压，其直管摩擦与闸阀局部 ζ 有独立规定。"
+          }
+        ],
+        "conditions": {
+          "flow_domain": [
+            "network"
+          ],
+          "fluid_kind": [
+            "gas"
+          ],
+          "flow_phase": [
+            "single_phase"
+          ],
+          "compressibility": [
+            "compressible"
+          ],
+          "operation": [
+            "steady"
+          ],
+          "pressure_definition": [
+            "static_difference",
+            "total_loss"
+          ]
+        },
+        "mechanisms": [
+          "flow",
+          "darcy_friction",
+          "local_losses"
+        ],
+        "related_capabilities": [
+          "calculix.aerodynamic_network"
+        ]
+      }
+    ],
+    "related_capabilities": [
+      "calculix.hydraulic_network"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "calculix",
+    "version": "2.22",
+    "target": "heat_duty",
+    "role": "configured",
+    "model": "稳态或瞬态固体导热与边界热流",
+    "applicability": "已知温度、热流或换热边界，固体导热及热接触。",
+    "exclusions": "未知气侧流动换热和完整共轭流体计算需另配求解器。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "thermal_contact"
+    ],
+    "exchanges": [
+      {
+        "from": "热边界",
+        "to": "热平衡",
+        "quantity": "积分热流",
+        "unit": "W",
+        "method": "积分法向热流，检查符号与区域"
+      }
+    ],
+    "rationale": "手册提供热传导、FILM、热流和热接触设置。",
+    "custom_work": "配置热边界及积分输出；瞬态另提供初值。",
+    "checks": [
+      "核对热输入输出与储能、热接触及时间步。"
+    ],
+    "evidence": [
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "2.22 手册 §§5.4, 5.7–5.12, 6.9, *HEAT TRANSFER, *EXPANSION, *STATIC",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "calculix.steady_solid_heat",
+      "calculix.transient_solid_heat"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "calculix",
+    "version": "2.22",
+    "target": "wall_temperature",
+    "role": "configured",
+    "model": "固体热传导边界温度",
+    "applicability": "已知热边界或经耦合提供热通量时预测壁温。",
+    "exclusions": "单凭环境温度不能推断实际对流系数。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "thermal_contact"
+    ],
+    "exchanges": [
+      {
+        "from": "热边界",
+        "to": "固体热场",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "热传导求解与壁面节点读取"
+      }
+    ],
+    "rationale": "稳态与瞬态热分析可给出墙体温度。",
+    "custom_work": "施加物性、边界、热接触；瞬态提供初温。",
+    "checks": [
+      "对比边界热平衡及网格、时间收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "2.22 手册 §§5.4, 5.7–5.12, 6.9, *HEAT TRANSFER, *EXPANSION, *STATIC",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "calculix.steady_solid_heat",
+      "calculix.transient_solid_heat"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "calculix",
+    "version": "2.22",
+    "target": "thermal_stress",
+    "role": "configured",
+    "model": "顺序热弹性 *TEMPERATURE、*EXPANSION 与 *STATIC",
+    "applicability": "给定温度场和参考温度、弹性材料与约束，计算结构温差应力。",
+    "exclusions": "塑性、接触、大变形需另选相应分析及验证；不自动求未知流体温度。",
+    "inputs": [
+      "structural_geometry",
+      "elastic_properties",
+      "expansion_coefficient",
+      "mechanical_constraints",
+      "stress_measure",
+      "temperature_reference",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "温度场",
+        "to": "结构静力",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "同网格温度读取或外部映射后施加热应变"
+      }
+    ],
+    "rationale": "手册提供热膨胀与结构分析，温度到结构需匹配坐标。",
+    "custom_work": "提供温度映射、参考温度及约束；按目标选择应力指标。",
+    "checks": [
+      "自由膨胀零约束和受限膨胀基准；网格收敛与映射误差。"
+    ],
+    "evidence": [
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "2.22 手册 §§5.4, 5.7–5.12, 6.9, *HEAT TRANSFER, *EXPANSION, *STATIC",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {
+      "mechanics": [
+        "linear_elastic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "calculix.temperature_to_structure_same_mesh"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

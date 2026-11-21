@@ -1,0 +1,166 @@
+[
+  {
+    "solver": "gmsh",
+    "version": "4.15.2",
+    "target": "pressure_drop",
+    "role": "supporting_role",
+    "model": "几何、物理组与有限元网格",
+    "applicability": "建立流体或结构域、入口出口/壁面/界面标签，供外部求解器使用。",
+    "exclusions": "自身不求压力、热流、壁温或应力。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "几何",
+        "to": "外部求解器",
+        "quantity": "体网格及边界标识",
+        "unit": "m",
+        "method": "网格生成、物理组导出及导入校验"
+      }
+    ],
+    "rationale": "Gmsh 负责离散和标识，目标物理量由下游求解器产生。",
+    "custom_work": "选择适合下游格式、网格尺度与边界层；建立材料和目标对应关系。",
+    "checks": [
+      "检查单元质量、边界覆盖、尺度单位与网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.onelab.info/gmsh/gmsh/-/tree/gmsh_4_15_2/tutorials",
+        "locator": "4.15.2 tag，几何、网格和物理组教程",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "mesh"
+    ],
+    "related_capabilities": [
+      "gmsh.physical_group_create"
+    ]
+  },
+  {
+    "solver": "gmsh",
+    "version": "4.15.2",
+    "target": "heat_duty",
+    "role": "supporting_role",
+    "model": "几何、物理组与有限元网格",
+    "applicability": "建立流体或结构域、入口出口/壁面/界面标签，供外部求解器使用。",
+    "exclusions": "自身不求压力、热流、壁温或应力。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "几何",
+        "to": "外部求解器",
+        "quantity": "体网格及边界标识",
+        "unit": "m",
+        "method": "网格生成、物理组导出及导入校验"
+      }
+    ],
+    "rationale": "Gmsh 负责离散和标识，目标物理量由下游求解器产生。",
+    "custom_work": "选择适合下游格式、网格尺度与边界层；建立材料和目标对应关系。",
+    "checks": [
+      "检查单元质量、边界覆盖、尺度单位与网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.onelab.info/gmsh/gmsh/-/tree/gmsh_4_15_2/tutorials",
+        "locator": "4.15.2 tag，几何、网格和物理组教程",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "mesh"
+    ],
+    "related_capabilities": [
+      "gmsh.physical_group_create"
+    ]
+  },
+  {
+    "solver": "gmsh",
+    "version": "4.15.2",
+    "target": "wall_temperature",
+    "role": "supporting_role",
+    "model": "几何、物理组与有限元网格",
+    "applicability": "建立流体或结构域、入口出口/壁面/界面标签，供外部求解器使用。",
+    "exclusions": "自身不求压力、热流、壁温或应力。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "几何",
+        "to": "外部求解器",
+        "quantity": "体网格及边界标识",
+        "unit": "m",
+        "method": "网格生成、物理组导出及导入校验"
+      }
+    ],
+    "rationale": "Gmsh 负责离散和标识，目标物理量由下游求解器产生。",
+    "custom_work": "选择适合下游格式、网格尺度与边界层；建立材料和目标对应关系。",
+    "checks": [
+      "检查单元质量、边界覆盖、尺度单位与网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.onelab.info/gmsh/gmsh/-/tree/gmsh_4_15_2/tutorials",
+        "locator": "4.15.2 tag，几何、网格和物理组教程",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "mesh"
+    ],
+    "related_capabilities": [
+      "gmsh.physical_group_create"
+    ]
+  },
+  {
+    "solver": "gmsh",
+    "version": "4.15.2",
+    "target": "thermal_stress",
+    "role": "supporting_role",
+    "model": "几何、物理组与有限元网格",
+    "applicability": "建立流体或结构域、入口出口/壁面/界面标签，供外部求解器使用。",
+    "exclusions": "自身不求压力、热流、壁温或应力。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "几何",
+        "to": "外部求解器",
+        "quantity": "体网格及边界标识",
+        "unit": "m",
+        "method": "网格生成、物理组导出及导入校验"
+      }
+    ],
+    "rationale": "Gmsh 负责离散和标识，目标物理量由下游求解器产生。",
+    "custom_work": "选择适合下游格式、网格尺度与边界层；建立材料和目标对应关系。",
+    "checks": [
+      "检查单元质量、边界覆盖、尺度单位与网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://gitlab.onelab.info/gmsh/gmsh/-/tree/gmsh_4_15_2/tutorials",
+        "locator": "4.15.2 tag，几何、网格和物理组教程",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "mesh"
+    ],
+    "related_capabilities": [
+      "gmsh.physical_group_create"
+    ]
+  }
+]

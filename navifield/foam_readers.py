@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from pathlib import Path
 import math
 import re
 
@@ -318,3 +319,35 @@ def parse_checkmesh(text: str) -> CheckMeshResult:
                            metrics['severe_non_ortho_faces'], metrics['regions'], metrics['min_volume'], metrics['illegal_faces'],
                            metrics['boundary_openness'], not missing and ok and metrics['failed_checks'] == 0 and not categories,
                            not missing, tuple(missing), categories)
+
+
+def open_native_foam(case, time_value, *, cell_arrays=None):
+    """Load an explicit OpenFOAM time as native cell data; no case is modified."""
+    import vtk
+    import pyvista as pv
+    case = Path(case)
+    control = case / 'system' / 'controlDict'
+    if not control.is_file():
+        raise ValueError('Expected an OpenFOAM case with system/controlDict')
+    reader = vtk.vtkOpenFOAMReader()
+    reader.SetFileName(str(control))
+    reader.UpdateInformation()
+    times = reader.GetTimeValues()
+    available = [times.GetValue(i) for i in range(times.GetNumberOfTuples())] if times else []
+    if time_value not in available:
+        raise ValueError(f'Requested time {time_value} is not an available written time: {available}')
+    if cell_arrays is not None:
+        reader.DisableAllCellArrays()
+        for name in cell_arrays:
+            reader.SetCellArrayStatus(name, 1)
+    reader.SetTimeValue(time_value)
+    reader.CreateCellToPointOff()
+    reader.Update()
+    data = pv.wrap(reader.GetOutput())
+    try:
+        mesh = data['internalMesh']
+    except (KeyError, TypeError, IndexError):
+        raise ValueError('OpenFOAM internal mesh is unavailable') from None
+    if mesh is None or not mesh.n_cells:
+        raise ValueError('OpenFOAM internal mesh is empty')
+    return mesh

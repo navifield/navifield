@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "navifield"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local command-line tools for simulation workflows"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -14,6 +14,7 @@ requires-python = ">=3.10"
 dependencies = ["psutil>=5.9", "pydantic>=2.5"]
 
 [project.optional-dependencies]
+fin = ["numpy>=1.26"]
 plots = ["numpy>=1.26", "pyvista>=0.44", "vtk>=9.2", "matplotlib>=3.8"]
 
 [project.scripts]
@@ -23,4 +24,4 @@ navifield = "navifield.local_cli:main"
 include = ["navifield*"]
 
 [tool.setuptools.package-data]
-navifield = ["live_monitor.html", "templates/**/*"]
+navifield = ["live_monitor.html", "templates/**/*", "capability_data/*.json", "capability_data/*.txt", "capability_data/features/*.json", "capability_data/suitability/*.json", "capability_data/models/*.json", "capability_data/chains/*.json", "capability_data/targets/*.json", "capability_data/readouts/*.json", "capability_data/papers/*.json", "capability_data/*.sqlite3"]

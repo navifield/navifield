@@ -1,0 +1,32 @@
+{
+  "domain": "phase_change",
+  "mechanisms": [
+    "condensation"
+  ],
+  "goals": [
+    "condensate_mass_flow",
+    "condensation_heat_duty"
+  ],
+  "conditions": {
+    "geometry": "vertical_plate",
+    "gas_composition": "steam_air",
+    "film_resolution": "unresolved",
+    "gas_layer": "resolved",
+    "film_regime": "laminar_gravity",
+    "operation": "steady"
+  },
+  "known_inputs": [
+    "plate_geometry",
+    "thermal_bc",
+    "flow_bc",
+    "operating_pressure",
+    "gas_composition",
+    "phase_properties",
+    "vapor_diffusivity",
+    "saturation_relation",
+    "latent_heat",
+    "liquid_thermal_resistance",
+    "gravity"
+  ],
+  "description": "水蒸气和空气的已知混合物流过竖直冷板。已知进口温度、流量、组成、压力、壁面冷却条件和混合物物性。气侧浓度边界层有足够的网格分辨率；重力排液薄膜未划网格，已有液膜热阻测量值。求稳态凝液收集率和冷却负荷。"
+}

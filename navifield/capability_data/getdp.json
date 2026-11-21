@@ -1,0 +1,6122 @@
+{
+  "schema_version": 1,
+  "solver": "getdp",
+  "version": "3.5.0",
+  "capabilities": [
+    {
+      "id": "getdp.dc_conduction",
+      "module": "Formulation / scalar potential / PostOperation",
+      "scope": "Steady DC on an electrically conducting domain. Derive J from the potential gradient; integrate terminal J·n with a declared outward normal. The example uses fixed potentials and constant material properties. Joule heat source density is in W/m³. Total Joule power in W requires integration over the specified conductor volume.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "finite element mesh"
+          ]
+        },
+        {
+          "id": "voltage",
+          "unit": "V",
+          "aliases": [
+            "terminal voltage"
+          ]
+        },
+        {
+          "id": "electrical_resistivity",
+          "unit": "ohm m",
+          "aliases": [
+            "electrical resistivity"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electric_potential",
+          "unit": "V",
+          "aliases": [
+            "electric potential",
+            "电势",
+            "电位"
+          ]
+        },
+        {
+          "id": "current_density",
+          "unit": "A/m^2",
+          "aliases": [
+            "current density",
+            "电流密度",
+            "局部电流密度"
+          ]
+        },
+        {
+          "id": "current",
+          "unit": "A",
+          "aliases": [
+            "terminal current",
+            "电流",
+            "端子电流"
+          ]
+        },
+        {
+          "id": "joule_heat",
+          "unit": "W/m^3",
+          "aliases": [
+            "volumetric Joule heating",
+            "Joule heat source density",
+            "焦耳体热源",
+            "焦耳热源密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "voltage",
+        "constant_electrical_resistivity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "FunctionSpace, Formulation, PostProcessing and PostOperation. The scalar-potential example illustrates GradGrad assembly; the DC deck uses conductivity in that equation."
+          }
+        ],
+        "integration": [
+          {
+            "source": "examples/cli-v01/busbar/busbar.pro",
+            "scope": "Conductivity weak form, derived J and volumetric Joule heating"
+          }
+        ],
+        "workstation": [
+          {
+            "source": "examples/cli-v01/busbar/README.md",
+            "scope": "Windows GetDP 3.5.0 recorded for fine mesh r005"
+          }
+        ],
+        "reference": [
+          {
+            "source": "examples/cli-v01/busbar/README.md",
+            "scope": "Public example: fine-mesh terminal ∫|J| +6.95%, copper-integrated Joule heat +12.60%; no reference for signed current or local J"
+          }
+        ]
+      },
+      "validation": "Uniform prismatic resistor: compare signed terminal current to ΔV/R, equal and opposite end integrals, and ∫q dV to electrical power. For local J compare the specified component and location.",
+      "couplings": [
+        {
+          "from_field": "electrical",
+          "to_field": "thermal",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "由电势梯度及电阻率在导体单元内计算体耗散；后续热分析可在同一网格积分点取值。",
+          "implementation": "configured",
+          "custom_work": "配置热方程源项和跨域取值，检查电功率积分。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.joule_heat_to_temperature",
+      "module": "Formulation / Thermal_T / PostOperation",
+      "scope": "One-way volumetric Joule heat to steady solid conduction. Existing example uses a shared conformal mesh, constant conductivity, continuity at bonded interfaces and convection.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "finite element mesh"
+          ]
+        },
+        {
+          "id": "joule_heat",
+          "unit": "W/m^3",
+          "aliases": [
+            "volumetric Joule heating"
+          ]
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "convection",
+          "unit": "W/(m^2 K); K"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature field",
+            "温度",
+            "温度场"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "convection",
+        "constant_thermal_properties"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "Thermal_T in the magnetothermal coupling example, and Formulation source and boundary terms."
+          }
+        ],
+        "integration": [
+          {
+            "source": "examples/cli-v01/busbar/busbar.pro",
+            "scope": "Steady, constant conductivity and Robin convection driven by GetDP Joule source"
+          }
+        ],
+        "workstation": [
+          {
+            "source": "examples/cli-v01/busbar/README.md",
+            "scope": "Windows r004/r005/r006, heat generation and convection ledger; 3.5.0 identified for r005"
+          }
+        ],
+        "reference": [
+          {
+            "source": "examples/cli-v01/busbar/README.md",
+            "scope": "Selected temperatures compared with public tutorial values, temperature-rise deviations reported; no acceptance threshold"
+          }
+        ]
+      },
+      "validation": "Heated slab with Robin cooling: compare its analytic temperature profile and integrated heat rejection, then compare the requested temperature selection under mesh refinement.",
+      "transfers": [
+        "joule_heat_to_temperature"
+      ],
+      "couplings": [
+        {
+          "from_field": "electrical",
+          "to_field": "thermal",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "在共享导体网格的热方程积分点调用等效焦耳体源，求稳态温度。",
+          "implementation": "configured",
+          "custom_work": "配置导体区域、导热和界面条件并核对电热积分守恒。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.temperature_to_resistivity",
+      "module": "Function / Resolution / IterativeLoop",
+      "scope": "Documentation-level route for a custom bidirectional DC and thermal formulation. It needs a validated material law and iterative update using temperature on the conductor domain.",
+      "inputs": [
+        {
+          "id": "electric_potential",
+          "unit": "V",
+          "aliases": [
+            "electric potential"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature field"
+          ]
+        },
+        {
+          "id": "resistivity_law",
+          "unit": "ohm m as a function of K"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electrical_resistivity",
+          "unit": "ohm m",
+          "aliases": [
+            "electrical resistivity",
+            "电阻率"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "temperature_dependent_resistivity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "DefineFunction and IterativeLoop; the magnetothermal example in the 3.5.0 manual demonstrates coupling systems through temperature-dependent properties. A DC implementation requires its own formulation."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Lumped electrothermal resistor with a known R(T) and heat balance: compare independently solved roots for voltage and current drive separately; check convergence, range of the material law and energy balance.",
+      "transfers": [
+        "temperature_to_resistivity"
+      ],
+      "couplings": [
+        {
+          "from_field": "thermal",
+          "to_field": "electrical",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "在共同导体域取温度，用 ρ(T) 更新电导率，在 IterativeLoop 中交替组装求解。",
+          "implementation": "custom",
+          "custom_work": "实现材料曲线、场更新顺序、松弛及双场收敛条件。"
+        },
+        {
+          "from_field": "electrical",
+          "to_field": "thermal",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "每次电场更新后回算损耗，随后重装热方程。",
+          "implementation": "custom",
+          "custom_work": "编写体源弱式和迭代状态储存，检查功率守恒。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.magnetostatics",
+      "module": "Lib_Magnetostatics_a_phi / PostOperation",
+      "scope": "Fixed geometry, stationary magnetics. The integrated CLI example is linear and axisymmetric; force is virtual work at fixed flux with a declared axis and geometry perturbation.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH",
+          "aliases": [
+            "finite element mesh"
+          ]
+        },
+        {
+          "id": "coil_current",
+          "unit": "A"
+        },
+        {
+          "id": "coil_turns",
+          "unit": "1"
+        },
+        {
+          "id": "magnetic_permeability",
+          "unit": "H/m"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "magnetic_flux_density",
+          "unit": "T",
+          "aliases": [
+            "磁通密度",
+            "磁感应强度"
+          ]
+        },
+        {
+          "id": "magnetic_force",
+          "unit": "N",
+          "aliases": [
+            "magnetic force",
+            "磁力",
+            "磁吸力"
+          ]
+        }
+      ],
+      "conditions": [
+        "static",
+        "fixed_gap",
+        "axisymmetric",
+        "linear_magnetic",
+        "coil_current"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "Magnetostatics formulation examples and PostOperation; force is derived from field results."
+          }
+        ],
+        "integration": [
+          {
+            "source": "examples/cli-v01/valve/run_case.py",
+            "scope": "Fixed-pose field and force dispatch via GetDP standard magnetostatics library"
+          }
+        ],
+        "workstation": [
+          {
+            "source": "examples/cli-v01/valve/README.md",
+            "scope": "Direct Windows field evaluations in valve equilibrium examples; binary version absent from this record"
+          }
+        ],
+        "reference": [
+          {
+            "source": "examples/cli-v01/valve/README.md",
+            "scope": "Separate TEAM20 3D comparison; geometry and nonlinear material differ from the linear-axisymmetric example"
+          }
+        ]
+      },
+      "validation": "Fixed-pose magnetic actuator: refine air-gap and surrounding air mesh, sweep virtual displacement, and compare axis force to an independent Maxwell stress integral."
+    },
+    {
+      "id": "getdp.electrostatics_dielectric",
+      "module": "Electrostatic scalar potential / static Resolution",
+      "scope": "Solve electric potential in a dielectric with specified electrode potentials or charge constraints. Recover E from the negative potential gradient. Requires a potential datum, piecewise material regions and a defined fringing-field boundary for an open geometry. This entry assumes a charge-free dielectric bulk.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "dielectric_permittivity",
+          "unit": "F/m"
+        },
+        {
+          "id": "electrostatic_boundary_conditions",
+          "unit": "V or C"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electrostatic_potential",
+          "unit": "V",
+          "aliases": [
+            "静电势",
+            "介质电势"
+          ]
+        },
+        {
+          "id": "electric_field",
+          "unit": "V/m",
+          "aliases": [
+            "电场强度",
+            "电场"
+          ]
+        },
+        {
+          "id": "electrostatic_solution",
+          "unit": "GetDP .res and compatible formulation",
+          "aliases": [
+            "静电求解结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "steady",
+        "electrostatic_dielectric"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 sections 7.8.1–7.8.2, 7.9.1 and 8.1: electrostatic scalar potential and charge variables."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "For parallel plates with fringing suppressed, compare E with voltage divided by separation and electrode charge with permittivity times area times E."
+    },
+    {
+      "id": "getdp.harmonic_eddy_current",
+      "module": "Magnetodynamics h-phi / Frequency",
+      "scope": "Solve the linear sinusoidal magnetoquasistatic problem with conducting regions and electrical excitation. Compute complex magnetic flux density and eddy current density from the declared material law and field representation. Record phasor convention before computing mean loss.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "magnetic_permeability",
+          "unit": "H/m"
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m"
+        },
+        {
+          "id": "excitation_frequency",
+          "unit": "Hz"
+        },
+        {
+          "id": "harmonic_coil_current",
+          "unit": "A with phase"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "harmonic_magnetic_flux_density",
+          "unit": "T complex phasor",
+          "aliases": [
+            "交流磁通密度",
+            "磁感应强度相量"
+          ]
+        },
+        {
+          "id": "eddy_current_density",
+          "unit": "A/m^2 complex phasor",
+          "aliases": [
+            "涡流密度",
+            "感应电流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "magnetoquasistatic",
+        "linear_material"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 sections 7.8 and 7.9.2: h-phi magnetodynamic formulation and complex frequency system. Section 7.8.4 gives the h-phi weak form."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "For a conductor thick relative to skin depth compare field amplitude and phase decay with the planar skin-effect solution while refining the near-surface mesh."
+    },
+    {
+      "id": "getdp.transient_eddy_current",
+      "module": "Magnetodynamics h-phi / TimeLoopTheta",
+      "scope": "March a magnetoquasistatic h-phi model in time with prescribed initial state and excitation history. Nonlinear material requires a converged iteration inside each time step. The formulation and source histories are supplied in the .pro.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "magnetic_permeability",
+          "unit": "H/m"
+        },
+        {
+          "id": "electrical_conductivity",
+          "unit": "S/m"
+        },
+        {
+          "id": "coil_current_history",
+          "unit": "A vs s"
+        },
+        {
+          "id": "time_step",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "magnetic_flux_density_history",
+          "unit": "T vs s",
+          "aliases": [
+            "磁通密度时程",
+            "瞬态磁感应强度"
+          ]
+        },
+        {
+          "id": "eddy_current_density_history",
+          "unit": "A/m^2 vs s",
+          "aliases": [
+            "涡流密度时程",
+            "瞬态涡流"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "magnetoquasistatic",
+        "prescribed_initial_state"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 sections 7.9.3 and 7.9.4: time-domain resolution and nonlinear loop. Section 7.8.4 gives the h-phi weak form."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Apply a smooth ramp to a linear conducting slab and compare transient diffusion profiles across spatial and timestep refinements."
+    },
+    {
+      "id": "getdp.electrode_charge_readback",
+      "module": "PostProcessing / Print OnRegion",
+      "scope": "Extract an electrode global charge from a compatible electrostatic formulation with a conjugate global quantity. The electrode set and sign convention must come from that formulation. An arbitrary local field printed on a region does not by itself become an integrated terminal charge.",
+      "inputs": [
+        {
+          "id": "electrostatic_solution",
+          "unit": "GetDP solution and matching formulation"
+        },
+        {
+          "id": "electrode_selection",
+          "unit": "physical group tag"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "electrode_charge",
+          "unit": "C",
+          "aliases": [
+            "电极电荷",
+            "端子总电荷"
+          ]
+        }
+      ],
+      "conditions": [
+        "electrostatic_dielectric",
+        "defined_electrodes"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 sections 7.10–7.11: global Q on SkinDomainC and Print OnRegion."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Read both electrode charges on a charge-free parallel-plate problem; verify equal and opposite signs and compare their magnitude with the analytic capacitance times voltage."
+    },
+    {
+      "id": "getdp.transient_solid_conduction",
+      "module": "§§5.7–5.8 / §6.8 / DtDof / TimeLoopTheta",
+      "scope": "用 .pro 定义热容、导热与边界换热弱式，通过 TimeLoopTheta 求瞬态固体温度；需给定初始温度、时步及输出时刻。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "volumetric_heat_capacity",
+          "unit": "J/(m^3 K)"
+        },
+        {
+          "id": "thermal_boundary_conditions",
+          "unit": "K or W/m^2"
+        },
+        {
+          "id": "initial_temperature",
+          "unit": "K"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature",
+            "温度"
+          ]
+        },
+        {
+          "id": "heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "conductive heat flux",
+            "导热热流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§§5.7–5.8 / §6.8 / DtDof / TimeLoopTheta。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对平板阶跃加热测一阶热扩散响应、时间步收敛及累计能量。"
+    },
+    {
+      "id": "getdp.floating_electrode_electrostatics",
+      "module": "§§7.5.3, 7.8.2 / §8.1",
+      "scope": "以电极整体电位为全局自由度，以总电荷作为共轭量；至少设置一个电势参考。浮置导体可指定净电荷为零。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "permittivity",
+          "unit": "F/m"
+        },
+        {
+          "id": "electrode_charge",
+          "unit": "C"
+        },
+        {
+          "id": "voltage",
+          "unit": "V"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "floating_electric_potential",
+          "unit": "V",
+          "aliases": [
+            "floating potential",
+            "浮置电势"
+          ]
+        }
+      ],
+      "conditions": [
+        "electrostatic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§§7.5.3, 7.8.2 / §8.1。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对三个平行电极比较浮置端电势与串联电容近似，并检查总电荷约束。"
+    },
+    {
+      "id": "getdp.linear_elastic_fe",
+      "module": "§1.2 / §§5.4, 5.7",
+      "scope": "通过自定义位移空间与小应变线弹性弱式求结构平衡。空间、材料、位移约束和应力采样位置由用户定义。固定版位移模板把体力密度 f 与面牵引 sigman 作为不同积分项。三维 SI 中分别为 N/m³ 和 Pa；若从压力生成牵引，应按外法向及压力符号构造分量。给定合力 N 时，需由 NaviField 或用户定义载荷投影、作用区域及分布，核对积分合力。一维简化或二维平面应力/应变问题需另明确厚度与力单位约定。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "elastic_properties",
+          "unit": "Pa, 1"
+        },
+        {
+          "id": "structural_constraints",
+          "unit": "m / DOF"
+        },
+        {
+          "id": "mechanical_body_force_density",
+          "unit": "N/m^3",
+          "aliases": [
+            "体力密度",
+            "体载荷密度"
+          ]
+        },
+        {
+          "id": "mechanical_surface_traction",
+          "unit": "Pa",
+          "aliases": [
+            "面牵引",
+            "表面牵引"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "displacement",
+          "unit": "m",
+          "aliases": [
+            "displacement",
+            "位移"
+          ]
+        },
+        {
+          "id": "stress",
+          "unit": "Pa",
+          "aliases": [
+            "stress",
+            "应力"
+          ]
+        }
+      ],
+      "conditions": [
+        "static"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "Fixed GetDP 3.5.0 templates/Lib_Elasticity_u.pro and doc/texinfo/getdp.texi §§1.2, 5.4, 5.7. The template separately integrates body force f on Vol_F_Mec and traction sigman on Sur_Neu_Mec and exports displacement and stress."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用轴向受力均质杆比较端位移和轴向应力。核对体积分或面分布积分与总反力，并独立检查牵引方向和单位。"
+    },
+    {
+      "id": "getdp.pressure_acoustics_eigenmodes",
+      "module": "§1.2 / §6.8 EigenSolve",
+      "scope": "在静止均质介质中自定义压力 Helmholtz 特征问题，采用刚性边界；需检查求解构建所用特征值后端。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "sound_speed",
+          "unit": "m/s"
+        },
+        {
+          "id": "acoustic_boundary_conditions",
+          "unit": "type"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "acoustic_eigenfrequency",
+          "unit": "Hz",
+          "aliases": [
+            "acoustic natural frequency",
+            "声学固有频率"
+          ]
+        }
+      ],
+      "conditions": [
+        "eigenvalue"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§1.2 / §6.8 EigenSolve。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用刚性矩形腔对比解析非零模态，并检查密闭腔零频常量模。"
+    },
+    {
+      "id": "getdp.harmonic_full_wave",
+      "module": "§1.2 / §§5.4, 5.7–5.8 / §7.5.4",
+      "scope": "用边元自定义线性频域 Maxwell 旋度弱式，针对有明确定义导体壁与激励的封闭电气器件。设置复数约定、介质参数及端口或激励条件。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "permittivity",
+          "unit": "F/m"
+        },
+        {
+          "id": "permeability",
+          "unit": "H/m"
+        },
+        {
+          "id": "excitation_frequency",
+          "unit": "Hz"
+        },
+        {
+          "id": "electromagnetic_boundaries",
+          "unit": "type"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "harmonic_electric_field",
+          "unit": "V/m",
+          "aliases": [
+            "harmonic electric field",
+            "频域电场"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§1.2 / §§5.4, 5.7–5.8 / §7.5.4。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用矩形波导截面的解析截止频率及传播常数，检查网格和边界反射。"
+    },
+    {
+      "id": "getdp.field_circuit_coupling",
+      "module": "§1.2 / §§5.3, 5.7 / §6.7 GlobalEquation",
+      "scope": "在有限元电磁模型和集总支路间定义全局共轭电压电流及电路方程；要求极性、端口和频域约定一致。 电路拓扑由用户按 GetDP 的 network 类型约束和支路方程编写；所引文档未证明可直接读取通用 netlist。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "circuit_topology",
+          "unit": "GetDP network constraint / 自定义支路连接定义"
+        },
+        {
+          "id": "circuit_parameters",
+          "unit": "ohm or H or F"
+        },
+        {
+          "id": "excitation_frequency",
+          "unit": "Hz"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "current",
+          "unit": "A",
+          "aliases": [
+            "branch current",
+            "支路电流"
+          ]
+        },
+        {
+          "id": "voltage",
+          "unit": "V",
+          "aliases": [
+            "terminal voltage",
+            "端电压"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 §5.3 网络型约束、§5.7 Formulation / GlobalEquation：需要自行定义连接和支路方程；不宣称原生导入通用 netlist。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用有显式绕组电阻及线性磁芯的串联电路比较输入阻抗、相位和功率。",
+      "couplings": [
+        {
+          "from_field": "electromagnetic",
+          "to_field": "circuit",
+          "quantity": "voltage",
+          "unit": "V",
+          "transfer": "通过全局电压未知量与端口弱式在同一代数系统施加电路约束。",
+          "implementation": "custom",
+          "custom_work": "定义场端口极性、绕组链接和集总支路方程。"
+        },
+        {
+          "from_field": "circuit",
+          "to_field": "electromagnetic",
+          "quantity": "current",
+          "unit": "A",
+          "transfer": "通过共轭电流未知量在同一代数系统提供线圈或端子激励。",
+          "implementation": "custom",
+          "custom_work": "实现电流源项归一、绕组方向及功率互易检查。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.eddy_loss_to_temperature",
+      "module": "§1.2 / §§5.7–5.8 / §7.8.4",
+      "scope": "对指定频率将导体涡流损耗写为热方程体源；本条覆盖同网格单向传递，热源使用已定义的复振幅约定。热边界需独立给定。",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "harmonic_current_density",
+          "unit": "A/m^2"
+        },
+        {
+          "id": "electrical_resistivity",
+          "unit": "ohm m"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "thermal_boundary_conditions",
+          "unit": "K or W/m^2"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "temperature",
+            "温度"
+          ]
+        },
+        {
+          "id": "eddy_loss_density",
+          "unit": "W/m^3",
+          "aliases": [
+            "eddy current loss density",
+            "涡流体损耗"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "steady"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§1.2 / §§5.7–5.8 / §7.8.4。涵盖所列方程、求解过程或配置工具；适用范围以本条限定条件为准。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "核对时均涡流功率与总热源积分，一维近均匀加热情况下比较温升。",
+      "couplings": [
+        {
+          "from_field": "electromagnetic",
+          "to_field": "thermal",
+          "quantity": "eddy_loss_density",
+          "unit": "W/m^3",
+          "transfer": "用导体域的复电流密度求周期平均损耗，在共享网格的积分点将其组装为热体源。",
+          "implementation": "custom",
+          "custom_work": "编写弱式源项，区分峰值与有效值并校核体积分。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.cli_resolution_postoperation",
+      "module": "Running GetDP",
+      "scope": "原生 CLI。以 -msh 指定独立网格文件，-solve 选择具名 Resolution，-pos 选择已在问题文件定义的后处理，-res 读取既有结果。",
+      "inputs": [
+        {
+          "id": "getdp_problem",
+          "unit": "GetDP PRO",
+          "aliases": [
+            "GetDP 问题定义"
+          ]
+        },
+        {
+          "id": "getdp_mesh",
+          "unit": "Gmsh MSH",
+          "aliases": [
+            "网格"
+          ]
+        },
+        {
+          "id": "getdp_resolution_name",
+          "unit": "text",
+          "aliases": [
+            "求解流程名"
+          ]
+        },
+        {
+          "id": "getdp_postoperation_name",
+          "unit": "text",
+          "aliases": [
+            "后处理名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_resolution_result",
+          "unit": "GetDP RES",
+          "aliases": [
+            "求解结果"
+          ]
+        },
+        {
+          "id": "getdp_postoperation_output",
+          "unit": "format configured in PRO",
+          "aliases": [
+            "后处理文件"
+          ]
+        }
+      ],
+      "conditions": [
+        "named_getdp_resolution",
+        "named_getdp_postoperation",
+        "matching_mesh_and_region_tags"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§3 Running GetDP：-msh、-solve、-pos、-res；§5.8 Resolution、§5.10 PostOperation"
+          },
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "templates/Interactive_Magnetostatics.pro 和 doc/texinfo/getdp.texi：问题定义及命令行语法"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "先运行同一已知 .pro 和 .msh，再单独从 .res 后处理；比较完整流程与结果重读的场数据，并验证缺失流程名的报错。"
+    },
+    {
+      "id": "getdp.physical_tag_group_selection",
+      "module": "Group / Types for Group",
+      "scope": "配置能力。用 Region 将网格物理组编号绑定到体、面等区域，供方程、约束与后处理复用。组表达式可合并或排除子区。",
+      "inputs": [
+        {
+          "id": "getdp_mesh",
+          "unit": "Gmsh MSH",
+          "aliases": [
+            "包含物理编号的网格"
+          ]
+        },
+        {
+          "id": "physical_group_ids",
+          "unit": "1",
+          "aliases": [
+            "Gmsh 物理组编号"
+          ]
+        },
+        {
+          "id": "getdp_group_expression",
+          "unit": "GetDP PRO",
+          "aliases": [
+            "区域集合表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_region_selection",
+          "unit": "element/region IDs",
+          "aliases": [
+            "实际选区"
+          ]
+        }
+      ],
+      "conditions": [
+        "physical_groups",
+        "matching_entity_dimension",
+        "configured_getdp_group"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§5.1 Group、§6.1 Types for Group：Region 与相关语法"
+          },
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "src/interface/ProParser.y；doc/texinfo：官方算例中的 Group/Region 定义"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "给两个区域分别标注不同物理编号，积分所选区域的常数 1，核对集合并/差前后面积或体积。"
+    },
+    {
+      "id": "getdp.axisymmetric_integration_jacobian",
+      "module": "Jacobian / Types for Jacobian",
+      "scope": "配置能力。在以 x 为半径、y 为轴向的二维轴对称弱式中用 VolAxi 使用半径加权；派生全周积分前核对旋转系数和定义。",
+      "inputs": [
+        {
+          "id": "axisymmetric_mesh",
+          "unit": "m",
+          "aliases": [
+            "径向轴向截面网格"
+          ]
+        },
+        {
+          "id": "getdp_jacobian_rule",
+          "unit": "GetDP PRO",
+          "aliases": [
+            "轴对称雅可比配置"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "axisymmetric_volume_measure",
+          "unit": "m^3 per radian",
+          "aliases": [
+            "单位弧度旋转体积分测度"
+          ]
+        }
+      ],
+      "conditions": [
+        "axisymmetric_meridional_mesh",
+        "x_is_radius",
+        "getdp_volaxi"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§5.5 Jacobian、§6.5 Types for Jacobian：VolAxi 与 SurAxi"
+          },
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "src/kernel/Get_Geometry.cpp：JacobianVolAxi2D；templates/Lib_Magnetostatics_a_phi.pro：Flag_Axi"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对圆柱截面集成 1，核对单位弧度体积与乘以 2π 的全周体积，并对比 2D 直角坐标积分。"
+    },
+    {
+      "id": "getdp.element_gauss_quadrature",
+      "module": "Integration / Types for Integration",
+      "scope": "配置能力。以 GeoElement 为键为不同有限元拓扑指定 Gauss 求积点数，在弱式组装中选择具名积分规则。点数受版本对应积分表约束。",
+      "inputs": [
+        {
+          "id": "getdp_element_topology",
+          "unit": "enum",
+          "aliases": [
+            "有限元拓扑"
+          ]
+        },
+        {
+          "id": "getdp_gauss_point_count",
+          "unit": "1",
+          "aliases": [
+            "高斯点数"
+          ]
+        },
+        {
+          "id": "weak_form_integrand",
+          "unit": "problem-dependent",
+          "aliases": [
+            "弱式被积表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_quadrature_rule",
+          "unit": "points and reference weights",
+          "aliases": [
+            "单元求积规则"
+          ]
+        }
+      ],
+      "conditions": [
+        "compatible_element_type",
+        "supported_point_count",
+        "named_integration_rule"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§5.6 Integration、§6.6 Types for Integration：Gauss 和 GeoElement"
+          },
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/Integration_Lib.pro；src/kernel/Gauss_Triangle.cpp：三角形离散点数分支"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在直边三角形上对照常数及一次多项式的解析积分，再逐步增点检查真实非多项式工况的目标量变化。"
+    },
+    {
+      "id": "getdp.result_file_roundtrip",
+      "module": "Appendix A File formats",
+      "scope": "原生文件读取和重放路径。对同一分辨流程保存时间步结果，用 -res 恢复或在 -split 分时间步输出；-bin 指定二进制输出。应保持网格及离散配置一致。",
+      "inputs": [
+        {
+          "id": "getdp_mesh",
+          "unit": "Gmsh MSH",
+          "aliases": [
+            "网格"
+          ]
+        },
+        {
+          "id": "getdp_problem",
+          "unit": "GetDP PRO",
+          "aliases": [
+            "离散问题定义"
+          ]
+        },
+        {
+          "id": "getdp_resolution_result",
+          "unit": "GetDP RES",
+          "aliases": [
+            "时步结果文件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_replayed_time_solution",
+          "unit": "problem-dependent",
+          "aliases": [
+            "重读时步解"
+          ]
+        }
+      ],
+      "conditions": [
+        "matching_dofs_and_mesh",
+        "known_result_file_encoding",
+        "compatible_getdp_build"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "§3：-res、-split、-bin；附录 A：文件格式与处理结果"
+          },
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi：File formats / Processing results，源包中的结果结构定义"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对小瞬态模型输出多个时步并分别重读 ASCII 与二进制结果，核对时步号、自由度和读出的场；与单文件流程比较。"
+    },
+    {
+      "id": "getdp.periodic_constraint_link",
+      "module": "Constraint / Link",
+      "scope": "Periodic degree-of-freedom constraint between a conforming pair of mesh regions. Explicit coordinate mapping, coefficient and supported DOF type are project inputs.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "reference_and_dependent_regions",
+          "unit": "MSH tags"
+        },
+        {
+          "id": "periodic_coordinate_transform",
+          "unit": "m"
+        },
+        {
+          "id": "link_coefficient",
+          "unit": "1"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "periodic_constraint_residual",
+          "unit": "field unit",
+          "aliases": [
+            "周期约束残差"
+          ]
+        }
+      ],
+      "conditions": [
+        "periodic",
+        "mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://www.geuz.org/getdp/doc/texinfo/getdp.pdf#page=55",
+            "scope": "§6.3 Link documents coordinate transformation and matching reference/constraint meshes."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "For a periodic scalar test verify translated nodal correspondence and the signed constraint residual."
+    },
+    {
+      "id": "getdp.staggered_magnetothermal_feedback",
+      "module": "Resolution / MagnetoThermalCoupling_hphi_T",
+      "scope": "Staggered harmonic magnetodynamics and thermal conduction with temperature-dependent electrical resistivity using the documented iterative resolution assembly. User defines compatible h-phi and temperature spaces, losses, coupling domain, thermal time steps and convergence tolerances.",
+      "inputs": [
+        {
+          "id": "mesh",
+          "unit": "MSH"
+        },
+        {
+          "id": "excitation_frequency",
+          "unit": "Hz"
+        },
+        {
+          "id": "electrical_resistivity_vs_temperature",
+          "unit": "ohm m; K"
+        },
+        {
+          "id": "thermal_conductivity",
+          "unit": "W/(m K)"
+        },
+        {
+          "id": "thermal_timestep",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "joule_heat",
+          "unit": "W/m^3",
+          "aliases": [
+            "焦耳热源密度"
+          ]
+        },
+        {
+          "id": "temperature",
+          "unit": "K",
+          "aliases": [
+            "温度"
+          ]
+        },
+        {
+          "id": "electrical_resistivity",
+          "unit": "ohm m",
+          "aliases": [
+            "电阻率"
+          ]
+        }
+      ],
+      "conditions": [
+        "harmonic",
+        "thermal",
+        "coupled"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "GetDP 3.5.0 getdp.texi §7.9.5 documents a coupled magnetodynamic/thermal example with named systems, frequency, temperature-dependent resistivity and IterativeLoop."
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare integrated electrical loss with thermal heat input, check both field residuals and convergence against a one-way constant-resistivity reference before enabling feedback.",
+      "couplings": [
+        {
+          "from_field": "electromagnetic",
+          "to_field": "thermal",
+          "quantity": "joule_heat",
+          "unit": "W/m^3",
+          "transfer": "源区耗散写入热弱式体源项并核对积分功率。",
+          "implementation": "configured",
+          "custom_work": "组装损耗表达及热弱式，明确峰值或有效值约定。"
+        },
+        {
+          "from_field": "thermal",
+          "to_field": "electromagnetic",
+          "quantity": "temperature",
+          "unit": "K",
+          "transfer": "把热解温度代入电阻率函数并迭代求解两套系统。",
+          "implementation": "configured",
+          "custom_work": "配置域和场取值，校核材料温度适用区间、时步及联合残差。"
+        }
+      ]
+    },
+    {
+      "id": "getdp.builtin_exp",
+      "module": "Built-in expression functions / Exp",
+      "scope": "Exp：自然指数值 e 的输入次方。输入：一个实数或复数标量表达式。常量表达式仅接受实数；结果随输入类型变化。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_exp_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Exp 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_exp_result",
+          "unit": "输入与输出无量纲",
+          "aliases": [
+            "Exp 函数结果",
+            "自然指数值 e 的输入次方"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Exp，行 3296"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_log",
+      "module": "Built-in expression functions / Log",
+      "scope": "Log：自然对数值。输入：一个实数或复数标量表达式。实数输入须大于零；复数取值遵循实现的复对数支路；常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_log_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Log 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_log_result",
+          "unit": "输入与输出无量纲",
+          "aliases": [
+            "Log 函数结果",
+            "自然对数值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Log，行 3301"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_log10",
+      "module": "Built-in expression functions / Log10",
+      "scope": "Log10：以 10 为底的对数值。输入：一个实数或复数标量表达式。实数输入须大于零；复数取值遵循实现的对数支路；常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_log10_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Log10 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_log10_result",
+          "unit": "输入与输出无量纲",
+          "aliases": [
+            "Log10 函数结果",
+            "以 10 为底的对数值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Log10，行 3306"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_sqrt",
+      "module": "Built-in expression functions / Sqrt",
+      "scope": "Sqrt：平方根。输入：一个实数或复数标量表达式。实数输入须非负；复数结果遵循实现的平方根支路；常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_sqrt_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Sqrt 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_sqrt_result",
+          "unit": "输出单位为输入单位的平方根",
+          "aliases": [
+            "Sqrt 函数结果",
+            "平方根"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Sqrt，行 3311"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_sin",
+      "module": "Built-in expression functions / Sin",
+      "scope": "Sin：正弦值。输入：一个实数或复数角表达式。常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_sin_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Sin 函数输入",
+            "一个实数或复数角表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_sin_result",
+          "unit": "输入角度 rad；输出 1",
+          "aliases": [
+            "Sin 函数结果",
+            "正弦值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Sin，行 3316"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_asin",
+      "module": "Built-in expression functions / Asin",
+      "scope": "Asin：反正弦主值。输入：一个实数标量。输入实数 [-1,1]；输出 [-π/2,π/2]。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_asin_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Asin 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_asin_result",
+          "unit": "输入无量纲；输出 rad",
+          "aliases": [
+            "Asin 函数结果",
+            "反正弦主值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Asin，行 3321"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cos",
+      "module": "Built-in expression functions / Cos",
+      "scope": "Cos：余弦值。输入：一个实数或复数角表达式。常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cos_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cos 函数输入",
+            "一个实数或复数角表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cos_result",
+          "unit": "输入角度 rad；输出 1",
+          "aliases": [
+            "Cos 函数结果",
+            "余弦值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cos，行 3327"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_acos",
+      "module": "Built-in expression functions / Acos",
+      "scope": "Acos：反余弦主值。输入：一个实数标量。输入实数 [-1,1]；输出 [0,π]。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_acos_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Acos 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_acos_result",
+          "unit": "输入无量纲；输出 rad",
+          "aliases": [
+            "Acos 函数结果",
+            "反余弦主值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Acos，行 3332"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tan",
+      "module": "Built-in expression functions / Tan",
+      "scope": "Tan：正切值。输入：一个实数或复数角表达式。极点处未定义；常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tan_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Tan 函数输入",
+            "一个实数或复数角表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tan_result",
+          "unit": "输入角度 rad；输出 1",
+          "aliases": [
+            "Tan 函数结果",
+            "正切值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Tan，行 3338"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_atan",
+      "module": "Built-in expression functions / Atan",
+      "scope": "Atan：反正切主值。输入：一个实数标量。输入为实数；输出范围按手册为 [-π/2,π/2]。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_atan_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Atan 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_atan_result",
+          "unit": "输入无量纲；输出 rad",
+          "aliases": [
+            "Atan 函数结果",
+            "反正切主值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Atan，行 3343"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_atan2",
+      "module": "Built-in expression functions / Atan2",
+      "scope": "Atan2：象限感知的反正切角。输入：两个实数标量，依次为纵向和横向参数。两个参数均为实数；零向量与数值边界需单独处理。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_atan2_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Atan2 函数输入",
+            "两个实数标量，依次为纵向和横向参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_atan2_result",
+          "unit": "两个输入量纲须一致；输出 rad",
+          "aliases": [
+            "Atan2 函数结果",
+            "象限感知的反正切角"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Atan2，行 3349"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_sinh",
+      "module": "Built-in expression functions / Sinh",
+      "scope": "Sinh：双曲正弦值。输入：一个实数或复数标量表达式。常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_sinh_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Sinh 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_sinh_result",
+          "unit": "输入输出无量纲",
+          "aliases": [
+            "Sinh 函数结果",
+            "双曲正弦值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Sinh，行 3355"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cosh",
+      "module": "Built-in expression functions / Cosh",
+      "scope": "Cosh：双曲余弦值。输入：一个实数或复数标量表达式。常量表达式仅接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cosh_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cosh 函数输入",
+            "一个实数或复数标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cosh_result",
+          "unit": "输入输出无量纲",
+          "aliases": [
+            "Cosh 函数结果",
+            "双曲余弦值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cosh，行 3360"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tanh",
+      "module": "Built-in expression functions / Tanh",
+      "scope": "Tanh：实双曲正切。输入：一个实数标量。手册指定实值参数；常量表达式只接受实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tanh_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Tanh 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tanh_result",
+          "unit": "输入输出无量纲",
+          "aliases": [
+            "Tanh 函数结果",
+            "实双曲正切"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Tanh，行 3365"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tanh_c2",
+      "module": "Built-in expression functions / TanhC2",
+      "scope": "TanhC2：复数双曲正切。输入：一个复数表达式。手册指定复数表达式；仅实数允许出现在常量表达式中。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tanhc2_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TanhC2 函数输入",
+            "一个复数表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tanhc2_result",
+          "unit": "输入输出无量纲",
+          "aliases": [
+            "TanhC2 函数结果",
+            "复数双曲正切"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TanhC2，行 3370"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_fabs",
+      "module": "Built-in expression functions / Fabs",
+      "scope": "Fabs：实数绝对值。输入：一个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_fabs_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Fabs 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_fabs_result",
+          "unit": "输出单位同输入",
+          "aliases": [
+            "Fabs 函数结果",
+            "实数绝对值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Fabs，行 3375"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_abs",
+      "module": "Built-in expression functions / Abs",
+      "scope": "Abs：绝对值。输入：一个标量表达式。常量表达式仅接受实数；复值表达式按函数定义求绝对值。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_abs_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Abs 函数输入",
+            "一个标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_abs_result",
+          "unit": "输出单位同输入",
+          "aliases": [
+            "Abs 函数结果",
+            "绝对值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Abs，行 3380"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_floor",
+      "module": "Built-in expression functions / Floor",
+      "scope": "Floor：不大于输入的最大整数。输入：一个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_floor_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Floor 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_floor_result",
+          "unit": "输入、输出为无量纲数",
+          "aliases": [
+            "Floor 函数结果",
+            "不大于输入的最大整数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Floor，行 3385"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_ceil",
+      "module": "Built-in expression functions / Ceil",
+      "scope": "Ceil：不小于输入的最小整数。输入：一个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_ceil_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Ceil 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_ceil_result",
+          "unit": "输入、输出为无量纲数",
+          "aliases": [
+            "Ceil 函数结果",
+            "不小于输入的最小整数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Ceil，行 3391"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_fmod",
+      "module": "Built-in expression functions / Fmod",
+      "scope": "Fmod：第一个参数除以第二个参数的余数。输入：两个实数标量。实数；除数非零，余数符号同第一个参数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_fmod_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Fmod 函数输入",
+            "两个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_fmod_result",
+          "unit": "两个输入及输出单位相同",
+          "aliases": [
+            "Fmod 函数结果",
+            "第一个参数除以第二个参数的余数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Fmod，行 3397"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_min",
+      "module": "Built-in expression functions / Min",
+      "scope": "Min：两个标量的最小值。输入：两个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_min_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Min 函数输入",
+            "两个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_min_result",
+          "unit": "两个输入及输出单位相同",
+          "aliases": [
+            "Min 函数结果",
+            "两个标量的最小值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Min，行 3403"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_max",
+      "module": "Built-in expression functions / Max",
+      "scope": "Max：两个标量的最大值。输入：两个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_max_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Max 函数输入",
+            "两个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_max_result",
+          "unit": "两个输入及输出单位相同",
+          "aliases": [
+            "Max 函数结果",
+            "两个标量的最大值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Max，行 3408"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_sign",
+      "module": "Built-in expression functions / Sign",
+      "scope": "Sign：负值返回 -1；零或正值返回 1。输入：一个实数标量。仅实数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_sign_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Sign 函数输入",
+            "一个实数标量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_sign_result",
+          "unit": "输出 1",
+          "aliases": [
+            "Sign 函数结果",
+            "负值返回 -1；零或正值返回 1"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Sign，行 3413"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cross",
+      "module": "Built-in expression functions / Cross",
+      "scope": "Cross：向量叉积。输入：两个向量表达式。两个输入须为向量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cross_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cross 函数输入",
+            "两个向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cross_result",
+          "unit": "输出单位为两个向量单位之积",
+          "aliases": [
+            "Cross 函数结果",
+            "向量叉积"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cross，行 3461"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_hypot",
+      "module": "Built-in expression functions / Hypot",
+      "scope": "Hypot：平方和的平方根。输入：两个标量表达式。两输入的单位须一致。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_hypot_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Hypot 函数输入",
+            "两个标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_hypot_result",
+          "unit": "输出单位与输入相同",
+          "aliases": [
+            "Hypot 函数结果",
+            "平方和的平方根"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Hypot，行 3466"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_norm",
+      "module": "Built-in expression functions / Norm",
+      "scope": "Norm：标量绝对值或向量欧氏范数。输入：一个标量或向量表达式。仅对手册所述标量或向量使用。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_norm_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Norm 函数输入",
+            "一个标量或向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_norm_result",
+          "unit": "输出单位与输入相同",
+          "aliases": [
+            "Norm 函数结果",
+            "标量绝对值或向量欧氏范数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Norm，行 3471"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_squ_norm",
+      "module": "Built-in expression functions / SquNorm",
+      "scope": "SquNorm：范数的平方。输入：一个标量或向量表达式。按 Norm 定义后平方。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_squnorm_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "SquNorm 函数输入",
+            "一个标量或向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_squnorm_result",
+          "unit": "输出单位为输入单位的平方",
+          "aliases": [
+            "SquNorm 函数结果",
+            "范数的平方"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 SquNorm，行 3477"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_unit",
+      "module": "Built-in expression functions / Unit",
+      "scope": "Unit：归一化结果。输入：一个表达式。范数小于 1e-30 时按手册返回 0。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_unit_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Unit 函数输入",
+            "一个表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_unit_result",
+          "unit": "归一化结果无量纲；阈值与输入数值尺度有关",
+          "aliases": [
+            "Unit 函数结果",
+            "归一化结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Unit，行 3482"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_transpose",
+      "module": "Built-in expression functions / Transpose",
+      "scope": "Transpose：转置张量。输入：一个张量表达式。输入须为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_transpose_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Transpose 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_transpose_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "Transpose 函数结果",
+            "转置张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Transpose，行 3488"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_inv",
+      "module": "Built-in expression functions / Inv",
+      "scope": "Inv：逆张量。输入：一个张量表达式。输入须为可逆张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_inv_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Inv 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_inv_result",
+          "unit": "输出单位为输入单位的倒数",
+          "aliases": [
+            "Inv 函数结果",
+            "逆张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Inv，行 3493"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_det",
+      "module": "Built-in expression functions / Det",
+      "scope": "Det：张量行列式。输入：一个张量表达式。输入为方张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_det_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Det 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_det_result",
+          "unit": "三维二阶张量输出为输入单位的三次方",
+          "aliases": [
+            "Det 函数结果",
+            "张量行列式"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Det，行 3498"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_rotate",
+      "module": "Built-in expression functions / Rotate",
+      "scope": "Rotate：旋转后向量或张量。输入：向量或张量及绕 x、y、z 的三个角度。三个角度按手册使用弧度；旋转约定需核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_rotate_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Rotate 函数输入",
+            "向量或张量及绕 x、y、z 的三个角度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_rotate_result",
+          "unit": "角度 rad；结果单位同输入",
+          "aliases": [
+            "Rotate 函数结果",
+            "旋转后向量或张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Rotate，行 3503"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_t_trace",
+      "module": "Built-in expression functions / TTrace",
+      "scope": "TTrace：张量迹。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_ttrace_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TTrace 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_ttrace_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "TTrace 函数结果",
+            "张量迹"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TTrace，行 3510"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cos_wt_p",
+      "module": "Built-in expression functions / Cos_wt_p",
+      "scope": "Cos_wt_p：实系统时间函数或复系统相量。输入：两个常量参数：角频率与相位。Real 与 Complex 系统返回形式不同；使用当前系统时间。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cos_wt_p_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cos_wt_p 函数输入",
+            "两个常量参数：角频率与相位"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cos_wt_p_result",
+          "unit": "角频率 rad/时间，时间单位一致，相位 rad；输出无量纲",
+          "aliases": [
+            "Cos_wt_p 函数结果",
+            "实系统时间函数或复系统相量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cos_wt_p，行 3515"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_sin_wt_p",
+      "module": "Built-in expression functions / Sin_wt_p",
+      "scope": "Sin_wt_p：实系统时间函数或复系统相量。输入：两个常量参数：角频率与相位。Real 与 Complex 系统返回形式不同；使用当前系统时间。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_sin_wt_p_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Sin_wt_p 函数输入",
+            "两个常量参数：角频率与相位"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_sin_wt_p_result",
+          "unit": "角频率 rad/时间，时间单位一致，相位 rad；输出无量纲",
+          "aliases": [
+            "Sin_wt_p 函数结果",
+            "实系统时间函数或复系统相量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Sin_wt_p，行 3524"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_period",
+      "module": "Built-in expression functions / Period",
+      "scope": "Period：周期化后的标量。输入：表达式与常量周期。范围陈述以正周期为前提；输入与周期单位一致。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_period_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Period 函数输入",
+            "表达式与常量周期"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_period_result",
+          "unit": "输出与输入表达式单位一致",
+          "aliases": [
+            "Period 函数结果",
+            "周期化后的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Period，行 3533"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_laplace",
+      "module": "Built-in expression functions / Laplace",
+      "scope": "Laplace：Laplace Green 核标量。输入：无普通参数；常量参数指定问题维度。仅用于 integral quantity；依赖目标点和源点，奇点及维数适用性须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_laplace_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Laplace 函数输入",
+            "无普通参数；常量参数指定问题维度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_laplace_result",
+          "unit": "量纲依空间长度、波数及核定义",
+          "aliases": [
+            "Laplace 函数结果",
+            "Laplace Green 核标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Laplace，行 3576"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_grad_laplace",
+      "module": "Built-in expression functions / GradLaplace",
+      "scope": "GradLaplace：Laplace Green 核对目标点的梯度向量。输入：无普通参数；常量参数指定问题维度。仅用于 integral quantity；依赖目标点和源点，奇点及维数适用性须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_gradlaplace_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GradLaplace 函数输入",
+            "无普通参数；常量参数指定问题维度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_gradlaplace_result",
+          "unit": "量纲依空间长度、波数及核定义",
+          "aliases": [
+            "GradLaplace 函数结果",
+            "Laplace Green 核对目标点的梯度向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GradLaplace，行 3581"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_helmholtz",
+      "module": "Built-in expression functions / Helmholtz",
+      "scope": "Helmholtz：Helmholtz Green 核标量。输入：无普通参数；常量参数指定问题维度及波数。仅用于 integral quantity；依赖目标点和源点，奇点及维数适用性须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_helmholtz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Helmholtz 函数输入",
+            "无普通参数；常量参数指定问题维度及波数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_helmholtz_result",
+          "unit": "量纲依空间长度、波数及核定义",
+          "aliases": [
+            "Helmholtz 函数结果",
+            "Helmholtz Green 核标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Helmholtz，行 3587"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_grad_helmholtz",
+      "module": "Built-in expression functions / GradHelmholtz",
+      "scope": "GradHelmholtz：Helmholtz Green 核对目标点的梯度向量。输入：无普通参数；常量参数指定问题维度及波数。仅用于 integral quantity；依赖目标点和源点，奇点及维数适用性须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_gradhelmholtz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GradHelmholtz 函数输入",
+            "无普通参数；常量参数指定问题维度及波数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_gradhelmholtz_result",
+          "unit": "量纲依空间长度、波数及核定义",
+          "aliases": [
+            "GradHelmholtz 函数结果",
+            "Helmholtz Green 核对目标点的梯度向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GradHelmholtz，行 3592"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_complex",
+      "module": "Built-in expression functions / Complex",
+      "scope": "Complex：多谐波复值表达式。输入：偶数个实值表达式组成的列表。列表长度必须为偶数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_complex_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Complex 函数输入",
+            "偶数个实值表达式组成的列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_complex_result",
+          "unit": "分量具有相同物理单位",
+          "aliases": [
+            "Complex 函数结果",
+            "多谐波复值表达式"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Complex，行 3614"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_re",
+      "module": "Built-in expression functions / Re",
+      "scope": "Re：复值表达式的实部。输入：一个复值表达式。输入为复值表达式。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_re_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Re 函数输入",
+            "一个复值表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_re_result",
+          "unit": "输出单位与输入一致",
+          "aliases": [
+            "Re 函数结果",
+            "复值表达式的实部"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Re，行 3626"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_im",
+      "module": "Built-in expression functions / Im",
+      "scope": "Im：复值表达式的虚部。输入：一个复值表达式。输入为复值表达式。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_im_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Im 函数输入",
+            "一个复值表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_im_result",
+          "unit": "输出单位与输入一致",
+          "aliases": [
+            "Im 函数结果",
+            "复值表达式的虚部"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Im，行 3631"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_conj",
+      "module": "Built-in expression functions / Conj",
+      "scope": "Conj：复值表达式的共轭。输入：一个复值表达式。输入为复值表达式。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_conj_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Conj 函数输入",
+            "一个复值表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_conj_result",
+          "unit": "输出单位与输入一致",
+          "aliases": [
+            "Conj 函数结果",
+            "复值表达式的共轭"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Conj，行 3636"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cart2_pol",
+      "module": "Built-in expression functions / Cart2Pol",
+      "scope": "Cart2Pol：幅值和相位形式。输入：复数表达式。相位以弧度表示。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cart2pol_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cart2Pol 函数输入",
+            "复数表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cart2pol_result",
+          "unit": "幅值单位同输入；相位 rad",
+          "aliases": [
+            "Cart2Pol 函数结果",
+            "幅值和相位形式"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cart2Pol，行 3641"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_vector",
+      "module": "Built-in expression functions / Vector",
+      "scope": "Vector：三分量向量。输入：三个标量表达式。三个分量应采用兼容量纲。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_vector_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Vector 函数输入",
+            "三个标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_vector_result",
+          "unit": "向量分量单位与输入一致",
+          "aliases": [
+            "Vector 函数结果",
+            "三分量向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Vector，行 3647"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tensor",
+      "module": "Built-in expression functions / Tensor",
+      "scope": "Tensor：3×3 二阶张量。输入：九个标量，按行排列。按手册行顺序输入；分量量纲须兼容。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tensor_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Tensor 函数输入",
+            "九个标量，按行排列"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tensor_result",
+          "unit": "张量分量单位与输入一致",
+          "aliases": [
+            "Tensor 函数结果",
+            "3×3 二阶张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Tensor，行 3652"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tensor_v",
+      "module": "Built-in expression functions / TensorV",
+      "scope": "TensorV：3×3 二阶张量。输入：三个行向量。三个输入分别构成张量的行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tensorv_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TensorV 函数输入",
+            "三个行向量"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tensorv_result",
+          "unit": "张量分量单位与输入一致",
+          "aliases": [
+            "TensorV 函数结果",
+            "3×3 二阶张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TensorV，行 3666"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tensor_sym",
+      "module": "Built-in expression functions / TensorSym",
+      "scope": "TensorSym：三维对称二阶张量。输入：六个标量表达式。六个输入的分量排列需遵循 GetDP 约定。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tensorsym_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TensorSym 函数输入",
+            "六个标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tensorsym_result",
+          "unit": "张量分量单位与输入一致",
+          "aliases": [
+            "TensorSym 函数结果",
+            "三维对称二阶张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TensorSym，行 3678"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tensor_diag",
+      "module": "Built-in expression functions / TensorDiag",
+      "scope": "TensorDiag：三维对角二阶张量。输入：三个标量表达式。各标量对应对角分量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tensordiag_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TensorDiag 函数输入",
+            "三个标量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tensordiag_result",
+          "unit": "张量分量单位与输入一致",
+          "aliases": [
+            "TensorDiag 函数结果",
+            "三维对角二阶张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TensorDiag，行 3683"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_squ_dyadic_product",
+      "module": "Built-in expression functions / SquDyadicProduct",
+      "scope": "SquDyadicProduct：该向量与自身的二阶并矢张量。输入：一个向量表达式。输入必须为向量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_squdyadicproduct_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "SquDyadicProduct 函数输入",
+            "一个向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_squdyadicproduct_result",
+          "unit": "输出单位为向量单位的平方",
+          "aliases": [
+            "SquDyadicProduct 函数结果",
+            "该向量与自身的二阶并矢张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 SquDyadicProduct，行 3688"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_x",
+      "module": "Built-in expression functions / CompX",
+      "scope": "CompX：指定 X、Y 或 Z 标量分量。输入：一个向量表达式。输入为向量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compx_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompX 函数输入",
+            "一个向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compx_result",
+          "unit": "输出单位同向量分量",
+          "aliases": [
+            "CompX 函数结果",
+            "指定 X、Y 或 Z 标量分量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompX，行 3693"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_y",
+      "module": "Built-in expression functions / CompY",
+      "scope": "CompY：指定 X、Y 或 Z 标量分量。输入：一个向量表达式。输入为向量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compy_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompY 函数输入",
+            "一个向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compy_result",
+          "unit": "输出单位同向量分量",
+          "aliases": [
+            "CompY 函数结果",
+            "指定 X、Y 或 Z 标量分量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompY，行 3698"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_z",
+      "module": "Built-in expression functions / CompZ",
+      "scope": "CompZ：指定 X、Y 或 Z 标量分量。输入：一个向量表达式。输入为向量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompZ 函数输入",
+            "一个向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compz_result",
+          "unit": "输出单位同向量分量",
+          "aliases": [
+            "CompZ 函数结果",
+            "指定 X、Y 或 Z 标量分量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompZ，行 3703"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_x_x",
+      "module": "Built-in expression functions / CompXX",
+      "scope": "CompXX：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compxx_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompXX 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compxx_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompXX 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompXX，行 3708"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_x_y",
+      "module": "Built-in expression functions / CompXY",
+      "scope": "CompXY：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compxy_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompXY 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compxy_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompXY 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompXY，行 3713"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_x_z",
+      "module": "Built-in expression functions / CompXZ",
+      "scope": "CompXZ：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compxz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompXZ 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compxz_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompXZ 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompXZ，行 3718"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_y_x",
+      "module": "Built-in expression functions / CompYX",
+      "scope": "CompYX：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compyx_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompYX 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compyx_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompYX 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompYX，行 3723"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_y_y",
+      "module": "Built-in expression functions / CompYY",
+      "scope": "CompYY：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compyy_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompYY 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compyy_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompYY 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompYY，行 3728"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_y_z",
+      "module": "Built-in expression functions / CompYZ",
+      "scope": "CompYZ：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compyz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompYZ 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compyz_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompYZ 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompYZ，行 3733"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_z_x",
+      "module": "Built-in expression functions / CompZX",
+      "scope": "CompZX：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compzx_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompZX 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compzx_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompZX 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompZX，行 3738"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_z_y",
+      "module": "Built-in expression functions / CompZY",
+      "scope": "CompZY：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compzy_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompZY 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compzy_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompZY 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompZY，行 3743"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_z_z",
+      "module": "Built-in expression functions / CompZZ",
+      "scope": "CompZZ：指定行列分量的标量。输入：一个张量表达式。输入为张量。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compzz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompZZ 函数输入",
+            "一个张量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compzz_result",
+          "unit": "输出单位同张量分量",
+          "aliases": [
+            "CompZZ 函数结果",
+            "指定行列分量的标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompZZ，行 3748"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cart2_sph",
+      "module": "Built-in expression functions / Cart2Sph",
+      "scope": "Cart2Sph：笛卡尔到球坐标或圆柱坐标的变换张量。输入：一个位置向量表达式。转换适用的坐标基及轴线处的退化须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cart2sph_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cart2Sph 函数输入",
+            "一个位置向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cart2sph_result",
+          "unit": "输入坐标使用一致长度单位；变换张量无量纲",
+          "aliases": [
+            "Cart2Sph 函数结果",
+            "笛卡尔到球坐标或圆柱坐标的变换张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cart2Sph，行 3753"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_cart2_cyl",
+      "module": "Built-in expression functions / Cart2Cyl",
+      "scope": "Cart2Cyl：笛卡尔到球坐标或圆柱坐标的变换张量。输入：一个位置向量表达式。转换适用的坐标基及轴线处的退化须核实。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_cart2cyl_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Cart2Cyl 函数输入",
+            "一个位置向量表达式"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_cart2cyl_result",
+          "unit": "输入坐标使用一致长度单位；变换张量无量纲",
+          "aliases": [
+            "Cart2Cyl 函数结果",
+            "笛卡尔到球坐标或圆柱坐标的变换张量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Cart2Cyl，行 3758"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_unit_vector_x",
+      "module": "Built-in expression functions / UnitVectorX",
+      "scope": "UnitVectorX：X 方向单位向量。输入：无参数。按坐标轴定义。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_unitvectorx_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "UnitVectorX 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_unitvectorx_result",
+          "unit": "1",
+          "aliases": [
+            "UnitVectorX 函数结果",
+            "X 方向单位向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 UnitVectorX，行 3765"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_unit_vector_y",
+      "module": "Built-in expression functions / UnitVectorY",
+      "scope": "UnitVectorY：Y 方向单位向量。输入：无参数。按坐标轴定义。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_unitvectory_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "UnitVectorY 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_unitvectory_result",
+          "unit": "1",
+          "aliases": [
+            "UnitVectorY 函数结果",
+            "Y 方向单位向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 UnitVectorY，行 3770"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_unit_vector_z",
+      "module": "Built-in expression functions / UnitVectorZ",
+      "scope": "UnitVectorZ：Z 方向单位向量。输入：无参数。按坐标轴定义。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_unitvectorz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "UnitVectorZ 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_unitvectorz_result",
+          "unit": "1",
+          "aliases": [
+            "UnitVectorZ 函数结果",
+            "Z 方向单位向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 UnitVectorZ，行 3775"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_x",
+      "module": "Built-in expression functions / X",
+      "scope": "X：当前点 X 坐标标量。输入：无参数；使用当前计算点。依赖当前求值点上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_x_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "X 函数输入",
+            "无参数；使用当前计算点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_x_result",
+          "unit": "几何长度单位",
+          "aliases": [
+            "X 函数结果",
+            "当前点 X 坐标标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 X，行 3797"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_y",
+      "module": "Built-in expression functions / Y",
+      "scope": "Y：当前点 Y 坐标标量。输入：无参数；使用当前计算点。依赖当前求值点上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_y_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Y 函数输入",
+            "无参数；使用当前计算点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_y_result",
+          "unit": "几何长度单位",
+          "aliases": [
+            "Y 函数结果",
+            "当前点 Y 坐标标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Y，行 3802"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_z",
+      "module": "Built-in expression functions / Z",
+      "scope": "Z：当前点 Z 坐标标量。输入：无参数；使用当前计算点。依赖当前求值点上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_z_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Z 函数输入",
+            "无参数；使用当前计算点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_z_result",
+          "unit": "几何长度单位",
+          "aliases": [
+            "Z 函数结果",
+            "当前点 Z 坐标标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Z，行 3807"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_x_y_z",
+      "module": "Built-in expression functions / XYZ",
+      "scope": "XYZ：当前点三维坐标向量。输入：无参数；使用当前计算点。依赖当前求值点上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_xyz_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "XYZ 函数输入",
+            "无参数；使用当前计算点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_xyz_result",
+          "unit": "几何长度单位",
+          "aliases": [
+            "XYZ 函数结果",
+            "当前点三维坐标向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 XYZ，行 3812"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_normal",
+      "module": "Built-in expression functions / Normal",
+      "scope": "Normal：当前单元法向向量。输入：无参数；使用当前或源单元。依赖当前单元。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_normal_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Normal 函数输入",
+            "无参数；使用当前或源单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_normal_result",
+          "unit": "方向向量；缩放依元素上下文",
+          "aliases": [
+            "Normal 函数结果",
+            "当前单元法向向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Normal，行 3852"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_normal_source",
+      "module": "Built-in expression functions / NormalSource",
+      "scope": "NormalSource：源单元法向向量。输入：无参数；使用当前或源单元。仅用于 integral quantity。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_normalsource_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "NormalSource 函数输入",
+            "无参数；使用当前或源单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_normalsource_result",
+          "unit": "方向向量；缩放依元素上下文",
+          "aliases": [
+            "NormalSource 函数结果",
+            "源单元法向向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 NormalSource，行 3857"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tangent",
+      "module": "Built-in expression functions / Tangent",
+      "scope": "Tangent：当前线单元切向向量。输入：无参数；使用当前或源单元。仅用于线单元。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tangent_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Tangent 函数输入",
+            "无参数；使用当前或源单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tangent_result",
+          "unit": "方向向量；缩放依元素上下文",
+          "aliases": [
+            "Tangent 函数结果",
+            "当前线单元切向向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Tangent，行 3863"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tangent_source",
+      "module": "Built-in expression functions / TangentSource",
+      "scope": "TangentSource：源线单元切向向量。输入：无参数；使用当前或源单元。仅用于 integral quantity 且源单元为线单元。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tangentsource_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TangentSource 函数输入",
+            "无参数；使用当前或源单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tangentsource_result",
+          "unit": "方向向量；缩放依元素上下文",
+          "aliases": [
+            "TangentSource 函数结果",
+            "源线单元切向向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TangentSource，行 3868"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_element_vol",
+      "module": "Built-in expression functions / ElementVol",
+      "scope": "ElementVol：当前单元体积。输入：无参数；使用当前单元。依赖当前单元和求值上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_elementvol_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ElementVol 函数输入",
+            "无参数；使用当前单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_elementvol_result",
+          "unit": "三维体积为坐标长度单位的三次方",
+          "aliases": [
+            "ElementVol 函数结果",
+            "当前单元体积"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ElementVol，行 3874"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_surface_area",
+      "module": "Built-in expression functions / SurfaceArea",
+      "scope": "SurfaceArea：面积。输入：可为空的常量物理面编号列表。列表为空时取当前面；依赖有效面网格及上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_surfacearea_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "SurfaceArea 函数输入",
+            "可为空的常量物理面编号列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_surfacearea_result",
+          "unit": "坐标长度单位的平方",
+          "aliases": [
+            "SurfaceArea 函数结果",
+            "面积"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 SurfaceArea，行 3879"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_get_volume",
+      "module": "Built-in expression functions / GetVolume",
+      "scope": "GetVolume：当前物理组体积。输入：无参数；使用当前物理组。依赖当前物理组和求值上下文。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_getvolume_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GetVolume 函数输入",
+            "无参数；使用当前物理组"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_getvolume_result",
+          "unit": "三维体积为坐标长度单位的三次方",
+          "aliases": [
+            "GetVolume 函数结果",
+            "当前物理组体积"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GetVolume，行 3885"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_comp_element_num",
+      "module": "Built-in expression functions / CompElementNum",
+      "scope": "CompElementNum：元素相同时为零的比较结果。输入：无参数；使用当前单元和源单元。依赖当前源/目标元素上下文；其他返回值手册未明确。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_compelementnum_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "CompElementNum 函数输入",
+            "无参数；使用当前单元和源单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_compelementnum_result",
+          "unit": "1",
+          "aliases": [
+            "CompElementNum 函数结果",
+            "元素相同时为零的比较结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 CompElementNum，行 3890"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_get_num_elements",
+      "module": "Built-in expression functions / GetNumElements",
+      "scope": "GetNumElements：单元数量。输入：可为空的常量物理编号列表。列表为空时统计当前区域。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_getnumelements_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GetNumElements 函数输入",
+            "可为空的常量物理编号列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_getnumelements_result",
+          "unit": "1（整数计数）",
+          "aliases": [
+            "GetNumElements 函数结果",
+            "单元数量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GetNumElements，行 3896"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_element_num",
+      "module": "Built-in expression functions / ElementNum",
+      "scope": "ElementNum：当前单元标签。输入：无参数；使用当前单元。依赖当前单元。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_elementnum_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ElementNum 函数输入",
+            "无参数；使用当前单元"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_elementnum_result",
+          "unit": "1（整数标签）",
+          "aliases": [
+            "ElementNum 函数结果",
+            "当前单元标签"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ElementNum，行 3902"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_quadrature_point_index",
+      "module": "Built-in expression functions / QuadraturePointIndex",
+      "scope": "QuadraturePointIndex：当前积分点索引。输入：无参数；使用当前积分点。依赖当前积分点；手册未指定索引基数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_quadraturepointindex_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "QuadraturePointIndex 函数输入",
+            "无参数；使用当前积分点"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_quadraturepointindex_result",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "QuadraturePointIndex 函数结果",
+            "当前积分点索引"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 QuadraturePointIndex，行 3907"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_at_index",
+      "module": "Built-in expression functions / AtIndex",
+      "scope": "AtIndex：列表中对应位置的值。输入：运行期索引表达式及常量列表。索引有效范围及起始约定须按使用环境核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_atindex_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "AtIndex 函数输入",
+            "运行期索引表达式及常量列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_atindex_result",
+          "unit": "与列表值单位一致",
+          "aliases": [
+            "AtIndex 函数结果",
+            "列表中对应位置的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 AtIndex，行 3912"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_interpolation_linear",
+      "module": "Built-in expression functions / InterpolationLinear",
+      "scope": "InterpolationLinear：一元分段线性插值。输入：一个自变量和常量点数据列表。常量表达式个数须为偶数；外推行为须另核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_interpolationlinear_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "InterpolationLinear 函数输入",
+            "一个自变量和常量点数据列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_interpolationlinear_result",
+          "unit": "值单位同表值；导数单位为表值单位/自变量单位",
+          "aliases": [
+            "InterpolationLinear 函数结果",
+            "一元分段线性插值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 InterpolationLinear，行 3918"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_d_interpolation_linear",
+      "module": "Built-in expression functions / dInterpolationLinear",
+      "scope": "dInterpolationLinear：一元分段线性插值的导数。输入：一个自变量和常量点数据列表。常量表达式个数须为偶数；外推行为须另核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_dinterpolationlinear_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "dInterpolationLinear 函数输入",
+            "一个自变量和常量点数据列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_dinterpolationlinear_result",
+          "unit": "值单位同表值；导数单位为表值单位/自变量单位",
+          "aliases": [
+            "dInterpolationLinear 函数结果",
+            "一元分段线性插值的导数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 dInterpolationLinear，行 3924"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_interpolation_bilinear",
+      "module": "Built-in expression functions / InterpolationBilinear",
+      "scope": "InterpolationBilinear：双线性插值标量。输入：两个自变量和常量表数据。表布局及外推行为须按 GetDP 表格式核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_interpolationbilinear_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "InterpolationBilinear 函数输入",
+            "两个自变量和常量表数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_interpolationbilinear_result",
+          "unit": "值单位同表值",
+          "aliases": [
+            "InterpolationBilinear 函数结果",
+            "双线性插值标量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 InterpolationBilinear，行 3930"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_d_interpolation_bilinear",
+      "module": "Built-in expression functions / dInterpolationBilinear",
+      "scope": "dInterpolationBilinear：双线性插值导数向量。输入：两个自变量和常量表数据。表布局及外推行为须按 GetDP 表格式核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_dinterpolationbilinear_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "dInterpolationBilinear 函数输入",
+            "两个自变量和常量表数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_dinterpolationbilinear_result",
+          "unit": "导数分量按相应自变量单位缩放",
+          "aliases": [
+            "dInterpolationBilinear 函数结果",
+            "双线性插值导数向量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 dInterpolationBilinear，行 3936"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_interpolation_akima",
+      "module": "Built-in expression functions / InterpolationAkima",
+      "scope": "InterpolationAkima：一元 Akima 插值。输入：一个自变量和常量点数据列表。常量表达式个数须为偶数；外推行为须另核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_interpolationakima_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "InterpolationAkima 函数输入",
+            "一个自变量和常量点数据列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_interpolationakima_result",
+          "unit": "值单位同表值；导数单位为表值单位/自变量单位",
+          "aliases": [
+            "InterpolationAkima 函数结果",
+            "一元 Akima 插值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 InterpolationAkima，行 3943"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_d_interpolation_akima",
+      "module": "Built-in expression functions / dInterpolationAkima",
+      "scope": "dInterpolationAkima：一元 Akima 插值的导数。输入：一个自变量和常量点数据列表。常量表达式个数须为偶数；外推行为须另核对。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_dinterpolationakima_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "dInterpolationAkima 函数输入",
+            "一个自变量和常量点数据列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_dinterpolationakima_result",
+          "unit": "值单位同表值；导数单位为表值单位/自变量单位",
+          "aliases": [
+            "dInterpolationAkima 函数结果",
+            "一元 Akima 插值的导数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 dInterpolationAkima，行 3949"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_order",
+      "module": "Built-in expression functions / Order",
+      "scope": "Order：quantity 插值阶数。输入：一个 quantity。输入为可求阶的 quantity。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_order_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Order 函数输入",
+            "一个 quantity"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_order_result",
+          "unit": "1（整数阶数）",
+          "aliases": [
+            "Order 函数结果",
+            "quantity 插值阶数"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Order，行 3955"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_field",
+      "module": "Built-in expression functions / Field",
+      "scope": "Field：无标签时最后加载视图的值；有标签时指定视图值之和。输入：位置向量；可选常量视图标签列表。视图由 GmshRead 加载；指定视图在位置处没有值时该视图贡献为零。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_field_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Field 函数输入",
+            "位置向量；可选常量视图标签列表"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_field_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "Field 函数结果",
+            "无标签时最后加载视图的值；有标签时指定视图值之和"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Field，行 3960,3967"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_scalar_field",
+      "module": "Built-in expression functions / ScalarField",
+      "scope": "ScalarField：实标量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_scalarfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ScalarField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_scalarfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "ScalarField 函数结果",
+            "实标量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ScalarField，行 3974"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_vector_field",
+      "module": "Built-in expression functions / VectorField",
+      "scope": "VectorField：实向量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_vectorfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "VectorField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_vectorfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "VectorField 函数结果",
+            "实向量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 VectorField，行 3982"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_tensor_field",
+      "module": "Built-in expression functions / TensorField",
+      "scope": "TensorField：实张量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_tensorfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "TensorField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_tensorfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "TensorField 函数结果",
+            "实张量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 TensorField，行 3988"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_complex_scalar_field",
+      "module": "Built-in expression functions / ComplexScalarField",
+      "scope": "ComplexScalarField：复标量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_complexscalarfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ComplexScalarField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_complexscalarfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "ComplexScalarField 函数结果",
+            "复标量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ComplexScalarField，行 3994"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_complex_vector_field",
+      "module": "Built-in expression functions / ComplexVectorField",
+      "scope": "ComplexVectorField：复向量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_complexvectorfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ComplexVectorField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_complexvectorfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "ComplexVectorField 函数结果",
+            "复向量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ComplexVectorField，行 4000"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_complex_tensor_field",
+      "module": "Built-in expression functions / ComplexTensorField",
+      "scope": "ComplexTensorField：复张量视图在该点的值。输入：位置向量及常量视图参数列表；可选时间步和同单元插值标志。视图须经 GmshRead 加载；可选时间步和同单元插值按固定版手册执行。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_complextensorfield_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "ComplexTensorField 函数输入",
+            "位置向量及常量视图参数列表；可选时间步和同单元插值标志"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_complextensorfield_result",
+          "unit": "坐标为几何长度单位；结果为视图物理单位",
+          "aliases": [
+            "ComplexTensorField 函数结果",
+            "复张量视图在该点的值"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 ComplexTensorField，行 4006"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_distance",
+      "module": "Built-in expression functions / Distance",
+      "scope": "Distance：到由向量视图解释的变形网格的最短距离。输入：位置向量及常量视图参数。需要有效向量位移视图，网格和位移坐标单位一致。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_distance_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "Distance 函数输入",
+            "位置向量及常量视图参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_distance_result",
+          "unit": "几何长度单位",
+          "aliases": [
+            "Distance 函数结果",
+            "到由向量视图解释的变形网格的最短距离"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 Distance，行 4012"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_get_cpu_time",
+      "module": "Built-in expression functions / GetCpuTime",
+      "scope": "GetCpuTime：从启动以来的用户态 CPU 时间。输入：无参数。时间的含义依所选计时函数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_getcputime_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GetCpuTime 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_getcputime_result",
+          "unit": "s",
+          "aliases": [
+            "GetCpuTime 函数结果",
+            "从启动以来的用户态 CPU 时间"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GetCpuTime，行 4020"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_get_wall_clock_time",
+      "module": "Built-in expression functions / GetWallClockTime",
+      "scope": "GetWallClockTime：从启动以来的墙钟时间。输入：无参数。时间的含义依所选计时函数。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_getwallclocktime_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GetWallClockTime 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_getwallclocktime_result",
+          "unit": "s",
+          "aliases": [
+            "GetWallClockTime 函数结果",
+            "从启动以来的墙钟时间"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GetWallClockTime，行 4026"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.builtin_get_memory",
+      "module": "Built-in expression functions / GetMemory",
+      "scope": "GetMemory：当前最大常驻内存使用量。输入：无参数。按 GetDP 手册所述单位读取。 这是上游表达式操作，不能单独证明完整物理求解流程或产品支持。",
+      "inputs": [
+        {
+          "id": "getdp_getmemory_arguments",
+          "unit": "表达式及常量的单位依函数定义与模型一致",
+          "aliases": [
+            "GetMemory 函数输入",
+            "无参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "getdp_getmemory_result",
+          "unit": "MB",
+          "aliases": [
+            "GetMemory 函数结果",
+            "当前最大常驻内存使用量"
+          ]
+        }
+      ],
+      "conditions": [
+        "getdp_3_5_0",
+        "valid_expression_and_function_context",
+        "consistent_model_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+            "scope": "doc/texinfo/getdp.texi，函数 GetMemory，行 4032"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用可手算的输入核对结果、类型、单位与边界；本记录未执行 GetDP 原生验证。"
+    },
+    {
+      "id": "getdp.tactile_capacitance_from_charge",
+      "module": "Custom postprocessing / charge-voltage relation",
+      "scope": "自研计划：无内部自由电荷、无预偏置、线性受控二端且 ΔV 非零时 C=Q/ΔV；固定空间电荷或偏置时固定其余端条件并用增量 ΔQ/ΔV，非线性用工作点微分 dQ/dV。多端须电容矩阵与边界；不证明跨场映射、反演或端到端接入。",
+      "inputs": [
+        {
+          "id": "electrode_charge",
+          "unit": "C"
+        },
+        {
+          "id": "voltage_difference",
+          "unit": "V"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "tactile_capacitance",
+          "unit": "F",
+          "aliases": [
+            "capacitance",
+            "电容",
+            "tactile capacitance",
+            "触觉指垫电容"
+          ]
+        }
+      ],
+      "conditions": [
+        "defined_electrodes",
+        "nonzero_voltage_difference",
+        "linear_two_terminal",
+        "no_internal_free_charge",
+        "no_prebias"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://getdp.info/doc/texinfo/getdp.pdf",
+            "scope": "GetDP 3.5.0 §7.8.2, §7.10–7.11 提供全局电势、电荷及后处理，Q/ΔV 是额外自研派生步骤。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较平行板 εA/d；两极等量异号仅在孤立二端、无内部净自由电荷及无外通量时成立；检查边界、符号和网格收敛。"
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "1 Overview / 1.2 Which problems can GetDP actually solve?",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.linear_elastic_fe",
+        "getdp.pressure_acoustics_eigenmodes",
+        "getdp.harmonic_full_wave",
+        "getdp.field_circuit_coupling",
+        "getdp.eddy_loss_to_temperature"
+      ],
+      "gaps": [
+        "实验性边界元、体积分法缺版本说明；刚体运动与场反馈缺完整算例。"
+      ]
+    },
+    {
+      "module": "2 How to read this manual / 3 Running GetDP",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.cli_resolution_postoperation"
+      ],
+      "gaps": [
+        "SLEPc/PETSc 构建、分布式进程配置与重复性待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "SLEPc/PETSc 构建、分布式进程配置与重复性待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+          "reason": "已确认求解和后处理基本命令。SLEPc 安装能力取决于构建，具体后端和多进程结果一致性未实测。"
+        }
+      ]
+    },
+    {
+      "module": "4 Expressions",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.temperature_to_resistivity"
+      ],
+      "gaps": [
+        "运行时寄存器、宏及从视图导入网格场的插值位置与缺值策略待展开。"
+      ]
+    },
+    {
+      "module": "5.1 Group / 6.1 Types for Group",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.physical_tag_group_selection"
+      ],
+      "gaps": [
+        "实体邻接、定向扩展组及复杂边界通量选取仍待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "实体邻接、定向扩展组及复杂边界通量选取仍待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+          "reason": "基础物理标签选择已确认，拓扑扩展和复杂组组合需按单独执行样例验证。"
+        }
+      ]
+    },
+    {
+      "module": "5.2 Function / 6.2 Types for Function",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.temperature_to_resistivity"
+      ],
+      "gaps": [
+        "张量材料、格林函数、查表插值边界和坐标系约定待核。"
+      ]
+    },
+    {
+      "module": "5.3 Constraint / 6.3 Types for Constraint",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.floating_electrode_electrostatics",
+        "getdp.field_circuit_coupling",
+        "getdp.periodic_constraint_link"
+      ],
+      "gaps": [
+        "周期配对、非匹配网格 Trace 和多支路端口极性待拓展。"
+      ]
+    },
+    {
+      "module": "5.4 FunctionSpace / 6.4 Types for FunctionSpace",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.electrostatics_dielectric",
+        "getdp.floating_electrode_electrostatics",
+        "getdp.magnetostatics",
+        "getdp.harmonic_eddy_current",
+        "getdp.transient_eddy_current",
+        "getdp.harmonic_full_wave"
+      ],
+      "gaps": [
+        "边元规范、多连通域和高阶空间的兼容组合需单独核实。"
+      ]
+    },
+    {
+      "module": "5.5 Jacobian / 6.5 Types for Jacobian",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.axisymmetric_integration_jacobian"
+      ],
+      "gaps": [
+        "球壳/矩形壳映射及奇异轴项适用范围待分别验证。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "球壳/矩形壳映射及奇异轴项适用范围待分别验证。",
+          "status": "insufficient_evidence",
+          "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+          "reason": "基础轴对称 Jacobian 已确认。壳变换选区、参数及开域截断需建立模型并逐项对照。"
+        }
+      ]
+    },
+    {
+      "module": "5.6 Integration / 6.6 Types for Integration",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.element_gauss_quadrature"
+      ],
+      "gaps": [
+        "各单元的 GaussLegendre/Singular 分支与高阶、奇异项组合待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "各单元的 GaussLegendre/Singular 分支与高阶、奇异项组合待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+          "reason": "普通 Gauss 规则可按元素类型选择。当前未穷尽固定版本各族、各点数与奇异积分覆盖。"
+        }
+      ]
+    },
+    {
+      "module": "5.7 Formulation / 6.7 Types for Formulation",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.dc_conduction",
+        "getdp.joule_heat_to_temperature",
+        "getdp.transient_solid_conduction",
+        "getdp.linear_elastic_fe",
+        "getdp.pressure_acoustics_eigenmodes",
+        "getdp.harmonic_full_wave",
+        "getdp.field_circuit_coupling",
+        "getdp.eddy_loss_to_temperature"
+      ],
+      "gaps": [
+        "非线性 B–H 切线一致性、实验性积分方程和热弹弱式尚未展开。"
+      ]
+    },
+    {
+      "module": "5.8 Resolution / 6.8 Types for Resolution",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.temperature_to_resistivity",
+        "getdp.harmonic_eddy_current",
+        "getdp.transient_eddy_current",
+        "getdp.transient_solid_conduction",
+        "getdp.pressure_acoustics_eigenmodes"
+      ],
+      "gaps": [
+        "Newmark、适应时步和多频带更新策略尚未展开。"
+      ]
+    },
+    {
+      "module": "5.9 PostProcessing / 6.9 Types for PostProcessing",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.dc_conduction",
+        "getdp.magnetostatics",
+        "getdp.electrode_charge_readback",
+        "getdp.tactile_capacitance_from_charge"
+      ],
+      "gaps": [
+        "全局电磁力分量、张量表面通量及逐步能量积分缺独立记录。"
+      ]
+    },
+    {
+      "module": "5.10 PostOperation / 6.10 Types for PostOperation",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.electrode_charge_readback"
+      ],
+      "gaps": [
+        "截线探针、节点表/单元表导出与数据二次映射待分类。"
+      ]
+    },
+    {
+      "module": "7 Short examples / 8 Complete examples",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.electrostatics_dielectric",
+        "getdp.magnetostatics",
+        "getdp.harmonic_eddy_current",
+        "getdp.transient_eddy_current",
+        "getdp.electrode_charge_readback",
+        "getdp.floating_electrode_electrostatics",
+        "getdp.staggered_magnetothermal_feedback"
+      ],
+      "gaps": [
+        "线圈多连通域约束和非线性时步示例需进一步展开。"
+      ]
+    },
+    {
+      "module": "Appendices A–H File formats; Gmsh examples; compiling; FAQ; tips; version history; credits; license",
+      "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+      "records": [
+        "getdp.result_file_roundtrip"
+      ],
+      "gaps": [
+        "MSH 具体格式变体、跨平台二进制兼容与重启待核对。"
+      ],
+      "gap_assessments": [
+        {
+          "gap": "MSH 具体格式变体、跨平台二进制兼容与重启待核对。",
+          "status": "insufficient_evidence",
+          "source": "https://www.getdp.info/doc/texinfo/getdp.pdf",
+          "reason": "已确认拆分及结果读取命令。需要逐一探测实际编译版本读取的 MSH 格式方言、结果字节序兼容和跨架构重启。"
+        }
+      ]
+    },
+    {
+      "module": "Built-in expression functions",
+      "source": "https://getdp.info/src/getdp-3.5.0-source.tgz",
+      "records": [
+        "getdp.builtin_exp",
+        "getdp.builtin_log",
+        "getdp.builtin_log10",
+        "getdp.builtin_sqrt",
+        "getdp.builtin_sin",
+        "getdp.builtin_asin",
+        "getdp.builtin_cos",
+        "getdp.builtin_acos",
+        "getdp.builtin_tan",
+        "getdp.builtin_atan",
+        "getdp.builtin_atan2",
+        "getdp.builtin_sinh",
+        "getdp.builtin_cosh",
+        "getdp.builtin_tanh",
+        "getdp.builtin_tanh_c2",
+        "getdp.builtin_fabs",
+        "getdp.builtin_abs",
+        "getdp.builtin_floor",
+        "getdp.builtin_ceil",
+        "getdp.builtin_fmod",
+        "getdp.builtin_min",
+        "getdp.builtin_max",
+        "getdp.builtin_sign",
+        "getdp.builtin_cross",
+        "getdp.builtin_hypot",
+        "getdp.builtin_norm",
+        "getdp.builtin_squ_norm",
+        "getdp.builtin_unit",
+        "getdp.builtin_transpose",
+        "getdp.builtin_inv",
+        "getdp.builtin_det",
+        "getdp.builtin_rotate",
+        "getdp.builtin_t_trace",
+        "getdp.builtin_cos_wt_p",
+        "getdp.builtin_sin_wt_p",
+        "getdp.builtin_period",
+        "getdp.builtin_laplace",
+        "getdp.builtin_grad_laplace",
+        "getdp.builtin_helmholtz",
+        "getdp.builtin_grad_helmholtz",
+        "getdp.builtin_complex",
+        "getdp.builtin_re",
+        "getdp.builtin_im",
+        "getdp.builtin_conj",
+        "getdp.builtin_cart2_pol",
+        "getdp.builtin_vector",
+        "getdp.builtin_tensor",
+        "getdp.builtin_tensor_v",
+        "getdp.builtin_tensor_sym",
+        "getdp.builtin_tensor_diag",
+        "getdp.builtin_squ_dyadic_product",
+        "getdp.builtin_comp_x",
+        "getdp.builtin_comp_y",
+        "getdp.builtin_comp_z",
+        "getdp.builtin_comp_x_x",
+        "getdp.builtin_comp_x_y",
+        "getdp.builtin_comp_x_z",
+        "getdp.builtin_comp_y_x",
+        "getdp.builtin_comp_y_y",
+        "getdp.builtin_comp_y_z",
+        "getdp.builtin_comp_z_x",
+        "getdp.builtin_comp_z_y",
+        "getdp.builtin_comp_z_z",
+        "getdp.builtin_cart2_sph",
+        "getdp.builtin_cart2_cyl",
+        "getdp.builtin_unit_vector_x",
+        "getdp.builtin_unit_vector_y",
+        "getdp.builtin_unit_vector_z",
+        "getdp.builtin_x",
+        "getdp.builtin_y",
+        "getdp.builtin_z",
+        "getdp.builtin_x_y_z",
+        "getdp.builtin_normal",
+        "getdp.builtin_normal_source",
+        "getdp.builtin_tangent",
+        "getdp.builtin_tangent_source",
+        "getdp.builtin_element_vol",
+        "getdp.builtin_surface_area",
+        "getdp.builtin_get_volume",
+        "getdp.builtin_comp_element_num",
+        "getdp.builtin_get_num_elements",
+        "getdp.builtin_element_num",
+        "getdp.builtin_quadrature_point_index",
+        "getdp.builtin_at_index",
+        "getdp.builtin_interpolation_linear",
+        "getdp.builtin_d_interpolation_linear",
+        "getdp.builtin_interpolation_bilinear",
+        "getdp.builtin_d_interpolation_bilinear",
+        "getdp.builtin_interpolation_akima",
+        "getdp.builtin_d_interpolation_akima",
+        "getdp.builtin_order",
+        "getdp.builtin_field",
+        "getdp.builtin_scalar_field",
+        "getdp.builtin_vector_field",
+        "getdp.builtin_tensor_field",
+        "getdp.builtin_complex_scalar_field",
+        "getdp.builtin_complex_vector_field",
+        "getdp.builtin_complex_tensor_field",
+        "getdp.builtin_distance",
+        "getdp.builtin_get_cpu_time",
+        "getdp.builtin_get_wall_clock_time",
+        "getdp.builtin_get_memory"
+      ],
+      "gaps": [
+        "函数行为以固定版手册为准；实现、数值边界与运行环境须另行验证。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "getdp.axisymmetric_integration_jacobian",
+      "getdp.cli_resolution_postoperation",
+      "getdp.dc_conduction",
+      "getdp.eddy_loss_to_temperature",
+      "getdp.electrode_charge_readback",
+      "getdp.electrostatics_dielectric",
+      "getdp.element_gauss_quadrature",
+      "getdp.field_circuit_coupling",
+      "getdp.floating_electrode_electrostatics",
+      "getdp.harmonic_eddy_current",
+      "getdp.harmonic_full_wave",
+      "getdp.joule_heat_to_temperature",
+      "getdp.linear_elastic_fe",
+      "getdp.magnetostatics",
+      "getdp.physical_tag_group_selection",
+      "getdp.pressure_acoustics_eigenmodes",
+      "getdp.result_file_roundtrip",
+      "getdp.temperature_to_resistivity",
+      "getdp.transient_eddy_current",
+      "getdp.transient_solid_conduction"
+    ]
+  }
+}

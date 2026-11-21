@@ -1,0 +1,11 @@
+{
+  "radius_m": 0.005,
+  "length_m": 0.327,
+  "conductivity_w_m_k": 110.0,
+  "base_temperature_c": 57.4,
+  "ambient_temperature_c": 20.5,
+  "film_coefficient_w_m2_k": 15.7,
+  "cross_section_divisions": 8,
+  "axial_divisions": 4,
+  "axial_breakpoints_m": [0.045, 0.075, 0.105, 0.135, 0.165, 0.195, 0.225, 0.285]
+}

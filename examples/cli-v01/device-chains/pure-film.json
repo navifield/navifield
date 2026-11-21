@@ -1,0 +1,32 @@
+{
+  "domain": "phase_change",
+  "mechanisms": [
+    "condensation"
+  ],
+  "goals": [
+    "condensate_mass_flow",
+    "condensation_heat_duty"
+  ],
+  "conditions": {
+    "geometry": "vertical_plate",
+    "gas_composition": "pure_vapor",
+    "film_resolution": "unresolved",
+    "film_regime": "laminar_gravity",
+    "vapor_shear": "negligible",
+    "wall_control": "isothermal",
+    "vapor_state": "saturated",
+    "operation": "steady",
+    "surface": "smooth",
+    "film_feed": "no_upstream_liquid"
+  },
+  "known_inputs": [
+    "plate_geometry",
+    "wall_temperature",
+    "saturation_relation",
+    "operating_pressure",
+    "phase_properties",
+    "latent_heat",
+    "gravity"
+  ],
+  "description": "纯饱和水蒸气在一块光滑竖直冷板上稳定凝结，均匀壁温已知。顶部没有来液，液膜薄且处于靠重力排液的层流状态，来汽剪切很小，网格不分辨液膜。求整板每秒可收集多少凝液、需要排出多少热量。"
+}

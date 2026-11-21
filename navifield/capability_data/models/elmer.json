@@ -1,0 +1,428 @@
+{
+  "solver": "elmer",
+  "version": "9.0",
+  "domain": "heat_transfer",
+  "models": [
+    {
+      "id": "solid_conduction",
+      "label": "固体稳态与瞬态导热",
+      "goals": [
+        "temperature",
+        "heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "motion": [
+          "none"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "Heat Conductivity：W/(m·K)，可为标量、模型坐标下对角向量或张量；各向异性需给定材料方向"
+        },
+        {
+          "key": "density",
+          "meaning": "密度 kg/m³；瞬态蓄热需要",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "比热容 J/(kg·K)；瞬态蓄热需要",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K、热流密度 W/m²；表面对流需 Heat Transfer Coefficient W/(m²·K) 和 External Temperature K。体积热源 Volumetric Heat Source W/m³；Heat Source 为 W/kg 并乘密度。"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K；瞬态必需",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        "温度场 K",
+        "后处理导热热流密度 W/m²"
+      ],
+      "assumptions": [
+        "连续介质，属性和热边界适用于工况"
+      ],
+      "couplings": [],
+      "basis": "固体温度及蓄热由热方程描述；瞬态需初值和时间步独立性。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver",
+          "claim": "9.0 温度方程求解器；传导及对流处理。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/heateq_bdf2/TempDist.sif",
+          "locator": "lines 15–20, 44–46, 76–80, 94",
+          "claim": "瞬态 BDF2 导热回归，含材料参数及参考范数。"
+        }
+      ],
+      "capability_ids": [
+        "elmer.heat_conduction"
+      ],
+      "mechanisms": [
+        "conduction"
+      ],
+      "limitations": [
+        "热流须依据温度梯度与导热张量以 −K∇T 后处理并核对面法向、积分及单位；温度结果输出不等于已验收的界面热流。Heat Source 与 Volumetric Heat Source 单位和优先级不同，不能互换。",
+        "上游测试是回归，不证明工程精度。"
+      ]
+    },
+    {
+      "id": "conjugate_heat_transfer",
+      "label": "流固共轭传热",
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "interface_temperature",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid_solid"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ],
+        "motion": [
+          "forced"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "流体与固体导热系数 W/(m·K)"
+        },
+        {
+          "key": "density",
+          "meaning": "密度 kg/m³"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "比热容 J/(kg·K)"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "流体黏度 Pa·s 等物性"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "入口、出口和壁面流动边界及单位"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K、热流 W/m² 或热源 W/m³"
+        },
+        {
+          "key": "interface_mapping",
+          "meaning": "流固界面的网格匹配及热接触信息；有接触热阻时注明 K·m²/W"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "瞬态初始温度 K",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        "流固温度场 K",
+        "界面温度 K",
+        "界面热流密度 W/m²，需后处理"
+      ],
+      "assumptions": [
+        "流体能量方程需要正确提供给定或流动求解器计算的速度；表面换热系数边界不等于解析空气流场。理想共形接触要求温度和法向热流连续"
+      ],
+      "couplings": [
+        {
+          "from_field": "流动速度",
+          "to_field": "流体温度",
+          "quantity": "速度 m/s",
+          "transfer": "computed convection",
+          "custom_work": "正确限制流动与热方程所在区域；从流动求解器速度场回读并检查界面热流及全域热量守恒。"
+        },
+        {
+          "from_field": "固体界面",
+          "to_field": "流体界面",
+          "quantity": "固体侧温度 K 与法向导热热流 W/m²",
+          "transfer": "共节点理想接触使用共同温度自由度；两侧外法向热流之和为零",
+          "custom_work": "非共节点需显式配置并核对适用的界面映射或接触方法及守恒；若存在接触热阻需独立定义。"
+        },
+        {
+          "from_field": "流体界面",
+          "to_field": "固体界面",
+          "quantity": "流体侧温度 K 与法向热流 W/m²",
+          "transfer": "理想接触温度连续，流固侧外法向热流相反且守恒",
+          "custom_work": "检查温度连续、界面热流平衡和网格收敛。"
+        }
+      ],
+      "basis": "温度跨流体和固体求解，流体热平流由流动场提供；这是条件性配置，不代表产品自动接入。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver",
+          "claim": "9.0 温度方程求解器；传导及对流处理。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/Step_stokes_heat/Step.sif",
+          "locator": "lines 37–88, 91–118",
+          "claim": "流动与热方程耦合回归；该例是流体算例，不是流固 CHT 验证。"
+        }
+      ],
+      "capability_ids": [
+        "elmer.conjugate_heat_transfer",
+        "elmer.heat_conduction"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection"
+      ],
+      "limitations": [
+        "不能用纯流体换热算例冒充流固联合验证；接触热阻、非匹配网格和映射须单独定义与验证。Heat Gap 触发配对处理不证明任意接触接口已自动建立。",
+        "需网格、流量、热平衡及耦合收敛检查；未证明某工程精度。"
+      ]
+    },
+    {
+      "id": "boussinesq_natural_convection",
+      "label": "Boussinesq 自然对流",
+      "goals": [
+        "temperature",
+        "heat_flux",
+        "wall_heat_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "fluid"
+        ],
+        "motion": [
+          "buoyant"
+        ],
+        "density": [
+          "small_variation"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "导热系数 W/(m·K)"
+        },
+        {
+          "key": "density",
+          "meaning": "参考密度 kg/m³"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "比热容 J/(kg·K)"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "动力黏度 Pa·s 等流体物性"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K 或热流密度 W/m²"
+        },
+        {
+          "key": "gravity",
+          "meaning": "重力矢量 m/s²"
+        },
+        {
+          "key": "expansion_coefficient",
+          "meaning": "体积热膨胀系数 1/K"
+        },
+        {
+          "key": "reference_temperature",
+          "meaning": "浮力参考温度 K"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "瞬态初始温度 K",
+          "when": {
+            "time": [
+              "transient"
+            ]
+          }
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "流体壁面速度、入口/出口及压力参考等边界，速度 m/s、压力 Pa；封闭腔体也需无滑移等边界。"
+        }
+      ],
+      "outputs": [
+        "温度 K",
+        "速度 m/s、压力 Pa",
+        "壁面热流 W/m²（后处理）"
+      ],
+      "assumptions": [
+        "除浮力项外密度近似常数；βΔT 应足够小，检验适用性"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度",
+          "to_field": "动量",
+          "quantity": "相对参考温度的浮力",
+          "transfer": "Boussinesq 体力",
+          "custom_work": "核实重力方向、β 与参考温度；回读热求解温度场。"
+        },
+        {
+          "from_field": "速度",
+          "to_field": "温度",
+          "quantity": "对流速度",
+          "transfer": "computed convection",
+          "custom_work": "检查速度与温度迭代收敛；回读流动求解器速度场与热求解器温度场。"
+        }
+      ],
+      "basis": "浮力流动与热方程双向耦合，适用于密度变化较小且热浮力重要的情形。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90",
+          "locator": "HeatSolver",
+          "claim": "9.0 温度方程求解器；传导及对流处理。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/NaturalConvection/case.sif",
+          "locator": "lines 14–25, 42–43, 67–69, 99–112, 124–154",
+          "claim": "瞬态热方程、流动、重力与 Boussinesq 设定的上游回归。"
+        }
+      ],
+      "capability_ids": [
+        "elmer.buoyant_thermal_flow"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "buoyancy"
+      ],
+      "limitations": [
+        "大密度变化、强可压缩性或相变不能直接套用该近似；强自然对流需检查湍流模型、网格和时间依赖。",
+        "上游回归不代表实验验证。"
+      ]
+    },
+    {
+      "id": "diffuse_gray_surface_radiation",
+      "label": "漫灰表面对表面辐射",
+      "goals": [
+        "radiative_flux"
+      ],
+      "conditions": {
+        "geometry": [
+          "enclosure"
+        ],
+        "radiation": [
+          "surface_exchange"
+        ],
+        "time": [
+          "steady",
+          "transient"
+        ],
+        "motion": [
+          "none"
+        ],
+        "optical": [
+          "transparent"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "emissivity",
+          "meaning": "各表面发射率，无量纲"
+        },
+        {
+          "key": "view_factors",
+          "meaning": "已提供的视角系数（无量纲），或提供参与辐射的面片几何并由 Elmer ViewFactors 生成；校验遮挡、互易性和封闭性。",
+          "alternatives": [
+            "radiation_geometry"
+          ]
+        },
+        {
+          "key": "wall_temperature",
+          "meaning": "已知参与表面绝对温度 K；可由另行配置的能量方程提供。"
+        }
+      ],
+      "outputs": [
+        "给定表面绝对温度时，净表面辐射热流密度 W/m²（需正确输出或后处理）；不代表总壁面热流。"
+      ],
+      "assumptions": [
+        "漫射、灰体表面；介质在相关波段透明，忽略介质吸收、发射与散射。",
+        "辐射交换需完整定义有效参与表面及环境"
+      ],
+      "couplings": [
+        {
+          "from_field": "表面温度",
+          "to_field": "表面辐射",
+          "quantity": "绝对温度 K",
+          "transfer": "辐射边界与热方程耦合",
+          "custom_work": "核对绝对温标、发射率、视角系数与目标表面；从热方程回读表面温度，从辐射边界输出回读净辐射热流并验证能量平衡。"
+        }
+      ],
+      "basis": "已知绝对表面温度且介质透明时，按漫灰表面交换计算净辐射热流；温度预测需另配能量方程。",
+      "evidence": [
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/radiation/radiation.sif",
+          "locator": "lines 1, 16, 44–59, 78–99",
+          "claim": "轴对称稳态漫灰辐射与热方程回归，包含发射率和参考范数。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/ViewFactors.F90",
+          "locator": "ViewFactors",
+          "claim": "固定版包含视角系数程序。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/GebhardtFactors.F90",
+          "locator": "GebhardtFactors",
+          "claim": "固定版包含 Gebhardt 因子程序。"
+        }
+      ],
+      "capability_ids": [
+        "elmer.diffuse_gray_radiation"
+      ],
+      "mechanisms": [
+        "radiation"
+      ],
+      "limitations": [
+        "不可代替参与性介质辐射或频谱选择性辐射；视角系数和遮挡、能量平衡需验证。",
+        "固定版回归不能证明工程精度。",
+        "求未知温度时必须另配能量方程、相应物性和热边界；瞬态还需初温及蓄热物性；本条只覆盖给定温度下的辐射交换。"
+      ]
+    }
+  ]
+}

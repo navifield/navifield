@@ -31,7 +31,7 @@ def _fail(code, message):
     return result
 
 
-from .execution_common import _snapshot_inputs, _case_writer, _publish_residuals
+from .execution_common import _snapshot_inputs, _case_writer, _publish_residuals, snapshot_tables
 
 
 def register_case(root, request):
@@ -136,6 +136,7 @@ def execute_run(root, request):
         executable, config = resolve_tool(request.get('_toolchains', {}), spec['toolchain'], spec['program'])
         env = build_environment(config, threads={'OMP_NUM_THREADS': str(spec['resources'].get('cores', 1)),
                                                   'MKL_NUM_THREADS': str(spec['resources'].get('cores', 1))})
+        env['NAVIFIELD_STAGE_FILE'] = str(project.resolve_path(root, f'result/{run["run_id"]}/stages.json'))
         case = project.resolve_path(root, run['execution_case_path']); state = run['execution_state']
         state.update(state='running', step='execute', started_at=None, job_id=request.get('job_id'),
                      log_path='result/' + run['run_id'] + '/native.log')
@@ -158,6 +159,8 @@ def execute_run(root, request):
             with log.open('w', encoding='utf-8') as output:
                 steps, findings, code = run_sequence(case, env, [('execute', executable, spec['argv'], env)], output,
                     native_step=launch, parse_checkmesh=parse_checkmesh, cancelled_error=_Cancelled, root=root, on_started=on_started)
+            snapshot_tables(root, run)
+            project.save_run(root, run)
         state.update(steps=steps, exit_code=code, state='completed' if code == 0 else 'failed', finished_at=project._now())
         run['findings'].extend(findings); run['status'] = state['state']
         _publish_residuals(root, run, log)

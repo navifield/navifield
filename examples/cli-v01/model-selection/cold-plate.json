@@ -1,0 +1,12 @@
+{
+  "domain": "heat_transfer",
+  "mechanisms": ["conduction", "fluid_advection"],
+  "goals": ["temperature", "interface_temperature", "wall_heat_flux"],
+  "conditions": {
+    "geometry": "fluid_solid",
+    "motion": "forced",
+    "time": "steady"
+  },
+  "known_inputs": ["conductivity", "density", "heat_capacity", "fluid_properties", "flow_bc", "thermal_bc", "interface_mapping"],
+  "description": "Evaluate a pumped single-phase water cold plate with a heat load applied to the aluminum base. Find both the fluid and solid temperature distributions, the fluid-solid interface temperature, and the wall heat flux."
+}

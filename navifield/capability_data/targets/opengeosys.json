@@ -1,0 +1,265 @@
+[
+  {
+    "solver": "opengeosys",
+    "version": "6.5.6",
+    "target": "pressure_drop",
+    "role": "configured",
+    "model": "Darcy / Richards 多孔介质流动",
+    "applicability": "多孔体内压差和渗流；根据饱和状态选择固定版流程。 本卡可配置结论限定饱和单液相 Darcy 路线；非饱和 Richards 需再提供保水与相对渗透率曲线。",
+    "exclusions": "不能将 Darcy 孔隙压降直接当成自由管道湍流或局部分离压损。",
+    "inputs": [
+      "geometry",
+      "flow_rate",
+      "fluid_properties",
+      "pressure_stations",
+      "flow_regime",
+      "permeability"
+    ],
+    "exchanges": [
+      {
+        "from": "孔隙流量边界",
+        "to": "多孔介质压力",
+        "quantity": "压力",
+        "unit": "Pa",
+        "method": "Darcy/Richards 求解并提取测点压力"
+      }
+    ],
+    "rationale": "固定版提供多孔介质流动过程。",
+    "custom_work": "补充渗透率、孔隙率和饱和曲线，核查单位。",
+    "checks": [
+      "核对质量守恒、Darcy 适用性及测点位置。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib",
+        "locator": "6.5.6 固定提交 ProcessLib：RichardsFlow、HeatConduction、ThermoMechanics",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib/LiquidFlow",
+        "locator": "LIQUID_FLOW 固定提交目录",
+        "claim": "压力由饱和渗流方程给出；用于 Darcy 而非自由流设备损失。"
+      },
+      {
+        "url": "https://www.opengeosys.org/6.5.6/models/processes/",
+        "locator": "Liquid Flow；Richards Flow",
+        "claim": "6.5.6 项目资料分别列液相与非饱和流动过程。"
+      }
+    ],
+    "conditions": {
+      "flow_domain": [
+        "porous"
+      ],
+      "flow_phase": [
+        "single_phase"
+      ]
+    },
+    "mechanisms": [
+      "flow",
+      "darcy"
+    ],
+    "related_capabilities": [
+      "opengeosys.saturated_liquid_flow"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "opengeosys",
+    "version": "6.5.6",
+    "target": "heat_duty",
+    "role": "configured",
+    "model": "固体或多孔介质导热 / 热传输",
+    "applicability": "热传导或已建模多孔介质热输运，按目标边界积分热流。",
+    "exclusions": "自由流设备的完整流固共轭换热需独立求解或耦合。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "热场",
+        "to": "热平衡",
+        "quantity": "法向热流积分",
+        "unit": "W",
+        "method": "边界积分和体热源、储能平衡"
+      }
+    ],
+    "rationale": "热过程求解温度并允许提取热流。",
+    "custom_work": "提供材料及边界，配置输出及积分；瞬态输入初值。",
+    "checks": [
+      "验证输入输出与蓄热平衡、时间步及网格。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib",
+        "locator": "6.5.6 固定提交 ProcessLib：RichardsFlow、HeatConduction、ThermoMechanics",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HeatTransportBHE",
+        "locator": "HeatTransportBHE 固定提交过程",
+        "claim": "针对钻孔换热器的热传递路线，非自由流转置。"
+      },
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HT",
+        "locator": "Hydro-Thermal 固定提交过程",
+        "claim": "Darcy 流动带来的热平流与基质导热。软件温度输出后按所需控制面做热流积分。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only",
+        "porous_medium"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "opengeosys.heat_conduction"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "opengeosys",
+    "version": "6.5.6",
+    "target": "wall_temperature",
+    "role": "configured",
+    "model": "导热或多孔热输运温度",
+    "applicability": "给定边界及材料的固体或多孔介质壁面温度。",
+    "exclusions": "热边界若来自自由流对流，需另行给系数或外部流动解。",
+    "inputs": [
+      "geometry",
+      "solid_properties",
+      "thermal_boundary",
+      "heat_sources"
+    ],
+    "exchanges": [
+      {
+        "from": "热边界",
+        "to": "温度场",
+        "quantity": "壁温",
+        "unit": "K",
+        "method": "温度求解并读取边界"
+      }
+    ],
+    "rationale": "固定版热传导过程可输出温度场。",
+    "custom_work": "定义物性、边界和时间设置；必要时映射热通量。",
+    "checks": [
+      "比较温度与热量平衡及网格时间收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib",
+        "locator": "6.5.6 固定提交 ProcessLib：RichardsFlow、HeatConduction、ThermoMechanics",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib/HeatConduction",
+        "locator": "HeatConduction 固定提交过程",
+        "claim": "固体/等效热介质热扩散；可检查单域与边界处的温度，并配合与工况相容的对流边界。"
+      }
+    ],
+    "conditions": {
+      "thermal_mode": [
+        "solid_only",
+        "porous_medium"
+      ],
+      "operation": [
+        "steady",
+        "transient"
+      ]
+    },
+    "mechanisms": [
+      "conduction"
+    ],
+    "related_capabilities": [
+      "opengeosys.heat_conduction"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  },
+  {
+    "solver": "opengeosys",
+    "version": "6.5.6",
+    "target": "thermal_stress",
+    "role": "configured",
+    "model": "ThermoMechanics 热弹性或热力耦合",
+    "applicability": "固体或多孔介质在给定材料、参考温度和约束下计算热变形及应力。",
+    "exclusions": "超出相应材料模型的塑性、接触和大变形不能自动推断。",
+    "inputs": [
+      "structural_geometry",
+      "elastic_properties",
+      "expansion_coefficient",
+      "mechanical_constraints",
+      "stress_measure",
+      "temperature_reference",
+      "temperature_field"
+    ],
+    "exchanges": [
+      {
+        "from": "温度场",
+        "to": "力学过程",
+        "quantity": "温度",
+        "unit": "K",
+        "method": "耦合过程或温度场传递形成热应变"
+      }
+    ],
+    "rationale": "固定版包含 ThermoMechanics 过程。",
+    "custom_work": "选择材料及初始状态，确认温度—热应变传递与输出。",
+    "checks": [
+      "自由膨胀与受限膨胀基准、约束反力及网格收敛。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib",
+        "locator": "6.5.6 固定提交 ProcessLib：RichardsFlow、HeatConduction、ThermoMechanics",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      },
+      {
+        "url": "https://github.com/ufz/ogs/tree/586290af08992ac16806ec898cf1894505542f57/ProcessLib/ThermoMechanics",
+        "locator": "ThermoMechanics 固定提交过程",
+        "claim": "连接温度和小变形力学求热应力。"
+      },
+      {
+        "url": "https://www.opengeosys.org/stable/docs/benchmarks/thermo-mechanics/thermomechanics/",
+        "locator": "Thermoelastic Stress，ThermoMechanics/cube_1e3.prj",
+        "claim": "官方受限均温方块同时报告数值和解析热应力。作为工况参考，固定版实现以提交目录为准。"
+      }
+    ],
+    "conditions": {
+      "mechanics": [
+        "linear_elastic"
+      ]
+    },
+    "mechanisms": [
+      "thermal_expansion",
+      "elasticity"
+    ],
+    "related_capabilities": [
+      "opengeosys.thermomechanical_solid"
+    ],
+    "extra_inputs": {
+      "operation=transient": [
+        "time_history"
+      ]
+    }
+  }
+]

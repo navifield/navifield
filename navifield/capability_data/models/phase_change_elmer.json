@@ -1,0 +1,384 @@
+{
+  "domain": "phase_change",
+  "solver": "elmer",
+  "version": "9.0",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "native",
+      "scope": "固定网格 Spatial 2 焓法及独立 Stefan 移动界面模块；仅限其配置与假设。",
+      "custom_work": "提供材料焓、潜热、网格及边界，必要时配置动网格。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1762-L1776",
+          "locator": "HeatSolve Spatial 2, lines 1762–1776",
+          "claim": "固定网格相变热方程读取体焓或比焓与密度。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange/PhaseChange.sif",
+          "locator": "PhaseChange.sif",
+          "claim": "瞬态固液相变焓曲线与相变温区示例；不是通用精度证明。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/TransientPhaseChange.F90",
+          "locator": "TransientPhaseChange",
+          "claim": "瞬态相界面求解器。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "insufficient_evidence",
+      "scope": "已核对固液相变与热方程源码；未证明壁面沸腾、气泡动力学或汽液传质闭合。",
+      "custom_work": "如需相关模型需进一步核对求解器、闭合关系及算例。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1762-L1776",
+          "locator": "HeatSolve Spatial 2, lines 1762–1776",
+          "claim": "固定网格相变热方程读取体焓或比焓与密度。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange/PhaseChange.sif",
+          "locator": "PhaseChange.sif",
+          "claim": "瞬态固液相变焓曲线与相变温区示例；不是通用精度证明。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "insufficient_evidence",
+      "scope": "已核对固液相变与热方程源码；未证明壁面膜状或滴状冷凝和汽液传质闭合。",
+      "custom_work": "需针对材料、界面及质量传递单独研究。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1762-L1776",
+          "locator": "HeatSolve Spatial 2, lines 1762–1776",
+          "claim": "固定网格相变热方程读取体焓或比焓与密度。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange/PhaseChange.sif",
+          "locator": "PhaseChange.sif",
+          "claim": "瞬态固液相变焓曲线与相变温区示例；不是通用精度证明。"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "fixed_mesh_enthalpy",
+      "label": "固定网格焓法固液相变",
+      "capability_ids": [
+        "elmer.fixed_mesh_spatial2_enthalpy_phase_change"
+      ],
+      "mechanisms": [
+        "conduction",
+        "phase_change",
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "time": [
+          "transient"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "enthalpy_curve",
+          "meaning": "体焓 Enthalpy(T) J/m³，或比焓 Specific Enthalpy(T) J/kg；两者择一，必须包含非零潜热。"
+        },
+        {
+          "key": "density",
+          "meaning": "密度 kg/m³；选择比焓 Specific Enthalpy 时由源码乘密度转换为体焓。"
+        },
+        {
+          "key": "conductivity",
+          "meaning": "导热系数 W/(m·K)"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K 或热通量 W/m²"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K"
+        },
+        {
+          "key": "phase_change_temperature_interval",
+          "meaning": "固液相变温区 K"
+        },
+        {
+          "key": "time_step",
+          "meaning": "时间步 s"
+        }
+      ],
+      "outputs": [
+        "温度场 K；由焓曲线后处理相态，需另做映射"
+      ],
+      "assumptions": [
+        "有效热容/焓法将潜热分布到有限温区；固液相态材料关系由用户提供。"
+      ],
+      "limitations": [
+        "不自动解析凝固收缩、流动、自由表面；未证明液相分数独立输出。",
+        "需按工况验证网格、时间步和焓积分守恒。",
+        "Spatial 2 路径不处理 Enthalpy Fraction；不可假设该关键字已计入。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度",
+          "to_field": "材料焓",
+          "quantity": "温度 K 与焓 J/m³",
+          "transfer": "材料温焓曲线用于相变能量项",
+          "custom_work": "给出非零潜热、拟合温区及材料表，检查能量平衡。"
+        }
+      ],
+      "basis": "适合热传导主导且可用焓曲线表征潜热的固液相变。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1762-L1776",
+          "locator": "HeatSolve Spatial 2, lines 1762–1776",
+          "claim": "固定网格相变热方程读取体焓或比焓与密度。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange/PhaseChange.sif",
+          "locator": "PhaseChange.sif",
+          "claim": "瞬态固液相变焓曲线与相变温区示例；不是通用精度证明。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/HeatSolve.F90#L1762-L1776",
+          "locator": "lines 1768–1775",
+          "claim": "Specific Enthalpy 乘密度，Enthalpy 直接读取；Spatial 2 不处理 Enthalpy Fraction。"
+        }
+      ],
+      "correlations": [
+        "用户指定焓—温度曲线；有效热容对应焓随温度变化，积分应包含潜热。"
+      ],
+      "custom_work": [
+        "建立材料焓曲线；核对时间步及网格独立性。"
+      ],
+      "implementation": "configured"
+    },
+    {
+      "id": "transient_stefan_front",
+      "label": "瞬态 Stefan 移动相界面",
+      "capability_ids": [
+        "elmer.moving_phase_change_front"
+      ],
+      "mechanisms": [
+        "conduction",
+        "phase_change",
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature",
+        "phase_front"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "time": [
+          "transient"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固液相导热率 W/(m·K)"
+        },
+        {
+          "key": "melting_temperature",
+          "meaning": "相变温度 K"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "两侧热边界温度 K 或热通量 W/m²"
+        },
+        {
+          "key": "interface_mapping",
+          "meaning": "初始相界面与动网格约束 m"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K"
+        },
+        {
+          "key": "time_step",
+          "meaning": "时间步 s"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "相变比潜热 J/kg，独立材料参数。"
+        },
+        {
+          "key": "density",
+          "meaning": "相应材料密度 kg/m³，与比潜热分别输入。"
+        }
+      ],
+      "outputs": [
+        "温度 K",
+        "相界面位移 m"
+      ],
+      "assumptions": [
+        "显式锐界面及网格可变形；界面拓扑不发生未建模变化。"
+      ],
+      "limitations": [
+        "需独立配置网格更新，检查界面热流、相界面和网格质量；上游算例不是普适精度。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度和热流",
+          "to_field": "界面位移",
+          "quantity": "温度 K、热流 W/m²、界面位移 m",
+          "transfer": "界面 Stefan 能量平衡得到法向速度；界面速度经时间积分和网格更新形成位移，再反馈热场。",
+          "custom_work": "配置动网格和界面边界，核查两侧热流及网格质量。"
+        }
+      ],
+      "basis": "显式跟踪锐界面，区别于固定网格焓法。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/TransientPhaseChange.F90",
+          "locator": "TransientPhaseChange.F90",
+          "claim": "固定版相界面求解器。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange3/PhaseChangeTrans.sif",
+          "locator": "PhaseChange3/PhaseChangeTrans.sif",
+          "claim": "固定版上游相界面配置示例。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/TransientPhaseChange.F90#L413-L415",
+          "locator": "lines 413–415",
+          "claim": "密度和潜热分别从材料读取。"
+        }
+      ],
+      "correlations": [
+        "瞬态 Stefan 界面能量平衡"
+      ],
+      "custom_work": [
+        "配置界面、热场和独立网格更新，验证界面位置。"
+      ],
+      "implementation": "configured"
+    },
+    {
+      "id": "steady_front",
+      "label": "准稳态移动相界面",
+      "capability_ids": [
+        "elmer.stationary_phase_change_front"
+      ],
+      "mechanisms": [
+        "conduction",
+        "phase_change",
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature",
+        "phase_front"
+      ],
+      "conditions": {
+        "geometry": [
+          "solid"
+        ],
+        "time": [
+          "steady"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "conductivity",
+          "meaning": "固液相导热率 W/(m·K)"
+        },
+        {
+          "key": "melting_temperature",
+          "meaning": "相变温度 K"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "两侧热边界温度 K 或热通量 W/m²"
+        },
+        {
+          "key": "interface_mapping",
+          "meaning": "初始相界面与动网格约束 m"
+        }
+      ],
+      "outputs": [
+        "温度 K",
+        "相界面位移 m"
+      ],
+      "assumptions": [
+        "显式锐界面及网格可变形；界面拓扑不发生未建模变化。"
+      ],
+      "limitations": [
+        "需独立配置网格更新，检查界面热流、相界面和网格质量；上游算例不是普适精度。",
+        "仅按熔点求静止前沿与使用 MeltingHeat 可选回调不同；回调另读取固相密度、潜热及 pull velocity，不能对所有稳态配置硬性要求。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度和热流",
+          "to_field": "界面位移",
+          "quantity": "温度 K、热流 W/m²、界面位移 m",
+          "transfer": "相变条件驱动界面迭代并通过网格更新回馈温度场",
+          "custom_work": "配置动网格和界面边界，核查两侧热流及网格质量。"
+        }
+      ],
+      "basis": "显式跟踪锐界面，区别于固定网格焓法。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/SteadyPhaseChange.F90",
+          "locator": "SteadyPhaseChange.F90",
+          "claim": "固定版相界面求解器。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/tests/PhaseChange2/PhaseChangeSS.sif",
+          "locator": "PhaseChange2/PhaseChangeSS.sif",
+          "claim": "固定版上游相界面配置示例。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ElmerCSC/elmerfem/blob/9352634829dfde24439000571d64438d8c683264/fem/src/modules/SteadyPhaseChange.F90#L1000-L1024",
+          "locator": "MeltingHeat lines 1000–1024",
+          "claim": "可选 MeltingHeat 例程读取潜热、固相密度及拉速；不是每个稳态界面配置的通用必需项。"
+        }
+      ],
+      "correlations": [
+        "准稳态相变温度条件与边界移动；依固定版求解器配置。"
+      ],
+      "custom_work": [
+        "配置界面、热场和独立网格更新，验证界面位置。",
+        "若选用 MeltingHeat 回调，另配置固相密度 kg/m³、潜热 J/kg 和拉速 m/s；核对方向与单位。"
+      ],
+      "implementation": "configured"
+    }
+  ]
+}

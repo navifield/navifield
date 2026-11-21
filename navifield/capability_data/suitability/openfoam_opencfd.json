@@ -1,0 +1,1377 @@
+{
+  "solver": "openfoam_opencfd",
+  "version": "v2606",
+  "models": [
+    {
+      "id": "kEpsilon",
+      "label": "标准 k−ε",
+      "capability_id": null,
+      "flows": [
+        "充分湍流附着内流",
+        "近平衡剪切层"
+      ],
+      "targets": [
+        "摩阻和沿程压降"
+      ],
+      "limitations": [
+        "分离对压力梯度和近壁建模敏感。",
+        "可选双层处理使用局部近壁 Re_y，默认关闭。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/kEpsilon/kEpsilon：.H:33–82；.C:44–77",
+          "claim": "Launder–Spalding 含压缩项，默认 Cmu=0.09。twoLayerTreatment 可启用，ReyStar 默认200。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "pipe_sim",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "表1、模拟设置、图5–8",
+          "claim": "OpenFOAM 版号未披露；D=0.01 m、U_b=1 m/s、ν=10⁻⁶ m²/s，推得 Re_D=10000。k−ε 壁函数平均 y+32.39、SST 壁函数31.95、SST 解析0.017，压降对照 f_D=0.0309 的 Moody/Colebrook 相关式。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_wind",
+          "kind": "published_simulation",
+          "url": "https://www.grc.nasa.gov/www/wind/valid/buice/buice02/buice02.html",
+          "locator": "表1、图8–11、16–17；Re定义见 https://www.grc.nasa.gov/WWW/wind/valid/buice/buice01/buice01.html",
+          "claim": "NASA WIND Menter SST 首层 y+≈1 提前分离，多种网格再附约29.5H；y+≈30 壁函数推迟分离，y+≈60 结果较差。其对比 k−ε 为 Chien 变体。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_y",
+            "definition": "y√k/ν，y 为壁距，k 为局部湍动能。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。",
+            "value": 10000,
+            "geometry": "光滑充分发展圆管，SimScale",
+            "evidence": [
+              "pipe_sim"
+            ]
+          }
+        ],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "无滑移，nutkWallFunction、kqRWallFunction、epsilonWallFunction；平衡对数壁处理。",
+          "y_plus": {
+            "min": 30,
+            "max": 300,
+            "target": null
+          },
+          "note": "30–300 是 SimScale 光滑直管示例的对数层布网目标，并作近似平衡附壁流的工程指导。核对沿壁 y+ 分布、粗糙度及局部压力梯度。",
+          "evidence": [
+            "walls"
+          ]
+        },
+        {
+          "mode": "wall_resolved",
+          "treatment": "启用 twoLayerTreatment，采用一致的低Re壁面设置；需单独核验。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+约1是布网目标。核对壁法向增长率和目标量的网格敏感性。",
+          "evidence": [
+            "walls",
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "preferred",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "附着、充分发展光滑直管的工程基线；用实际壁面配置与 Darcy 摩阻复核。",
+          "evidence": [
+            "pipe_exp",
+            "pipe_sim",
+            "walls"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_function",
+            "wall_resolved"
+          ],
+          "reason": "平衡壁处理对逆压梯度敏感；WIND 比较的是 Chien 变体、本版标准 k−ε 缺同几何验证。",
+          "evidence": [
+            "impl",
+            "diff_wind"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "realizableKE",
+      "label": "Realizable k−ε",
+      "capability_id": null,
+      "flows": [
+        "充分湍流内流",
+        "射流、自由剪切与显著应变流动"
+      ],
+      "targets": [
+        "平均速度",
+        "压降敏感性"
+      ],
+      "limitations": [
+        "可实现性约束仍采用线性涡黏性，扩压器分离需核查。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/realizableKE/realizableKE：.H:33–48；.C:45–85",
+          "claim": "Shih 等 realizable 闭合，局部 Cmu 和改写 ε 方程。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_kth",
+          "kind": "published_simulation",
+          "url": "https://www.diva-portal.org/smash/get/diva2%3A1458913/FULLTEXT01.pdf",
+          "locator": "KTH 学位论文，软件环境与 §3.3.2–3.3.5，图3.10–3.14",
+          "claim": "OpenFOAM v1912 的 RNG k−ε 显著低估下壁回流区，SST 剖面和分离区更接近实验。图3.11 是 STAR-CCM+ realizable k−ε，同样弱化近壁回流，证据限于该实现和工况。"
+        },
+        {
+          "id": "shih",
+          "kind": "model_paper",
+          "url": "https://ntrs.nasa.gov/citations/19950005029",
+          "locator": "NASA-TM-106721",
+          "claim": "原始模型在射流、混合层、通道、平板边界层和后向台阶比较；台阶验证范围限于突扩台阶。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "无滑移，nutkWallFunction、kqRWallFunction、epsilonWallFunction；平衡对数壁处理。",
+          "y_plus": {
+            "min": 30,
+            "max": 300,
+            "target": null
+          },
+          "note": "30–300 是 SimScale 光滑直管示例的对数层布网目标，并作近似平衡附壁流的工程指导。核对沿壁 y+ 分布、粗糙度及局部压力梯度。",
+          "evidence": [
+            "walls"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "用于压降敏感性比较，现有文献缺本版同壁面下 Darcy 结果。",
+          "evidence": [
+            "shih",
+            "pipe_exp"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "同几何 STAR-CCM+ realizable 剖面回流偏弱；OpenFOAM 本版需对照 Cf 与再附点。",
+          "evidence": [
+            "diff_kth",
+            "diff_exp"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RNGkEpsilon",
+      "label": "RNG k−ε",
+      "capability_id": null,
+      "flows": [
+        "充分湍流剪切流",
+        "应变率变化的内流"
+      ],
+      "targets": [
+        "平均流场和压降敏感性"
+      ],
+      "limitations": [
+        "应变修正仍需对照逆压梯度分离实验。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/RNGkEpsilon/RNGkEpsilon：.H:33–48；.C:43–49、256–286",
+          "claim": "Yakhot 等 RNG 闭合，ε 方程修正依赖 eta=Sk/ε。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_kth",
+          "kind": "published_simulation",
+          "url": "https://www.diva-portal.org/smash/get/diva2%3A1458913/FULLTEXT01.pdf",
+          "locator": "KTH 学位论文，软件环境与 §3.3.2–3.3.5，图3.10–3.14",
+          "claim": "OpenFOAM v1912 的 RNG k−ε 显著低估下壁回流区，SST 剖面和分离区更接近实验。图3.11 是 STAR-CCM+ realizable k−ε，同样弱化近壁回流，证据限于该实现和工况。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "无滑移，nutkWallFunction、kqRWallFunction、epsilonWallFunction；平衡对数壁处理。",
+          "y_plus": {
+            "min": 30,
+            "max": 300,
+            "target": null
+          },
+          "note": "30–300 是 SimScale 光滑直管示例的对数层布网目标，并作近似平衡附壁流的工程指导。核对沿壁 y+ 分布、粗糙度及局部压力梯度。",
+          "evidence": [
+            "walls"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "可比较闭合对 Darcy 摩阻的影响；目标量须独立验算。",
+          "evidence": [
+            "pipe_exp",
+            "impl"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "OpenFOAM v1912 同几何明显低估回流区。",
+          "evidence": [
+            "diff_kth",
+            "diff_exp"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kOmega",
+      "label": "标准 k−ω",
+      "capability_id": null,
+      "flows": [
+        "充分湍流的附壁边界层与内流",
+        "扩压器分离敏感性对照"
+      ],
+      "targets": [
+        "壁面剪切",
+        "分离和再附定位"
+      ],
+      "limitations": [
+        "外缘或入口 ω 敏感；扩压再附点可能偏差。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/kOmega/kOmega：.H:33–54；.C:43–49",
+          "claim": "代码标明 Wilcox 1988 高Re标准模型；nut=k/ω。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_ox",
+          "kind": "published_simulation",
+          "url": "https://ora.ox.ac.uk/objects/uuid%3Afc861b18-74fa-4523-af8d-438fdd503cac/files/m0c4d6af63c393965f708173dcaafc876",
+          "locator": "Wimshurst、Willden §2.1–2.2 图3–4",
+          "claim": "OpenFOAM 2.3.1 同类扩压器 Re_H,b=21200、首层 y+<1。原文图3–4 显示 SST 提前分离而再附更接近实验，Wilcox k−ω 回流区偏短，Launder–Sharma 未捕捉下壁分离。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。",
+            "value": 21200,
+            "geometry": "OpenFOAM 2.3.1 非对称平面扩压器，Wimshurst–Willden",
+            "evidence": [
+              "diff_ox"
+            ]
+          }
+        ],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "无滑移，相容的 nut 对数壁处理、kqRWallFunction、omegaWallFunction。",
+          "y_plus": {
+            "min": 30,
+            "max": 300,
+            "target": null
+          },
+          "note": "30–300 是 SimScale 光滑直管示例的对数层布网目标，并作近似平衡附壁流的工程指导。核对沿壁 y+ 分布、粗糙度及局部压力梯度。",
+          "evidence": [
+            "walls"
+          ]
+        },
+        {
+          "mode": "wall_resolved",
+          "treatment": "无滑移，近壁 nut=0、k=0 或相容低Re边界，ω采用黏性底层渐近式或相容 omegaWallFunction。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+约1是布网目标。核对壁法向增长率和目标量的网格敏感性。",
+          "evidence": [
+            "walls",
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_function",
+            "wall_resolved"
+          ],
+          "reason": "可比较附壁湍流压降，需检查 ω 及 Darcy 基准。",
+          "evidence": [
+            "pipe_exp",
+            "impl"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "旧版算例分离起点较接近该文参考，回流区偏短。宜用解析 SST 与实测 Cf 做交叉比较。",
+          "evidence": [
+            "diff_ox"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kOmegaSST",
+      "label": "k−ω SST",
+      "capability_id": "openfoam_opencfd.sst_rans_wall_flow",
+      "flows": [
+        "充分湍流附着内流",
+        "逆压梯度附壁及平滑壁面分离"
+      ],
+      "targets": [
+        "沿程压降",
+        "Cf、分离与再附、速度剖面"
+      ],
+      "limitations": [
+        "SST 分离起点可能偏早。",
+        "强各向异性、非定常及转捩需另证。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/kOmegaSST/kOmegaSST：.H:33–52；src/TurbulenceModels/turbulenceModels/Base/kOmegaSST/kOmegaSSTBase.C:45–142",
+          "claim": "近壁和外区混合，涡黏度含剪切应力限制；头文件引用 Menter–Esch 2001 和2003年系数。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "pipe_sim",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "表1、模拟设置、图5–8",
+          "claim": "OpenFOAM 版号未披露；D=0.01 m、U_b=1 m/s、ν=10⁻⁶ m²/s，推得 Re_D=10000。k−ε 壁函数平均 y+32.39、SST 壁函数31.95、SST 解析0.017，压降对照 f_D=0.0309 的 Moody/Colebrook 相关式。"
+        },
+        {
+          "id": "pipe_loy",
+          "kind": "published_simulation",
+          "url": "https://dspace.lib.cranfield.ac.uk/bitstream/1826/12862/4/Scale-up_and_turbulence_modelling_in_pipes-2017.pdf",
+          "locator": "Loyseau 等，§4 表1–2；§5 表3–4",
+          "claim": "OpenFOAM SST 在 Re_D=12965（周期边界，Blasius 估算 y+≈0.8）给出343.55 Pa/m，Blasius 342.65 Pa/m（+0.26%）；Re_D=13460 为25.49 对24.37 Pa/m（+4.6%，该网格估算 y+≈6.17）。§4 定性称 Launder–Sharma 也接近，但表2未单列其 OpenFOAM 值。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_wind",
+          "kind": "published_simulation",
+          "url": "https://www.grc.nasa.gov/www/wind/valid/buice/buice02/buice02.html",
+          "locator": "表1、图8–11、16–17；Re定义见 https://www.grc.nasa.gov/WWW/wind/valid/buice/buice01/buice01.html",
+          "claim": "NASA WIND Menter SST 首层 y+≈1 提前分离，多种网格再附约29.5H；y+≈30 壁函数推迟分离，y+≈60 结果较差。其对比 k−ε 为 Chien 变体。"
+        },
+        {
+          "id": "diff_ox",
+          "kind": "published_simulation",
+          "url": "https://ora.ox.ac.uk/objects/uuid%3Afc861b18-74fa-4523-af8d-438fdd503cac/files/m0c4d6af63c393965f708173dcaafc876",
+          "locator": "Wimshurst、Willden §2.1–2.2 图3–4",
+          "claim": "OpenFOAM 2.3.1 同类扩压器 Re_H,b=21200、首层 y+<1。原文图3–4 显示 SST 提前分离而再附更接近实验，Wilcox k−ω 回流区偏短，Launder–Sharma 未捕捉下壁分离。"
+        },
+        {
+          "id": "diff_kth",
+          "kind": "published_simulation",
+          "url": "https://www.diva-portal.org/smash/get/diva2%3A1458913/FULLTEXT01.pdf",
+          "locator": "KTH 学位论文，软件环境与 §3.3.2–3.3.5，图3.10–3.14",
+          "claim": "OpenFOAM v1912 的 RNG k−ε 显著低估下壁回流区，SST 剖面和分离区更接近实验。图3.11 是 STAR-CCM+ realizable k−ε，同样弱化近壁回流，证据限于该实现和工况。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。",
+            "value": 10000,
+            "geometry": "光滑充分发展圆管，SimScale",
+            "evidence": [
+              "pipe_sim"
+            ]
+          },
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。",
+            "value": 12965,
+            "geometry": "光滑圆管0.5 in.，周期边界，Loyseau等",
+            "evidence": [
+              "pipe_loy"
+            ]
+          },
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。",
+            "value": 13460,
+            "geometry": "光滑圆管14.5 in.，Loyseau等",
+            "evidence": [
+              "pipe_loy"
+            ]
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。",
+            "value": 20000,
+            "geometry": "NASA WIND Buice–Eaton 非对称平面扩压器",
+            "evidence": [
+              "diff_exp",
+              "diff_wind"
+            ]
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。",
+            "value": 21200,
+            "geometry": "OpenFOAM 2.3.1 非对称平面扩压器，Wimshurst–Willden",
+            "evidence": [
+              "diff_ox"
+            ]
+          }
+        ],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_function",
+          "treatment": "无滑移，相容的 nut 对数壁处理、kqRWallFunction、omegaWallFunction。",
+          "y_plus": {
+            "min": 30,
+            "max": 300,
+            "target": null
+          },
+          "note": "30–300 是 SimScale 光滑直管示例的对数层布网目标，并作近似平衡附壁流的工程指导。核对沿壁 y+ 分布、粗糙度及局部压力梯度。",
+          "evidence": [
+            "walls"
+          ]
+        },
+        {
+          "mode": "wall_resolved",
+          "treatment": "无滑移，近壁 nut=0、k=0 或相容低Re边界，ω采用黏性底层渐近式或相容 omegaWallFunction。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+约1是布网目标。核对壁法向增长率和目标量的网格敏感性。",
+          "evidence": [
+            "walls",
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_function",
+            "wall_resolved"
+          ],
+          "reason": "公开圆管单点支持两种近壁处理的压降交叉验证，本版仍需验算。",
+          "evidence": [
+            "pipe_exp",
+            "pipe_sim",
+            "pipe_loy"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "preferred",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "壁面解析 SST 是优先工程候选；同时比较有符号 Cf、分离、再附及速度剖面。",
+          "evidence": [
+            "diff_exp",
+            "diff_wind",
+            "diff_ox",
+            "diff_kth"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_function"
+          ],
+          "reason": "WIND 粗首层平衡壁函数算例对分离位置有明显偏差，仅作敏感性检查。",
+          "evidence": [
+            "diff_wind"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LaunderSharmaKE",
+      "label": "Launder–Sharma 低Re k−ε",
+      "capability_id": null,
+      "flows": [
+        "近壁解析的充分湍流内流"
+      ],
+      "targets": [
+        "剪切和沿程压降"
+      ],
+      "limitations": [
+        "低Re为近壁黏性阻尼。",
+        "公开扩压器对照未捕捉下壁分离。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/LaunderSharmaKE/LaunderSharmaKE：.H:33–49；.C:35–65",
+          "claim": "加入近壁阻尼，求解修正耗散变量。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "pipe_loy",
+          "kind": "published_simulation",
+          "url": "https://dspace.lib.cranfield.ac.uk/bitstream/1826/12862/4/Scale-up_and_turbulence_modelling_in_pipes-2017.pdf",
+          "locator": "Loyseau 等，§4 表1–2；§5 表3–4",
+          "claim": "OpenFOAM SST 在 Re_D=12965（周期边界，Blasius 估算 y+≈0.8）给出343.55 Pa/m，Blasius 342.65 Pa/m（+0.26%）；Re_D=13460 为25.49 对24.37 Pa/m（+4.6%，该网格估算 y+≈6.17）。§4 定性称 Launder–Sharma 也接近，但表2未单列其 OpenFOAM 值。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_ox",
+          "kind": "published_simulation",
+          "url": "https://ora.ox.ac.uk/objects/uuid%3Afc861b18-74fa-4523-af8d-438fdd503cac/files/m0c4d6af63c393965f708173dcaafc876",
+          "locator": "Wimshurst、Willden §2.1–2.2 图3–4",
+          "claim": "OpenFOAM 2.3.1 同类扩压器 Re_H,b=21200、首层 y+<1。原文图3–4 显示 SST 提前分离而再附更接近实验，Wilcox k−ω 回流区偏短，Launder–Sharma 未捕捉下壁分离。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。",
+            "value": 12965,
+            "geometry": "光滑圆管0.5 in.，周期边界，Loyseau等",
+            "evidence": [
+              "pipe_loy"
+            ]
+          },
+          {
+            "symbol": "Re_H,b",
+            "definition": "U_b H/ν，U_b 为扩压器入口截面体积均速、H 为入口高。",
+            "value": 21200,
+            "geometry": "OpenFOAM 2.3.1 非对称平面扩压器，Wimshurst–Willden",
+            "evidence": [
+              "diff_ox"
+            ]
+          }
+        ],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_resolved",
+          "treatment": "积分至壁面，设置与该模型修正耗散及近壁阻尼相容的 k、ε、nut 条件。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+约1是布网目标。核对壁法向增长率和目标量的网格敏感性。",
+          "evidence": [
+            "walls",
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "公开周期圆管算例在 Re_D=12965 定性报告接近 Blasius；可作为解析近壁对照。",
+          "evidence": [
+            "pipe_loy",
+            "pipe_exp"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "caution",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "OpenFOAM 2.3.1 算例高估下壁剪切、未捕捉分离。",
+          "evidence": [
+            "diff_ox"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kOmegaSSTLM",
+      "label": "Langtry–Menter SST 转捩",
+      "capability_id": null,
+      "flows": [
+        "自然或旁路转捩边界层",
+        "有转捩影响的分离泡"
+      ],
+      "targets": [
+        "转捩位置与间歇性"
+      ],
+      "limitations": [
+        "依赖入口湍流强度和发展史；体积雷诺数本身不足以判断适用性。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/kOmegaSSTLM/kOmegaSSTLM：.H:33–52；.C:424–451、515–571",
+          "claim": "SST 加间歇性 gammaInt 与转捩雷诺数 ReThetat。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "lm",
+          "kind": "model_paper",
+          "url": "https://doi.org/10.2514/1.42362",
+          "locator": "Langtry、Menter 2009",
+          "claim": "转捩边界层相关式，需入口湍流数据与转捩实验。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_θt",
+            "definition": "转捩起始动量厚度雷诺数，形式 U_e θ_t/ν。"
+          },
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_resolved",
+          "treatment": "解析近壁 SST，补充 gammaInt、ReThetat 边界，检查进流湍强及衰减。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+约1是布网目标。核对壁法向增长率和目标量的网格敏感性。",
+          "evidence": [
+            "walls",
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "insufficient",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "充分发展湍流 Darcy 基准缺转捩模型增益证据。",
+          "evidence": [
+            "pipe_exp",
+            "lm"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "insufficient",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "基准为充分发展湍流进流，缺本模型针对该扩压器实测对照。",
+          "evidence": [
+            "diff_exp",
+            "lm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GEKO",
+      "label": "GEKO 广义 k−ω",
+      "capability_id": null,
+      "flows": [
+        "校准范围内的逆压梯度及自由剪切流"
+      ],
+      "targets": [
+        "分离与近壁剪切敏感性",
+        "混合层扩张率"
+      ],
+      "limitations": [
+        "CSEP、CNW、CMIX、CJET 需记录取值与基准；Driver CS0 公告缺定量结果。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/GEKO/GEKO：.H:32–47；.C:94–114",
+          "claim": "v2606 实现广义 k−ω 及分离、近壁和混合可调参数。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "geko",
+          "kind": "official_case_report",
+          "url": "https://www.openfoam.com/news/main-news/openfoam-v2606/solvers-and-physics",
+          "locator": "GEKO 官方发布说明",
+          "claim": "本版发布方列 Driver 1991 CS0 扩压器核验，公开摘要未列定量分离位置或首层 y+。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "工况点和实验覆盖按各自 Re 定义记录。没有确立此版本与该目标量组合的普适 Re 区间。"
+      },
+      "walls": [
+        {
+          "mode": "other",
+          "treatment": "需取得 CS0 设置后核查壁面条件。",
+          "y_plus": null,
+          "note": "公开发布摘要未给出该算例首层 y+。",
+          "evidence": [
+            "impl",
+            "geko"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "insufficient",
+          "wall_modes": [
+            "other"
+          ],
+          "reason": "缺少 Darcy 摩阻目标证据。",
+          "evidence": [
+            "pipe_exp",
+            "geko"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "candidate",
+          "wall_modes": [
+            "other"
+          ],
+          "reason": "发布方报告 Driver CS0 扩压器，适用于研究比较；需要完整边界和有符号 Cf 才能迁移判定。",
+          "evidence": [
+            "geko"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SpalartAllmaras",
+      "label": "Spalart–Allmaras RANS",
+      "capability_id": null,
+      "flows": [
+        "附壁外部气动边界层",
+        "逆压梯度扩压敏感性对照"
+      ],
+      "targets": [
+        "平均力、壁面剪切",
+        "分离和再附敏感性"
+      ],
+      "limitations": [
+        "单方程线性涡黏性闭合，强各向异性流动及过渡流须另证。",
+        "NASA WIND 对照使用不同实现，须核对曲率修正和近壁设置差别。"
+      ],
+      "evidence": [
+        {
+          "id": "release",
+          "kind": "official_source",
+          "url": "https://www.openfoam.com/download/release-history",
+          "locator": "OpenFOAM-v2606.tgz；src/TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:74–111；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:76–116",
+          "claim": "发布包本地 MD5 与官网一致：35cbe9bc512fe087e4a472b1cb610063。所列模型均注册于两个单相运行时选择表。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/namespaceFoam_1_1RASModels.html",
+          "locator": "src/TurbulenceModels/turbulenceModels/RAS/SpalartAllmaras/SpalartAllmaras.H:33–54；两个单相注册表",
+          "claim": "v2606 RANS SpalartAllmaras 使用 nuTilda，头文件引用无 trip/ft2 的 SA-noft2。"
+        },
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        },
+        {
+          "id": "diff_sa",
+          "kind": "published_simulation",
+          "url": "https://www.grc.nasa.gov/WWW/wind/valid/buice/buice01/buice01.html",
+          "locator": "NASA WIND Buice 2D Diffuser，图4、6及 Lessons Learned",
+          "claim": "WIND 的 SA 计算有曲率修正开/关两组变体，均预测下壁回流，再附晚于该文 SST；属此几何的跨实现模型族对照。"
+        },
+        {
+          "id": "sa_tmr",
+          "kind": "model_paper",
+          "url": "https://tmbwg.github.io/turbmodels/spalart.html#sanoft2",
+          "locator": "Turbulence Modeling Resource，SA-noft2",
+          "claim": "单方程线性涡黏性模型；SA-noft2 的无滑移实壁采用 nuTilda=0。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。",
+            "value": 20000,
+            "geometry": "NASA WIND 非对称平面扩压器，SA 模型族",
+            "evidence": [
+              "diff_sa"
+            ]
+          }
+        ],
+        "note": "仅有指定工况或模型用途证据；尚无按当前版本和目标量确立的通用雷诺数区间。"
+      },
+      "walls": [
+        {
+          "mode": "wall_resolved",
+          "treatment": "无滑移 U、nuTilda=0，与 SA-noft2 相容的近壁 nut 设置。",
+          "y_plus": {
+            "min": null,
+            "max": 1,
+            "target": 1
+          },
+          "note": "首层 y+≈1 是解析黏性底层的布网起点，需结合所求壁面量完成网格敏感性验证。",
+          "evidence": [
+            "walls",
+            "impl",
+            "sa_tmr"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "insufficient",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "缺本版或可追溯同设置的直管 Darcy 摩阻对照。",
+          "evidence": [
+            "impl",
+            "pipe_exp"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "candidate",
+          "wall_modes": [
+            "wall_resolved"
+          ],
+          "reason": "NASA WIND 有同几何 SA 对照；使用有符号 Cf、速度剖面和 SST 共同检查。",
+          "evidence": [
+            "diff_sa",
+            "diff_exp"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buoyantKEpsilon",
+      "label": "浮力修正 k−ε",
+      "capability_id": null,
+      "flows": [
+        "存在重力耦合密度分层的流动",
+        "非等温自然或混合对流的待测候选"
+      ],
+      "targets": [
+        "浮力对湍流产生或耗散的影响"
+      ],
+      "limitations": [
+        "按热物性模型、重力方向、密度梯度和浮力/惯性相对量判断。",
+        "近壁和热边界需要专门验证。"
+      ],
+      "evidence": [
+        {
+          "id": "walls",
+          "kind": "published_simulation",
+          "url": "https://www.simscale.com/docs/validation-cases/turbulent-pipe-flow/",
+          "locator": "Analysis Type and Mesh，Table 1；v2606 原包互证见 src/TurbulenceModels/turbulenceModels/derivedFvPatchFields/wallFunctions/ 下 nutWallFunctions/nutkWallFunction/nutkWallFunctionFvPatchScalarField.C、epsilonWallFunctions/epsilonWallFunction/epsilonWallFunctionFvPatchScalarField.C 及 omegaWallFunctions/omegaWallFunction/omegaWallFunctionFvPatchScalarField.C",
+          "claim": "SimScale 光滑直管示例直接给出壁函数网格期望 y+为30–300、解析方案低于1，OpenFOAM 版本未披露；用作近平衡网格指导。v2606 具体黏性/对数层处理与混合选项见发布包，不据它推定数值适用门槛。"
+        },
+        {
+          "id": "impl",
+          "kind": "official_source",
+          "url": "https://api.openfoam.com/2606/classFoam_1_1RASModels_1_1buoyantKEpsilon.html",
+          "locator": "src/TurbulenceModels/compressible/RAS/buoyantKEpsilon/buoyantKEpsilon.H:33–56、.C:103–148；src/TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:85–86",
+          "claim": "标准 k−ε 基础上使用重力与密度梯度耦合项影响 k、ε，密度梯度可由温度或组成引起。发布包可压缩单相热物性注册表有此模型，普通不可压缩表没有。"
+        },
+        {
+          "id": "pipe_exp",
+          "kind": "experiment",
+          "url": "https://doi.org/10.1017/S0022112005005501",
+          "locator": "McKeon、Zagarola、Smits 2005，摘要；2004 表1详见 https://authors.library.caltech.edu/records/qg80n-a5n38",
+          "claim": "Princeton Superpipe 光滑充分发展圆管摩阻实验 Re_D=31000–35000000。Darcy f_D=2DΔp/(ρU_b²L)=8|τw|/(ρU_b²)，比较充分发展段。这一范围属实验覆盖。"
+        },
+        {
+          "id": "diff_exp",
+          "kind": "experiment",
+          "url": "https://ntrs.nasa.gov/citations/19970011299",
+          "locator": "Buice、Eaton 非对称平面扩压器；NASA WIND 壁函数案例所引实测",
+          "claim": "光滑壁、充分发展湍流进流、下壁10°、扩张比约4.7。原始实验记录下壁分离与下游再附；定量对照使用同一来源的坐标、参考速度和数据，依据有符号 Cf、速度剖面及测点。"
+        }
+      ],
+      "reynolds": {
+        "definitions": [
+          {
+            "symbol": "Re_D",
+            "definition": "U_b D/ν，U_b 为圆管截面均速、D 为圆管内径。"
+          },
+          {
+            "symbol": "Re_H,cl",
+            "definition": "U_cl H/ν，U_cl 为扩压器充分发展进流的中心线速度、H 为入口高。"
+          }
+        ],
+        "validity_intervals": [],
+        "benchmarks": [],
+        "note": "仅有指定工况或模型用途证据；尚无按当前版本和目标量确立的通用雷诺数区间。"
+      },
+      "walls": [
+        {
+          "mode": "other",
+          "treatment": "依据浮力、热边界和基底 k−ε 运行配置决定。",
+          "y_plus": null,
+          "note": "当前两工况均无专属壁面目标证据。",
+          "evidence": [
+            "impl"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "flow": "fully_developed_pipe",
+          "target": "pressure_drop",
+          "rank": "insufficient",
+          "wall_modes": [
+            "other"
+          ],
+          "reason": "基准为等温充分发展圆管，缺浮力修正适用性证据。",
+          "evidence": [
+            "impl",
+            "pipe_exp"
+          ]
+        },
+        {
+          "flow": "diffuser_adverse_gradient",
+          "target": "separation_location",
+          "rank": "insufficient",
+          "wall_modes": [
+            "other"
+          ],
+          "reason": "基准分离由逆压梯度驱动，缺浮力修正同几何证据。",
+          "evidence": [
+            "impl",
+            "diff_exp"
+          ]
+        }
+      ]
+    }
+  ]
+}

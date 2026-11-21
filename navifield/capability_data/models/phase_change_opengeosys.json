@@ -1,0 +1,293 @@
+{
+  "domain": "phase_change",
+  "solver": "opengeosys",
+  "version": "6.5.6",
+  "assessment": [
+    {
+      "phenomenon": "melting_solidification",
+      "status": "native",
+      "scope": "固定版 commit 586290a 源码树包含 SpecificHeatCapacityWithLatentHeat 和冻结融化基准，覆盖导热主导的冰/水融化与孔隙冻结；非普适多相流模型。",
+      "custom_work": "配置冻结曲线和潜热，核验时间步、网格及部署版本。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/MaterialLib/MPL/Properties/SpecificHeatCapacityWithLatentHeat.cpp",
+          "locator": "SpecificHeatCapacityWithLatentHeat.cpp；版本 tag 6.5.6 commit 586290a",
+          "claim": "固定版源码树含相变潜热比热材料属性。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/web/content/docs/benchmarks/heatconduction/heatconduction-freezing/index.md",
+          "locator": "Problem description",
+          "claim": "固定版源码树包含冰柱融化和孔隙水冻结基准说明。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "boiling",
+      "status": "insufficient_evidence",
+      "scope": "固定版 TH2M 可求多孔介质局部平衡蒸发，未证实气泡成核或沸腾闭合；不等同壁面沸腾。",
+      "custom_work": "配相平衡、毛细关系及能量方程；壁面沸腾需另选模型。",
+      "evidence": [
+        {
+          "kind": "upstream_case",
+          "url": "https://www.opengeosys.org/6.5.6/docs/benchmarks/th2m/heatpipe/",
+          "locator": "Problem description; Constitutive relations; Results comparison",
+          "claim": "孔隙水汽蒸发和冷凝热管的单个 1D 验证案例，TH2M 与所列解析参考比较。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://doxygen.opengeosys.org/6.5.6/d1/d78/PhaseTransition_8cpp_source.html",
+          "locator": "TH2M PhaseTransition.cpp",
+          "claim": "TH2M 相变实现及潜热材料接口。"
+        }
+      ]
+    },
+    {
+      "phenomenon": "condensation",
+      "status": "limited_scope",
+      "scope": "TH2M 多孔介质局部相平衡冷凝及潜热；不代表设备壁面膜状或滴状冷凝。",
+      "custom_work": "配多孔相物性及界限，壁面冷凝需另选模型。",
+      "evidence": [
+        {
+          "kind": "upstream_case",
+          "url": "https://www.opengeosys.org/6.5.6/docs/benchmarks/th2m/heatpipe/",
+          "locator": "Problem description; Constitutive relations; Results comparison",
+          "claim": "孔隙水汽蒸发和冷凝热管的单个 1D 验证案例，TH2M 与所列解析参考比较。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://doxygen.opengeosys.org/6.5.6/d1/d78/PhaseTransition_8cpp_source.html",
+          "locator": "TH2M PhaseTransition.cpp",
+          "claim": "TH2M 相变实现及潜热材料接口。"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "th2m_porous_evaporation_condensation",
+      "label": "TH2M 多孔介质汽化与冷凝",
+      "capability_ids": [
+        "opengeosys.two_phase_heat_pipe"
+      ],
+      "mechanisms": [
+        "conduction",
+        "fluid_advection",
+        "evaporation",
+        "condensation"
+      ],
+      "goals": [
+        "temperature",
+        "saturation",
+        "pressure"
+      ],
+      "conditions": {
+        "geometry": [
+          "porous_medium"
+        ],
+        "direction": [
+          "liquid_to_vapor",
+          "vapor_to_liquid"
+        ],
+        "regime": [
+          "local_equilibrium"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "porosity",
+          "meaning": "孔隙率，无量纲"
+        },
+        {
+          "key": "permeability",
+          "meaning": "固有渗透率 m²"
+        },
+        {
+          "key": "capillary_pressure_curve",
+          "meaning": "毛细压力—饱和度关系 Pa"
+        },
+        {
+          "key": "relative_permeability",
+          "meaning": "气液相对渗透率曲线，无量纲"
+        },
+        {
+          "key": "fluid_properties",
+          "meaning": "气液热物性及汽化潜热 J/kg"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K 或热通量 W/m²"
+        },
+        {
+          "key": "flow_bc",
+          "meaning": "气液压力 Pa、饱和度和质量边界"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K"
+        }
+      ],
+      "outputs": [
+        "温度 K",
+        "气压 Pa",
+        "液相饱和度和气相组成"
+      ],
+      "assumptions": [
+        "多孔介质连续体、气液传输和所选热力学相平衡关系；按案例验证。"
+      ],
+      "limitations": [
+        "孔隙尺度宏观模型不解析管内成核沸腾、壁面液膜或滴状冷凝。",
+        "单个热管验证不可外推至任意介质与尺度。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度和压力",
+          "to_field": "气液相平衡",
+          "quantity": "温度 K、压力 Pa",
+          "transfer": "相平衡与热质量传输耦合",
+          "custom_work": "选定并校核相平衡、毛细与渗透率关系。"
+        },
+        {
+          "from_field": "汽液迁移",
+          "to_field": "能量",
+          "quantity": "相焓与潜热 J/kg",
+          "transfer": "相焓通量计入能量守恒",
+          "custom_work": "回读温度、饱和度、压力和热/质量平衡。"
+        }
+      ],
+      "basis": "适合多孔介质内部的汽化、蒸汽迁移与凝结，不能直接替代自由流壁面模型。",
+      "evidence": [
+        {
+          "kind": "upstream_case",
+          "url": "https://www.opengeosys.org/6.5.6/docs/benchmarks/th2m/heatpipe/",
+          "locator": "Problem description; Constitutive relations; Results comparison",
+          "claim": "孔隙水汽蒸发和冷凝热管的单个 1D 验证案例，TH2M 与所列解析参考比较。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://doxygen.opengeosys.org/6.5.6/d1/d78/PhaseTransition_8cpp_source.html",
+          "locator": "TH2M PhaseTransition.cpp",
+          "claim": "TH2M 相变实现及潜热材料接口。"
+        }
+      ],
+      "correlations": [
+        "上游热管案例使用 Brooks–Corey 毛细压力和相对渗透率、Kelvin–Laplace 与近似 Clausius–Clapeyron；适用其给定多孔材料及平衡假设。"
+      ],
+      "custom_work": [
+        "配置孔隙和相物性、毛细曲线、初边界；复核适用范围及质量能量守恒。"
+      ],
+      "implementation": "configured"
+    },
+    {
+      "id": "heat_conduction_freeze_thaw_porous",
+      "label": "多孔介质导热主导冻结融化（表观热容）",
+      "capability_ids": [],
+      "implementation": "configured",
+      "mechanisms": [
+        "conduction",
+        "phase_change",
+        "melting_solidification"
+      ],
+      "goals": [
+        "temperature"
+      ],
+      "conditions": {
+        "geometry": [
+          "porous_medium"
+        ],
+        "time": [
+          "transient"
+        ],
+        "direction": [
+          "melting",
+          "solidification"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "porosity",
+          "meaning": "孔隙率，无量纲；需与各相体积分数一致"
+        },
+        {
+          "key": "frozen_fraction_curve",
+          "meaning": "冻结体积分数随温度曲线及一、二阶温度导数，体积分数无量纲、导数 1/K 和 1/K²"
+        },
+        {
+          "key": "density",
+          "meaning": "液水、冰及固体骨架密度 kg/m³ 与有效密度及其导数"
+        },
+        {
+          "key": "heat_capacity",
+          "meaning": "液水、冰和固体骨架比热 J/(kg·K)"
+        },
+        {
+          "key": "conductivity",
+          "meaning": "各相导热率及有效导热率模型 W/(m·K)"
+        },
+        {
+          "key": "latent_heat",
+          "meaning": "凝固/熔化比潜热 J/kg"
+        },
+        {
+          "key": "thermal_bc",
+          "meaning": "温度 K 或热流 W/m²"
+        },
+        {
+          "key": "initial_temperature",
+          "meaning": "初始温度 K"
+        },
+        {
+          "key": "time_step",
+          "meaning": "时间步 s"
+        }
+      ],
+      "outputs": [
+        "温度场 K；冻结体积分数需按所配物性模型回读或后处理"
+      ],
+      "assumptions": [
+        "导热主导，medium 尺度表观比热及所选冻结体积分数曲线可表示潜热；所涉液相、冻结相与固体骨架须按源码正确配置。"
+      ],
+      "limitations": [
+        "不等同显式冰水界面追踪、自由流固液相变或冻胀破坏；材料曲线必须验证。",
+        "检验潜热积分、能量守恒、网格及时间步；固定版测试非普适精度。"
+      ],
+      "couplings": [
+        {
+          "from_field": "温度",
+          "to_field": "冻结体积分数及表观热容",
+          "quantity": "冻结体积分数及导数、潜热 J/kg",
+          "transfer": "SpecificHeatCapacityWithLatentHeat 按相物性混合并计入冻结分数温度导数",
+          "custom_work": "配置 medium、三相物性和可微冻结曲线；验证导数和热量守恒。"
+        }
+      ],
+      "basis": "适用于冻结曲线和有效物性可描述的导热主导孔隙冻融。",
+      "evidence": [
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/MaterialLib/MPL/Properties/SpecificHeatCapacityWithLatentHeat.cpp",
+          "locator": "setProperties, effectiveVolumetricHeatCapacity, value",
+          "claim": "medium 尺度使用 Solid、AqueousLiquid、FrozenLiquid 的密度/比热、孔隙率、冻结体积分数与温度导数；表观体积热容包含 -L rho_ice dphi_f/dT。"
+        },
+        {
+          "kind": "version_source",
+          "url": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/MaterialLib/MPL/Properties/CreateSpecificHeatCapacityWithLatentHeat.cpp",
+          "locator": "createSpecificHeatCapacityWithLatentHeat",
+          "claim": "属性名 SpecificHeatCapacityWithLatentHeat 及 specific_latent_heat 输入。"
+        },
+        {
+          "kind": "upstream_case",
+          "url": "https://github.com/ufz/ogs/blob/586290af08992ac16806ec898cf1894505542f57/Tests/Data/Parabolic/T/2D_freezing_disk/circle_disk.prj",
+          "locator": "二维冻结盘固定版上游输入",
+          "claim": "固定版源码树含二维冻结盘配置；具体适用性需按配置核查。"
+        }
+      ],
+      "correlations": [
+        "源码混合体积热容，并以冰密度、潜热和冻结体积分数温度导数增加相变表观热容；冻结曲线按材料设定。"
+      ],
+      "custom_work": [
+        "提供材料物性及冻结曲线，核实三相和有效密度配置；独立做时间及空间收敛。"
+      ]
+    }
+  ]
+}

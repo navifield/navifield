@@ -1,0 +1,2880 @@
+{
+  "schema_version": 1,
+  "solver": "precice",
+  "version": "3.5.0",
+  "capabilities": [
+    {
+      "id": "precice.interface_mapping",
+      "module": "Coupling library / mapping",
+      "scope": "Transfer existing field values between registered coupling meshes. Consistent mapping reproduces constants. Conservative mapping preserves the sum of discrete quantities such as nodal forces. Flux density requires an area-aware conservation check.",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_interface_data",
+          "unit": "same as source",
+          "aliases": [
+            "映射界面数据",
+            "界面映射",
+            "界面数据映射"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "registered_interface_meshes"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/configuration-mapping",
+            "scope": "Mapping constraints and nearest-neighbor / nearest-projection methods."
+          },
+          {
+            "source": "https://github.com/precice/precice/releases/tag/v3.5.0",
+            "scope": "preCICE library release v3.5.0"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "v3.5.0 Participant API：网格、读写、时间步和检查点接口；具体支持边界见对应方法注释。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Transfer a constant temperature and compare point values. Transfer known nodal forces and compare component sums in a common frame.",
+      "transfers": [
+        "nonmatching_interface_mapping"
+      ]
+    },
+    {
+      "id": "precice.explicit_exchange",
+      "module": "Coupling library / explicit scheme",
+      "scope": "Serial or parallel explicit exchange executes each participant once per coupling time window.",
+      "inputs": [
+        {
+          "id": "coupling_window_size",
+          "unit": "s",
+          "aliases": [
+            "耦合时间窗"
+          ]
+        },
+        {
+          "id": "participant_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "参与器界面数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "explicit_coupling_exchange",
+          "unit": "field SI unit",
+          "aliases": [
+            "显式耦合交换量"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "explicit_exchange",
+        "compatible_adapters"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/docs/configuration/basics/coupling/",
+            "scope": "Explicit coupling schemes and participant order."
+          },
+          {
+            "source": "https://github.com/precice/precice/releases/tag/v3.5.0",
+            "scope": "preCICE library release v3.5.0"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "v3.5.0 Participant API：网格、读写、时间步和检查点接口；具体支持边界见对应方法注释。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Log execution order and timestamps. Refine the time window and check interface balance.",
+      "transfers": [
+        "explicit_partitioned_coupling"
+      ]
+    },
+    {
+      "id": "precice.implicit_exchange",
+      "module": "Coupling library / implicit scheme",
+      "scope": "Iterate participant exchanges within a time window using configured convergence measures. Participants must support saving and restoring solver state.",
+      "inputs": [
+        {
+          "id": "coupling_window_size",
+          "unit": "s",
+          "aliases": [
+            "耦合时间窗"
+          ]
+        },
+        {
+          "id": "participant_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "参与器界面数据"
+          ]
+        },
+        {
+          "id": "interface_residual_tolerance",
+          "unit": "1 for relative residual",
+          "aliases": [
+            "界面残差容限"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "implicit_coupling_exchange",
+          "unit": "field SI unit",
+          "aliases": [
+            "隐式耦合交换量"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "implicit_exchange",
+        "checkpoint_capable_adapters"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/docs/configuration/basics/coupling/",
+            "scope": "Implicit coupling schemes, iteration and convergence measures."
+          },
+          {
+            "source": "https://github.com/precice/precice/releases/tag/v3.5.0",
+            "scope": "preCICE library release v3.5.0"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "v3.5.0 Participant API：网格、读写、时间步和检查点接口；具体支持边界见对应方法注释。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Check rollback, residual histories, end-of-window residual and behavior at the iteration limit on a two-participant case.",
+      "transfers": [
+        "implicit_partitioned_coupling"
+      ]
+    },
+    {
+      "id": "precice.flap_fsi",
+      "module": "Coupling tutorial / perpendicular flap",
+      "scope": "Two-way transient flap FSI exchanges nodal forces and displacements. Compatible fluid and structural participants solve the respective physics.",
+      "inputs": [
+        {
+          "id": "interface_force",
+          "unit": "N",
+          "aliases": [
+            "界面节点力"
+          ]
+        },
+        {
+          "id": "structural_interface_displacement",
+          "unit": "m",
+          "aliases": [
+            "结构界面位移"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_structural_force",
+          "unit": "N",
+          "aliases": [
+            "结构侧映射节点力"
+          ]
+        },
+        {
+          "id": "mapped_fluid_mesh_displacement",
+          "unit": "m",
+          "aliases": [
+            "流体侧映射网格位移"
+          ]
+        }
+      ],
+      "conditions": [
+        "transient",
+        "partitioned_coupling",
+        "compatible_fsi_adapters",
+        "moving_fluid_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/tutorials-perpendicular-flap",
+            "scope": "Perpendicular flap participants and force/displacement exchange."
+          },
+          {
+            "source": "https://github.com/precice/precice/releases/tag/v3.5.0",
+            "scope": "preCICE library release v3.5.0"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Compare summed interface forces in a common frame. Check flap-tip displacement under mesh and time-window refinement.",
+      "transfers": [
+        "force_displacement_fsi"
+      ],
+      "couplings": [
+        {
+          "from_field": "流体",
+          "to_field": "结构",
+          "quantity": "界面节点力",
+          "unit": "N",
+          "transfer": "适配器写入界面数据，经配置的映射传递",
+          "implementation": "adapter",
+          "custom_work": "需兼容流体与结构求解器及适配器，核对法向、力积分与映射守恒；隐式方案需双方检查点回滚。"
+        },
+        {
+          "from_field": "结构",
+          "to_field": "流体",
+          "quantity": "界面位移",
+          "unit": "m",
+          "transfer": "适配器读取并用于移动流体网格边界",
+          "implementation": "adapter",
+          "custom_work": "需网格运动实现和位移映射；隐式方案需保存和恢复求解器状态。"
+        }
+      ]
+    },
+    {
+      "id": "precice.heated_plate_cht",
+      "module": "Coupling tutorial / flow over heated plate",
+      "scope": "固定教程的串行隐式配置将流体给出的壁面温度传至固体，将固体给出的热流密度传回流体；两向均使用 consistent 最近邻读取映射。需独立检查面积积分热流平衡。",
+      "inputs": [
+        {
+          "id": "interface_temperature",
+          "unit": "K",
+          "aliases": [
+            "界面温度"
+          ]
+        },
+        {
+          "id": "interface_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "界面热流密度"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "solid_boundary_temperature",
+          "unit": "K",
+          "aliases": [
+            "固体壁面温度"
+          ]
+        },
+        {
+          "id": "fluid_boundary_heat_flux",
+          "unit": "W/m^2",
+          "aliases": [
+            "流体壁面热流密度"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "compatible_cht_adapters",
+        "dirichlet_neumann_thermal_interface"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/tutorials/98a78fe2dc2f6c5d84b2b30d35d00352782236f8/flow-over-heated-plate/precice-config.xml",
+            "scope": "Fluid and Solid participant read-data, write-data and serial-implicit exchange entries."
+          },
+          {
+            "source": "https://github.com/precice/precice/releases/tag/v3.5.0",
+            "scope": "preCICE library release v3.5.0"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "Verify adapter normals, temperature agreement and balance of area-integrated outward heat rates. Compare with a layered conduction benchmark.",
+      "transfers": [
+        "temperature_heat_flux_cht"
+      ],
+      "couplings": [
+        {
+          "from_field": "流体",
+          "to_field": "固体",
+          "quantity": "界面温度",
+          "unit": "K",
+          "transfer": "流体适配器写入壁温，接收方按 consistent 最近邻读取为固体边界值。",
+          "implementation": "adapter",
+          "custom_work": "需匹配两端求解器及适配器，核对温标与界面方向；隐式迭代需检查点回滚。"
+        },
+        {
+          "from_field": "固体",
+          "to_field": "流体",
+          "quantity": "界面热流密度",
+          "unit": "W/m²",
+          "transfer": "固体适配器写入热流密度，流体按 consistent 最近邻读取为边界值；按实际界面测度另验热量平衡。",
+          "implementation": "adapter",
+          "custom_work": "需核对热流法向、面积积分守恒，隐式方案需两侧状态回滚。"
+        }
+      ]
+    },
+    {
+      "id": "precice.acceleration",
+      "module": "Acceleration configuration / constant / Aitken / IQN",
+      "scope": "支持常数松弛、Aitken、IQN-ILS 和 IQN-IMVJ 等隐式迭代加速；参数、数据尺度及收敛判据由用户配置，加速不保证收敛。 隐式窗口内各求解器须能够回滚。",
+      "inputs": [
+        {
+          "id": "interface_iteration_data",
+          "unit": "由字段定义"
+        },
+        {
+          "id": "interface_residual",
+          "unit": "由字段定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "accelerated_interface_data",
+          "unit": "由耦合数据定义",
+          "aliases": [
+            "加速界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "implicit_coupling"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/configuration-acceleration",
+            "scope": "Acceleration configuration"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/acceleration/config/AccelerationConfiguration.cpp",
+            "scope": "VALUE_CONSTANT、VALUE_AITKEN、VALUE_IQNILS、VALUE_IQNIMVJ"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "比较各方法的界面残差及收敛结果，并检查求解器回滚和守恒。"
+    },
+    {
+      "id": "precice.communication",
+      "module": "Communication configuration",
+      "scope": "为分区参与方配置通信；数据含义、单位和参与方的物理求解由使用者定义。",
+      "inputs": [
+        {
+          "id": "participant_data",
+          "unit": "由耦合数据定义"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "received_participant_data",
+          "unit": "与发送量一致",
+          "aliases": [
+            "参与方通信数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/configuration-communication",
+            "scope": "Communication configuration"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "两参与方交换已知值并核对一致性。"
+    },
+    {
+      "id": "precice.time_window_subcycling",
+      "module": "Participant / coupling time windows",
+      "scope": "参与方按 getMaxTimeStepSize 限制推进，允许求解器以较小步长子循环；隐式窗口未收敛时参与方必须恢复检查点。",
+      "inputs": [
+        {
+          "id": "time_window_size",
+          "unit": "s"
+        },
+        {
+          "id": "solver_timestep",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "coupling_timestep",
+          "unit": "s",
+          "aliases": [
+            "耦合时间步"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "transient"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "getMaxTimeStepSize、advance、requiresWritingCheckpoint、requiresReadingCheckpoint"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "两参与方采用不同步长，核对窗口结束时间和隐式重试状态。"
+    },
+    {
+      "id": "precice.temporal_data_interpolation",
+      "module": "Participant / readData / waveform",
+      "scope": "readData 按相对当前步起点的时间读取耦合值；高阶波形插值对交换子步数据有配置约束，不能默认为全部历史都可用。",
+      "inputs": [
+        {
+          "id": "coupling_data_samples",
+          "unit": "场的单位"
+        },
+        {
+          "id": "relative_read_time",
+          "unit": "s"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "interpolated_coupling_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "时间插值耦合数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "transient"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/cplscheme/config/CouplingSchemeConfiguration.cpp",
+            "scope": "exchange substeps 与 waveform-degree 配置约束；Participant::readData"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "v3.5.0 Participant API：网格、读写、时间步和检查点接口；具体支持边界见对应方法注释。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用已知线性时间信号比较采样结果；配置高阶时验证子步传输。",
+      "couplings": [
+        {
+          "from_field": "接收侧时间波形",
+          "to_field": "本地求解器接口",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的数据单位；时间单位一致",
+          "transfer": "按相对时间插值读取，阶数和子步数据由配置约束",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.mesh_exchange_direct_access",
+      "module": "Participant / direct mesh access",
+      "scope": "参与方可注册网格顶点和必要连接关系；直接访问接收网格需初始化前设置访问区域，直接映射由使用者实现。",
+      "inputs": [
+        {
+          "id": "interface_mesh",
+          "unit": "坐标长度单位"
+        },
+        {
+          "id": "mesh_access_region",
+          "unit": "坐标长度单位"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "received_mesh_vertices",
+          "unit": "坐标长度单位",
+          "aliases": [
+            "接收界面网格"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "mesh_direct_access"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "setMeshVertices、setMeshAccessRegion、getMeshVertexIDsAndCoordinates"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "两参与方核对访问区域中的顶点 ID、坐标和单位。"
+    },
+    {
+      "id": "precice.jit_mapping",
+      "module": "Participant / just-in-time mapping",
+      "scope": "实验性接口，读取使用 mapAndReadData 的 consistent 映射，写入使用 writeAndMapData 的 conservative 映射。两者均适用 nearest-neighbor 或 rbf-pum-direct；临时坐标须在访问盒内，同坐标重复写会累加。",
+      "inputs": [
+        {
+          "id": "received_mesh",
+          "unit": "坐标长度单位"
+        },
+        {
+          "id": "sample_coordinates",
+          "unit": "坐标长度单位"
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "场单位"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "即时映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "partitioned_coupling",
+        "experimental"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/precice/Participant.hpp",
+            "scope": "v3.5.0 Participant.hpp 的 Just-in-time mapping、writeAndMapData 和 mapAndReadData。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用常值和线性场检查映射误差与访问区域边界。",
+      "couplings": [
+        {
+          "from_field": "动态坐标及本地场",
+          "to_field": "接收网格数据",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的数据及坐标单位",
+          "transfer": "writeAndMapData：限定映射的 conservative 写入",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        },
+        {
+          "from_field": "接收网格数据",
+          "to_field": "动态坐标及本地场",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的数据及坐标单位",
+          "transfer": "mapAndReadData：限定映射的 consistent 读取",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.nearest_neighbor_mapping",
+      "module": "mapping:nearest-neighbor",
+      "scope": "以最近的对侧网格顶点作映射。读取点值使用 consistent，转移离散节点力等总量使用 conservative。仅提供坐标即可做常规 NN，出现重合或等距点须检查唯一性与效果。",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "nearest_neighbor_mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "nearest neighbor mapping data",
+            "映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_interface_mesh",
+        "nearest_neighbor"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "构造函数 XML 类型与约束参数，createMapping 分支"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "在两组不匹配节点上分别核对常量复现和节点力加和，并移动节点观察最近点切换。"
+    },
+    {
+      "id": "precice.nearest_projection_mapping",
+      "module": "mapping:nearest-projection",
+      "scope": "consistent 在源网格拓扑上投影并按插值权重取值；conservative 反向找目标网格几何并分配离散总量。scaled-consistent-surface 要求两侧拓扑，nearest-projection 不支持 scaled-consistent-volume。",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        },
+        {
+          "id": "interface_mesh_connectivity",
+          "unit": "拓扑索引",
+          "aliases": [
+            "interface connectivity",
+            "界面网格连通关系"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "nearest_projection_mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "nearest projection mapping data",
+            "映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_interface_mesh",
+        "mesh_connectivity",
+        "nearest_projection"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/NearestProjectionMapping.cpp",
+            "scope": "构造函数的 FULL/VERTEX 要求及体积分约束检查"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用偏置非匹配平面网格验证线性场和常量，另对节点力核对加和。"
+    },
+    {
+      "id": "precice.global_rbf_mapping",
+      "module": "mapping:rbf-global-direct / mapping:rbf-global-iterative",
+      "scope": "选定核函数及其尺度参数，全局直接法可在 CPU 使用集中求解；CPU 的分布式全局迭代法要求启用 PETSc。区分一致点值与守恒离散总量；根据点分布核对多项式支撑、退化轴和病态性。",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "global_rbf_mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "global rbf mapping data",
+            "映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_interface_mesh",
+        "radial_basis_function",
+        "global_mapping"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "类型声明、configureRBFMapping、finishRBFConfiguration"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对非匹配且具有平面退化轴的网格分别测试常数、线性场误差及节点力和，核对直接与迭代结果。"
+    },
+    {
+      "id": "precice.partitioned_rbf_mapping",
+      "module": "mapping:rbf-pum-direct",
+      "scope": "用有重叠的局部 RBF 簇及单位分解权重重建接口场，支持分布式参与方。为所选核函数给定尺度、每簇目标顶点数及重叠；点分布不均匀时评估将中心投影到源顶点。",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "partitioned_rbf_mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "partitioned rbf mapping data",
+            "映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_interface_mesh",
+        "radial_basis_function",
+        "partition_of_unity"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "RBF PUM 类型、聚类参数及 finishRBFConfiguration"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对非匹配的非均匀点阵改变簇大小、重叠和并行切分，比较常数、线性场及指定约束的误差。"
+    },
+    {
+      "id": "precice.scaled_consistent_mapping",
+      "module": "scaled-consistent-surface / scaled-consistent-volume",
+      "scope": "在一致映射后对输出各分量按源与目标的积分比缩放。执行缩放的参与方须串行；源和目标均需与表面或体积积分相符的拓扑。目标分量积分为零时缩放因子取 1，若源分量非零则不能达成守恒；该约束针对离散全局积分。",
+      "inputs": [
+        {
+          "id": "source_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "源界面网格"
+          ]
+        },
+        {
+          "id": "target_interface_mesh",
+          "unit": "m",
+          "aliases": [
+            "目标界面网格"
+          ]
+        },
+        {
+          "id": "source_interface_data",
+          "unit": "field SI unit",
+          "aliases": [
+            "源界面数据"
+          ]
+        },
+        {
+          "id": "interface_mesh_connectivity",
+          "unit": "拓扑索引",
+          "aliases": [
+            "interface connectivity",
+            "界面网格连通关系"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "scaled_consistent_mapped_interface_data",
+          "unit": "与源量一致",
+          "aliases": [
+            "scaled consistent mapping data",
+            "映射界面数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_interface_mesh",
+        "mesh_connectivity",
+        "serial_participant",
+        "scaled_consistent_mapping"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/Mapping.cpp",
+            "scope": "scaleConsistentMapping 实现及零积分分支"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "对不同分辨率的非匹配网格分别计算映射前后的面积或体积积分，并显式覆盖目标零积分情形。"
+    },
+    {
+      "id": "precice.logging_sink_rank_filter",
+      "module": "Logging configuration",
+      "scope": "原生日志配置。以 preCICE XML 的 log/sink 定义级别、rank 筛选、格式和 stdout/stderr 或文件输出。适用于参与方通信异常和迭代运行诊断。",
+      "inputs": [
+        {
+          "id": "precice_log_sink_config",
+          "unit": "preCICE XML",
+          "aliases": [
+            "日志接收器配置"
+          ]
+        },
+        {
+          "id": "precice_log_filter_expression",
+          "unit": "Boost.Log expression",
+          "aliases": [
+            "日志级别及进程过滤条件"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "precice_filtered_log_stream",
+          "unit": "text",
+          "aliases": [
+            "带进程编号的日志流"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_xml_configuration",
+        "supported_log_attributes",
+        "writable_log_destination"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://precice.org/docs/configuration/xml-reference/",
+            "scope": "XML log/sink 的 type、output、format 与 filter 配置"
+          },
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/logging/LogConfiguration.cpp",
+            "scope": "v3.5.0 默认筛选、流/文件输出、Boost 解析器与 sink 建立"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "启动两进程参与方并比较默认策略及按 rank/级别显式过滤。确认预期日志条数和错误去向，文件输出检查不同进程的目标路径。"
+    },
+    {
+      "id": "precice.participant_initialize",
+      "module": "Couple your code / Participant API / initialize",
+      "scope": "初始化参与方通信、接口网格和耦合数据；初值要求与初始化顺序必须遵循耦合配置。",
+      "inputs": [
+        {
+          "id": "participant_setup",
+          "unit": "preCICE 配置及网格",
+          "aliases": [
+            "参与方配置与接口网格"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "initialized_coupling",
+          "unit": "耦合状态",
+          "aliases": [
+            "已初始化耦合"
+          ]
+        }
+      ],
+      "conditions": [
+        "configured_participants",
+        "mesh_registered_before_initialization",
+        "initial_data_as_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_write_data",
+      "module": "Couple your code / Participant API / writeData",
+      "scope": "在所配置的写数据接口填入顶点值；物理量与单位由两侧求解器一致约定。",
+      "inputs": [
+        {
+          "id": "vertices_and_values",
+          "unit": "顶点 ID、物理量单位",
+          "aliases": [
+            "接口顶点和写入数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "outgoing_coupling_data",
+          "unit": "物理量单位",
+          "aliases": [
+            "输出耦合数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "configured_write_data",
+        "consistent_units_and_components",
+        "valid_vertex_ids"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "本地求解器接口",
+          "to_field": "preCICE 发送侧数据",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的物理量单位",
+          "transfer": "writeData 写入注册顶点的数据",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_read_data",
+      "module": "Couple your code / Participant API / readData",
+      "scope": "按相对时间读取配置的输入数据；时间插值和耦合窗口由配置与运行状态约束。",
+      "inputs": [
+        {
+          "id": "vertices_and_relative_time",
+          "unit": "顶点 ID、双方一致的时间单位",
+          "aliases": [
+            "接口顶点与相对时间"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "incoming_coupling_data",
+          "unit": "物理量单位",
+          "aliases": [
+            "读取耦合数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "configured_read_data",
+        "valid_relative_time",
+        "consistent_units_and_components"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "preCICE 接收侧数据",
+          "to_field": "本地求解器接口",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的物理量单位",
+          "transfer": "readData 按相对时间读取",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_advance",
+      "module": "Couple your code / Participant API / advance",
+      "scope": "提交当前时间步并推进耦合，可能包含数据交换或隐式迭代；调用方负责不超过允许时间步并处理检查点。",
+      "inputs": [
+        {
+          "id": "computed_time_step",
+          "unit": "双方一致的时间单位",
+          "aliases": [
+            "本次求解时间步"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "coupling_state",
+          "unit": "耦合状态",
+          "aliases": [
+            "推进后的耦合状态"
+          ]
+        }
+      ],
+      "conditions": [
+        "initialized_coupling",
+        "time_step_within_maximum",
+        "checkpoint_protocol_for_implicit"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_finalize",
+      "module": "Couple your code / Participant API / finalize",
+      "scope": "结束参与方耦合并释放相关通信资源；完成状态和同步取决于配置。",
+      "inputs": [
+        {
+          "id": "participant_state",
+          "unit": "耦合状态",
+          "aliases": [
+            "参与方运行状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "closed_participant",
+          "unit": "耦合状态",
+          "aliases": [
+            "已结束的参与方"
+          ]
+        }
+      ],
+      "conditions": [
+        "initialized_participant",
+        "all_participants_follow_protocol"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_vertices",
+      "module": "Couple your code / Participant API / setMeshVertices",
+      "scope": "注册参与方接口顶点并获得顶点编号；双方几何坐标单位与坐标系必须一致。",
+      "inputs": [
+        {
+          "id": "vertex_coordinates",
+          "unit": "几何长度单位",
+          "aliases": [
+            "接口顶点坐标"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "vertex_ids",
+          "unit": "索引",
+          "aliases": [
+            "接口顶点编号"
+          ]
+        }
+      ],
+      "conditions": [
+        "mesh_defined_in_configuration",
+        "consistent_coordinates_and_length_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_triangles",
+      "module": "Couple your code / Participant API / setMeshTriangles",
+      "scope": "设置三角面连接以支持需要网格拓扑的映射或积分；顶点必须已注册。",
+      "inputs": [
+        {
+          "id": "triangle_vertex_ids",
+          "unit": "顶点索引",
+          "aliases": [
+            "三角面顶点编号"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "索引",
+          "aliases": [
+            "接口网格三角面连接"
+          ]
+        }
+      ],
+      "conditions": [
+        "registered_mesh_vertices",
+        "connectivity_required_by_configuration"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_max_time_step",
+      "module": "Couple your code / Participant API / getMaxTimeStepSize",
+      "scope": "查询当前耦合允许的最大时间步；本地求解器应据此调整推进量。",
+      "inputs": [
+        {
+          "id": "participant_state",
+          "unit": "耦合状态",
+          "aliases": [
+            "参与方状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "maximum_time_step",
+          "unit": "双方一致的时间单位",
+          "aliases": [
+            "允许的最大时间步"
+          ]
+        }
+      ],
+      "conditions": [
+        "initialized_coupling",
+        "consistent_time_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+            "scope": "固定版本公开接口；本条描述此接口，不表示 NaviField 已集成或验证。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "采用小型已知输入核对数据维度、单位和输出；检查错误输入及适用边界。该验证尚未执行。"
+    },
+    {
+      "id": "precice.nearest_neighbor_gradient_mapping",
+      "module": "Mapping configuration / mapping:nearest-neighbor-gradient",
+      "scope": "在最近邻映射基础上使用梯度进行线性近似；参与方必须提供相应梯度数据。v3.5.0 配置实现明确拒绝 conservative 约束。 本条仅记上游能力，不表示 NaviField 已集成。",
+      "inputs": [
+        {
+          "id": "source_mesh_data",
+          "unit": "物理量、坐标及梯度的单位由参与方一致约定",
+          "aliases": [
+            "源接口坐标、场值与梯度"
+          ]
+        },
+        {
+          "id": "mapping_configuration",
+          "unit": "preCICE XML",
+          "aliases": [
+            "映射方向、约束和配置参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_data",
+          "unit": "与源场相同的物理单位",
+          "aliases": [
+            "最近邻梯度映射输出",
+            "映射场数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapters_supply_interface_data",
+        "units_and_coordinate_system_consistent",
+        "gradient_data_supplied",
+        "conservative_constraint_rejected",
+        "mesh_coordinates_compatible"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice.github.io/55a5e88fd170581dafc84626cea994b7dc054fd6/assets/xmlreference.md",
+            "scope": "preCICE 3.5.0 固定版 XML 映射参考。"
+          },
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "固定版本映射实现与约束检查。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用可解析的常量或线性场、受控网格与预期单位检查映射；对广延量与强度量分别核对积分。本验证尚未运行。",
+      "couplings": [
+        {
+          "from_field": "源接口数值及梯度",
+          "to_field": "目标接口场",
+          "quantity": "配置指定场值及其梯度",
+          "unit": "场值单位与场值/长度；双方坐标单位一致",
+          "transfer": "最近邻加梯度线性近似；conservative 被源码拒绝",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。求解器须提供正确维数和排序的梯度。"
+        }
+      ]
+    },
+    {
+      "id": "precice.linear_cell_interpolation_mapping",
+      "module": "Mapping configuration / mapping:linear-cell-interpolation",
+      "scope": "使用空间索引查找单元并执行线性单元插值；官方配置参考限定二维网格，网格拓扑和所选约束须满足实际实现。 本条仅记上游能力，不表示 NaviField 已集成。",
+      "inputs": [
+        {
+          "id": "source_mesh_data",
+          "unit": "物理量、坐标及梯度的单位由参与方一致约定",
+          "aliases": [
+            "二维接口网格拓扑与场值"
+          ]
+        },
+        {
+          "id": "mapping_configuration",
+          "unit": "preCICE XML",
+          "aliases": [
+            "映射方向、约束和配置参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_data",
+          "unit": "与源场相同的物理单位",
+          "aliases": [
+            "线性单元插值映射输出",
+            "映射场数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapters_supply_interface_data",
+        "units_and_coordinate_system_consistent",
+        "two_dimensional_mesh",
+        "required_connectivity_available",
+        "verify_selected_constraint"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice.github.io/55a5e88fd170581dafc84626cea994b7dc054fd6/assets/xmlreference.md",
+            "scope": "preCICE 3.5.0 固定版 XML 映射参考。"
+          },
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "固定版本映射实现与约束检查。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用可解析的常量或线性场、受控网格与预期单位检查映射；对广延量与强度量分别核对积分。本验证尚未运行。",
+      "couplings": [
+        {
+          "from_field": "源二维单元接口场",
+          "to_field": "目标二维接口场",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的物理量单位",
+          "transfer": "二维单元插值；检查拓扑和所选约束",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.particle_mesh_coarse_graining",
+      "module": "Mapping configuration / mapping:coarse-graining",
+      "scope": "粒子到网格的即时写入映射，将力、体积等广延量转换为力密度、孔隙率等强度量；按配置归类为 conservative，不能将输出单位简单视为输入单位。 本条仅记上游能力，不表示 NaviField 已集成。",
+      "inputs": [
+        {
+          "id": "source_mesh_data",
+          "unit": "物理量、坐标及梯度的单位由参与方一致约定",
+          "aliases": [
+            "粒子坐标、广延量、目标网格和半径"
+          ]
+        },
+        {
+          "id": "mapping_configuration",
+          "unit": "preCICE XML",
+          "aliases": [
+            "映射方向、约束和配置参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mapped_data",
+          "unit": "由输入广延量及空间尺度决定",
+          "aliases": [
+            "粒子网格粗粒化映射输出",
+            "映射场数据"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapters_supply_interface_data",
+        "units_and_coordinate_system_consistent",
+        "just_in_time_write_mapping",
+        "conservative_configuration",
+        "valid_coarse_graining_radius",
+        "check_density_and_integral_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://raw.githubusercontent.com/precice/precice.github.io/55a5e88fd170581dafc84626cea994b7dc054fd6/assets/xmlreference.md",
+            "scope": "preCICE 3.5.0 固定版 XML 映射参考。"
+          },
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+            "scope": "固定版本映射实现与约束检查。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "用可解析的常量或线性场、受控网格与预期单位检查映射；对广延量与强度量分别核对积分。本验证尚未运行。",
+      "couplings": [
+        {
+          "from_field": "粒子广延量",
+          "to_field": "目标网格强度量",
+          "quantity": "配置指定的粒子广延量及其粗粒化结果",
+          "unit": "由广延量和空间尺度共同决定，例如力与力密度",
+          "transfer": "即时写入粗粒化；核对积分，配置归类 conservative",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。须提供粒子数据、尺度与计算结果单位换算。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_create_cpp",
+      "module": "Participant API / Participant",
+      "scope": "以参与方名称、配置文件、进程索引和进程数构造；可选自定义 MPI 通信器，须匹配配置和通信环境。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_create_cpp_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "参与方名称、配置路径和进程参数"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_create_cpp_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "对象及可选 MPI 通信器",
+            "构造耦合参与方结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "valid_configuration",
+        "consistent_rank_and_size",
+        "communicator_lifetime_and_mpi_compatibility"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L200",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_vertex",
+      "module": "Participant API / setMeshVertex",
+      "scope": "注册单个接口顶点并返回 VertexID；与批量注册一致，坐标维数及单位由耦合双方约定。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_set_mesh_vertex_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "接口网格名和顶点坐标"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_set_mesh_vertex_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "新分配的顶点 ID",
+            "注册单个接口顶点结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "mesh_defined_in_configuration",
+        "consistent_coordinates_and_length_units"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L560",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_checkpoint_write_required",
+      "module": "Participant API / requiresWritingCheckpoint",
+      "scope": "返回真时，参与方须在下一次 advance 前保存求解器迭代状态；隐式耦合须调用此方法。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_checkpoint_write_required_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "已初始化参与方"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_checkpoint_write_required_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "是否要求保存检查点",
+            "查询保存检查点结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "implicit_coupling_calls_checkpoint_protocol",
+        "solver_saves_own_state"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L386",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_checkpoint_read_required",
+      "module": "Participant API / requiresReadingCheckpoint",
+      "scope": "返回真时，参与方须在下一次 advance 前恢复求解器迭代状态；首次 advance 前返回假，隐式耦合须调用。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_checkpoint_read_required_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "已初始化参与方"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_checkpoint_read_required_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "是否要求恢复检查点",
+            "查询恢复检查点结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "implicit_coupling_calls_checkpoint_protocol",
+        "solver_restores_own_state"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L400",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_reset_mesh",
+      "module": "Participant API / resetMesh",
+      "scope": "实验性重网格接口：移除指定网格顶点及连接，旧 VertexID 失效；重新设置顶点，在下一次 advance 前不能以 readData 读取该网格。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_reset_mesh_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "已初始化且耦合进行中的网格"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_reset_mesh_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "清空后的接口网格状态",
+            "运行期重置接口网格结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "experimental_remeshing_enabled",
+        "coupling_ongoing",
+        "reregister_vertices_and_connectivity",
+        "read_after_next_advance"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L546",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_access_region",
+      "module": "Participant API / setMeshAccessRegion",
+      "scope": "初始化前为接收网格指定轴对齐包围盒；每个网格和进程只能设置一次，维数为网格空间维数两倍。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_set_mesh_access_region_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "接收网格与各维最小、最大坐标"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_set_mesh_access_region_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "直接访问区域",
+            "设置直接访问区域结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "before_initialize",
+        "once_per_mesh_and_rank",
+        "received_mesh_api_access_enabled"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1067",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_get_received_vertices",
+      "module": "Participant API / getMeshVertexIDsAndCoordinates",
+      "scope": "初始化后取得接收网格上可访问的顶点 ID 与坐标；直接访问数据并自行映射时由调用方处理网格和物理含义。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_get_received_vertices_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "已配置区域的接收网格"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_get_received_vertices_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "顶点 ID 和坐标",
+            "读取接收网格顶点结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "after_initialize",
+        "received_mesh_api_access_enabled",
+        "solver_implements_own_mapping_if_needed"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1092",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_gradient_required",
+      "module": "Participant API / requiresGradientDataFor",
+      "scope": "查询给定网格和数据集是否需要梯度；此接口为实验性特性，调用方根据配置提供所需梯度。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_gradient_required_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "网格名与数据名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_gradient_required_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "是否需要梯度",
+            "查询是否需要梯度数据结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "experimental_gradient_interface",
+        "configured_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1118",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_write_gradient_data",
+      "module": "Participant API / writeGradientData",
+      "scope": "将顶点梯度或雅可比写给 preCICE；每顶点分量数为空间维数乘数据维数，数组顺序须遵守头文件定义。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_write_gradient_data_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "顶点 ID 和梯度数组"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_write_gradient_data_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "发送侧梯度数据",
+            "写入接口数据梯度结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "experimental_gradient_interface",
+        "gradient_required_by_configuration",
+        "gradient_components_match_mesh_and_data_dimensions"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1163",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "本地求解器梯度",
+          "to_field": "preCICE 发送侧梯度",
+          "quantity": "配置指定接口数据的梯度",
+          "unit": "数据单位/坐标长度单位",
+          "transfer": "按顶点及分量顺序提供梯度或雅可比",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。须按网格维数和数据维数构造数组。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_jit_write_and_map",
+      "module": "Participant API / writeAndMapData",
+      "scope": "实验性即时映射，按临时坐标写入；标准 nearest-neighbor 或 rbf-pum-direct 使用 conservative 约束，同坐标重复写入会累加。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_jit_write_and_map_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "临时坐标与写入数据"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_jit_write_and_map_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "发送侧接口数据",
+            "即时写入并映射结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "experimental_jit_mapping",
+        "coordinates_inside_access_region",
+        "conservative_nearest_or_pum",
+        "repeated_coordinates_accumulate"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L935",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "本地动态坐标场",
+          "to_field": "preCICE 接收网格",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的数据及坐标单位",
+          "transfer": "writeAndMapData 的限定 conservative 映射",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_jit_map_and_read",
+      "module": "Participant API / mapAndReadData",
+      "scope": "实验性即时映射，按临时坐标和相对当前时间步起点的时间读取；标准 nearest-neighbor 或 rbf-pum-direct 使用 consistent 约束。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_participant_jit_map_and_read_input",
+          "unit": "物理数据、坐标或时间单位由参与方一致约定；状态与索引无量纲",
+          "aliases": [
+            "临时坐标与相对读取时间"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "participant_participant_jit_map_and_read_output",
+          "unit": "物理数据或坐标采用双方一致单位；状态与索引无量纲",
+          "aliases": [
+            "接收侧接口数据",
+            "即时映射并读取结果"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "experimental_jit_mapping",
+        "coordinates_inside_access_region",
+        "consistent_nearest_or_pum",
+        "valid_relative_read_time"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L989",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。",
+      "couplings": [
+        {
+          "from_field": "preCICE 接收网格",
+          "to_field": "本地动态坐标场",
+          "quantity": "配置指定的接口数据",
+          "unit": "双方约定的数据及坐标单位",
+          "transfer": "mapAndReadData 的限定 consistent 映射",
+          "implementation": "adapter",
+          "custom_work": "参与方适配器负责注册网格、单位/坐标约定和读写；数据集及其物理含义须由实际配置确定，不表示 NaviField 已集成。"
+        }
+      ]
+    },
+    {
+      "id": "precice.participant_get_mesh_dimensions",
+      "module": "Participant API / getMeshDimensions",
+      "scope": "返回指定网格的空间维数；具体坐标单位由参与方约定。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_dimensions",
+          "unit": "1",
+          "aliases": [
+            "网格维数"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "configured_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L424",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_get_data_dimensions",
+      "module": "Participant API / getDataDimensions",
+      "scope": "返回指定网格上给定数据集的分量维数；不推断数据的物理含义。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "data_name",
+          "unit": "字符串",
+          "aliases": [
+            "数据名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data_dimensions",
+          "unit": "1",
+          "aliases": [
+            "数据分量数"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "configured_mesh_and_data"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L438",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_is_coupling_ongoing",
+      "module": "Participant API / isCouplingOngoing",
+      "scope": "查询耦合是否仍在进行；调用前必须已成功初始化。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_state",
+          "unit": "状态",
+          "aliases": [
+            "参与方状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "coupling_ongoing",
+          "unit": "1（布尔）",
+          "aliases": [
+            "耦合进行标志"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "initialized_participant"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L456",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_is_time_window_complete",
+      "module": "Participant API / isTimeWindowComplete",
+      "scope": "查询当前耦合时间窗是否完成；调用前必须已成功初始化。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_state",
+          "unit": "状态",
+          "aliases": [
+            "参与方状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "time_window_complete",
+          "unit": "1（布尔）",
+          "aliases": [
+            "时间窗完成标志"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "initialized_participant"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L477",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_requires_mesh_connectivity",
+      "module": "Participant API / requiresMeshConnectivityFor",
+      "scope": "查询指定网格的耦合配置是否需要连接关系；适配器据此提供节点连接。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "connectivity_required",
+          "unit": "1（布尔）",
+          "aliases": [
+            "连接需求标志"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "configured_mesh"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L526",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_get_mesh_vertex_size",
+      "module": "Participant API / getMeshVertexSize",
+      "scope": "返回网格顶点数；接收网格须在初始化后查询，启用直接访问时为访问区域内的本地顶点数。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_vertex_count",
+          "unit": "1（整数）",
+          "aliases": [
+            "网格本地顶点数"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "configured_mesh",
+        "received_mesh_requires_initialization"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L577",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_edge",
+      "module": "Participant API / setMeshEdge",
+      "scope": "以同一网格已注册的两个顶点 ID 设置一条边；若无需连接关系，该调用被忽略。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "registered_mesh_vertices",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L612",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_edges",
+      "module": "Participant API / setMeshEdges",
+      "scope": "以连续顶点 ID 对设置多条边；数组长度须为 2 的倍数且顶点已注册。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "registered_mesh_vertices",
+        "id_count_multiple_of_2",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L634",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_triangle",
+      "module": "Participant API / setMeshTriangle",
+      "scope": "以同一网格已注册的三个顶点 ID 设置一个三角面；若无需连接关系，该调用被忽略。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "registered_mesh_vertices",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L654",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_quad",
+      "module": "Participant API / setMeshQuad",
+      "scope": "以同一网格已注册的四个顶点 ID 设置平面四边形；preCICE 将其三角化，非平面四边形不适用。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "registered_mesh_vertices",
+        "planar_quad_required",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L699",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_quads",
+      "module": "Participant API / setMeshQuads",
+      "scope": "以连续四元顶点 ID 设置多个平面四边形；数组长度为 4 的倍数，四边形被三角化。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "registered_mesh_vertices",
+        "id_count_multiple_of_4",
+        "planar_quads_required",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L725",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_tetrahedron",
+      "module": "Participant API / setMeshTetrahedron",
+      "scope": "以同一三维网格已注册的四个顶点 ID 设置一个四面体；若无需连接关系，该调用被忽略。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "three_dimensional_mesh",
+        "registered_mesh_vertices",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L744",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_set_mesh_tetrahedra",
+      "module": "Participant API / setMeshTetrahedra",
+      "scope": "以连续四元顶点 ID 设置多个三维四面体；数组长度须为 4 的倍数，顶点须已注册。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "mesh_name",
+          "unit": "字符串",
+          "aliases": [
+            "网格名"
+          ]
+        },
+        {
+          "id": "vertex_ids",
+          "unit": "1（整数索引）",
+          "aliases": [
+            "已注册顶点 ID"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh_connectivity",
+          "unit": "顶点 ID 和单元连接索引（1）",
+          "aliases": [
+            "接口网格连接关系"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "three_dimensional_mesh",
+        "registered_mesh_vertices",
+        "id_count_multiple_of_4",
+        "connectivity_ignored_if_not_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L768",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_requires_initial_data",
+      "module": "Participant API / requiresInitialData",
+      "scope": "在 initialize 前查询是否须在已定义顶点写入初始数据；配置了初值时必须调用。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "participant_state",
+          "unit": "状态",
+          "aliases": [
+            "参与方状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "initial_data_required",
+          "unit": "1（布尔）",
+          "aliases": [
+            "初始数据需求标志"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "before_initialize",
+        "if_required_write_initial_data_before_initialize"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L805",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_start_profiling_section",
+      "module": "Participant API / startProfilingSection",
+      "scope": "开始指定名称的性能剖析区段；名称不能包含斜杠，所有活动区段须在 initialize 或 advance 前结束。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "section_name",
+          "unit": "字符串",
+          "aliases": [
+            "性能剖析区段名称"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "profiling_state",
+          "unit": "状态",
+          "aliases": [
+            "性能剖析活动状态"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "name_without_forward_slash",
+        "stop_sections_before_initialize_or_advance"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1196",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    },
+    {
+      "id": "precice.participant_stop_profiling_section",
+      "module": "Participant API / stopLastProfilingSection",
+      "scope": "结束最近开始的性能剖析区段；调用前须有已开始的活动区段。 本条为上游接口能力，不代表 NaviField 适配已实现。",
+      "inputs": [
+        {
+          "id": "profiling_state",
+          "unit": "状态",
+          "aliases": [
+            "性能剖析活动状态"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "profiling_state_after_stop",
+          "unit": "状态",
+          "aliases": [
+            "剖析区段结束状态"
+          ]
+        }
+      ],
+      "conditions": [
+        "precice_3_5_0",
+        "solver_adapter_required",
+        "active_profiling_section_required"
+      ],
+      "evidence": {
+        "documentation": [
+          {
+            "source": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp#L1202",
+            "scope": "固定版本 Participant 公开声明及其前置条件。"
+          }
+        ],
+        "integration": [],
+        "workstation": [],
+        "reference": []
+      },
+      "validation": "使用最小耦合参与方检查接口顺序、缓冲尺寸和配置限制；此原生验证尚未执行。"
+    }
+  ],
+  "manual_modules": [
+    {
+      "module": "Mapping configuration",
+      "source": "https://raw.githubusercontent.com/precice/precice/v3.5.0/src/mapping/config/MappingConfiguration.cpp",
+      "records": [
+        "precice.interface_mapping",
+        "precice.flap_fsi",
+        "precice.heated_plate_cht",
+        "precice.jit_mapping",
+        "precice.nearest_neighbor_mapping",
+        "precice.nearest_projection_mapping",
+        "precice.global_rbf_mapping",
+        "precice.partitioned_rbf_mapping",
+        "precice.scaled_consistent_mapping",
+        "precice.nearest_neighbor_gradient_mapping",
+        "precice.linear_cell_interpolation_mapping",
+        "precice.particle_mesh_coarse_graining"
+      ],
+      "gaps": [
+        "最近邻梯度映射、线性单元插值、coarse-graining、RBF 核函数与执行器兼容性尚待独立记录。",
+        "scaled-consistent 保持每分量积分；按法向定义的质量流、热率仍须适配器提供正确的通量变量并核对积分。"
+      ]
+    },
+    {
+      "module": "Communication configuration",
+      "source": "https://precice.org/configuration-communication",
+      "records": [
+        "precice.communication"
+      ],
+      "gaps": [
+        "各通信后端、并行部署及网络配置尚未逐项验证。"
+      ]
+    },
+    {
+      "module": "Coupling scheme configuration",
+      "source": "https://precice.org/configuration-coupling",
+      "records": [
+        "precice.explicit_exchange",
+        "precice.implicit_exchange",
+        "precice.flap_fsi",
+        "precice.heated_plate_cht",
+        "precice.time_window_subcycling",
+        "precice.temporal_data_interpolation"
+      ],
+      "gaps": [
+        "多参与方的具体拓扑、收敛判据和时间离散组合仍须针对配置核验。"
+      ]
+    },
+    {
+      "module": "Acceleration configuration",
+      "source": "https://precice.org/configuration-acceleration",
+      "records": [
+        "precice.acceleration"
+      ],
+      "gaps": [
+        "各加速参数、过滤器及预条件器对具体问题的适用性尚未逐项验证。"
+      ]
+    },
+    {
+      "module": "Mesh exchange example",
+      "source": "https://precice.org/configuration-overview",
+      "records": [
+        "precice.interface_mapping",
+        "precice.mesh_exchange_direct_access"
+      ],
+      "gaps": [
+        "大规模并行分区、访问区域与网络部署需针对运行环境验证。"
+      ]
+    },
+    {
+      "module": "Logging configuration",
+      "source": "https://precice.org/configuration-overview",
+      "records": [
+        "precice.logging_sink_rank_filter"
+      ],
+      "gaps": [],
+      "gap_assessments": []
+    },
+    {
+      "module": "Couple your code / Participant API",
+      "source": "https://precice.org/couple-your-code-overview",
+      "records": [
+        "precice.explicit_exchange",
+        "precice.implicit_exchange",
+        "precice.participant_initialize",
+        "precice.participant_write_data",
+        "precice.participant_read_data",
+        "precice.participant_advance",
+        "precice.participant_finalize",
+        "precice.participant_set_mesh_vertices",
+        "precice.participant_set_mesh_triangles",
+        "precice.participant_max_time_step",
+        "precice.participant_create_cpp",
+        "precice.participant_set_mesh_vertex",
+        "precice.participant_checkpoint_write_required",
+        "precice.participant_checkpoint_read_required",
+        "precice.participant_reset_mesh",
+        "precice.participant_set_mesh_access_region",
+        "precice.participant_get_received_vertices",
+        "precice.participant_gradient_required",
+        "precice.participant_write_gradient_data",
+        "precice.participant_jit_write_and_map",
+        "precice.participant_jit_map_and_read",
+        "precice.participant_get_mesh_dimensions",
+        "precice.participant_get_data_dimensions",
+        "precice.participant_is_coupling_ongoing",
+        "precice.participant_is_time_window_complete",
+        "precice.participant_requires_mesh_connectivity",
+        "precice.participant_get_mesh_vertex_size",
+        "precice.participant_set_mesh_edge",
+        "precice.participant_set_mesh_edges",
+        "precice.participant_set_mesh_triangle",
+        "precice.participant_set_mesh_quad",
+        "precice.participant_set_mesh_quads",
+        "precice.participant_set_mesh_tetrahedron",
+        "precice.participant_set_mesh_tetrahedra",
+        "precice.participant_requires_initial_data",
+        "precice.participant_start_profiling_section",
+        "precice.participant_stop_profiling_section"
+      ],
+      "gaps": [
+        "各语言绑定、适配器及检查点覆盖范围须按实际求解器验证。"
+      ]
+    }
+  ],
+  "manual_baseline": {
+    "revision": "3a1b063f5c0854e1f61e9f42a8d8e2684ca01612",
+    "records": [
+      "precice.acceleration",
+      "precice.communication",
+      "precice.explicit_exchange",
+      "precice.flap_fsi",
+      "precice.global_rbf_mapping",
+      "precice.heated_plate_cht",
+      "precice.implicit_exchange",
+      "precice.interface_mapping",
+      "precice.jit_mapping",
+      "precice.logging_sink_rank_filter",
+      "precice.mesh_exchange_direct_access",
+      "precice.nearest_neighbor_mapping",
+      "precice.nearest_projection_mapping",
+      "precice.partitioned_rbf_mapping",
+      "precice.scaled_consistent_mapping",
+      "precice.temporal_data_interpolation",
+      "precice.time_window_subcycling"
+    ]
+  }
+}

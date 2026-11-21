@@ -1,0 +1,237 @@
+[
+  {
+    "solver": "calculix",
+    "version": "2.22",
+    "target": "pad_deformation",
+    "role": "custom",
+    "model": "拟合可压缩大变形及接触的指垫固体位移",
+    "applicability": "准静态触觉指垫的限定输入与单向耦合；泡沫须拟合并验证可压缩大变形与接触本构。",
+    "exclusions": "不表示产品已接入、求解或验证；泛电容不自动等于载荷，其他材料或未知电极条件不应判为完整支持。",
+    "inputs": [
+      "sensor_geometry",
+      "mechanical_properties",
+      "mechanical_bc"
+    ],
+    "exchanges": [
+      {
+        "from": "力学边界及材料",
+        "to": "变形后几何",
+        "quantity": "位移",
+        "unit": "m",
+        "method": "固体力平衡并输出位移；泡沫本构适用性待验证"
+      }
+    ],
+    "rationale": "按定义的场与端子量传递，材料和映射均需验证。",
+    "custom_work": "建立模型、物理组、求解器间映射、单位与读回；反演须独立标定并处理不可辨识性。",
+    "checks": [
+      "力学先与解析梁或压缩试验比对，检查反力平衡与位移网格收敛；接触、超弹材料另验。",
+      "平行板电容 C≈εA/d；电极电荷等量异号仅在孤立二端、内部无净自由电荷且外边界无通量等条件下检验。检查边缘场、外边界尺寸、网格收敛和法向符号。",
+      "位移映射和重网格前后核对电极 ID、区域体积、界面连通、单位及形变；没有验证不得作为已实现功能。",
+      "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+      "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://www.dhondt.de/ccx_2.22.pdf",
+        "locator": "2.22 *STATIC, *BOUNDARY, *NODE FILE and contact",
+        "claim": "静力、约束、接触及位移输出；材料拟合和具体泡沫适用性须独立验证。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ],
+      "electrical_model": [
+        "electrostatic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "related_capabilities": []
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "tactile_capacitance",
+    "role": "custom",
+    "model": "变形几何静电势、总电荷与电容",
+    "applicability": "准静态触觉指垫的限定输入与单向耦合；泡沫须拟合并验证可压缩大变形与接触本构。",
+    "exclusions": "不表示产品已接入、求解或验证；泛电容不自动等于载荷，其他材料或未知电极条件不应判为完整支持。 指定多端电势与外边界；材料、测量频率和形变须在正向模型适用范围。",
+    "inputs": [
+      "sensor_geometry",
+      "pad_deformation",
+      "dielectric_properties",
+      "electrical_bc"
+    ],
+    "exchanges": [
+      {
+        "from": "变形几何及电势",
+        "to": "端子电容",
+        "quantity": "电极总电荷和电容",
+        "unit": "C, F",
+        "method": "无内部自由电荷、无预偏置、线性受控二端时 Q/ΔV；偏置或固定空间电荷用固定其他端条件的 ΔQ/ΔV，非线性取工作点微分 dQ/dV。"
+      }
+    ],
+    "rationale": "按定义的场与端子量传递，材料和映射均需验证。",
+    "custom_work": "建立模型、物理组、求解器间映射、单位与读回；反演须独立标定并处理不可辨识性。",
+    "checks": [
+      "力学先与解析梁或压缩试验比对，检查反力平衡与位移网格收敛；接触、超弹材料另验。",
+      "平行板电容 C≈εA/d；电极电荷等量异号仅在孤立二端、内部无净自由电荷且外边界无通量等条件下检验。检查边缘场、外边界尺寸、网格收敛和法向符号。",
+      "位移映射和重网格前后核对电极 ID、区域体积、界面连通、单位及形变；没有验证不得作为已实现功能。",
+      "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+      "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+        "claim": "静电势及全局电荷设施；具体传感器和反演需自研。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ],
+      "electrical_model": [
+        "electrostatic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "related_capabilities": [
+      "getdp.electrostatics_dielectric",
+      "getdp.electrode_charge_readback",
+      "getdp.tactile_capacitance_from_charge"
+    ]
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "calibrated_contact_load",
+    "role": "custom",
+    "model": "经独立标定的电容载荷反演",
+    "applicability": "仅需实测与独立标定，要求测量配置和接触条件在标定域；模型辅助可另组合前向链及候选载荷域。",
+    "exclusions": "不表示产品已接入、求解或验证；泛电容不自动等于载荷，其他材料或未知电极条件不应判为完整支持。",
+    "inputs": [
+      "measured_capacitance",
+      "calibration_data"
+    ],
+    "exchanges": [
+      {
+        "from": "实测电容与独立标定",
+        "to": "接触载荷",
+        "quantity": "载荷及不确定度",
+        "unit": "N",
+        "method": "在标定域内经可辨识性检查后反演"
+      }
+    ],
+    "rationale": "按定义的场与端子量传递，材料和映射均需验证。",
+    "custom_work": "实现标定曲线匹配、有效范围、不可辨识性和不确定度；无需先求解前向或已知待求载荷。",
+    "checks": [
+      "力学先与解析梁或压缩试验比对，检查反力平衡与位移网格收敛；接触、超弹材料另验。",
+      "平行板电容 C≈εA/d；电极电荷等量异号仅在孤立二端、内部无净自由电荷且外边界无通量等条件下检验。检查边缘场、外边界尺寸、网格收敛和法向符号。",
+      "位移映射和重网格前后核对电极 ID、区域体积、界面连通、单位及形变；没有验证不得作为已实现功能。",
+      "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+      "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+        "claim": "静电势及全局电荷设施；具体传感器和反演需自研。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ]
+    },
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "related_capabilities": []
+  },
+  {
+    "solver": "getdp",
+    "version": "3.5.0",
+    "target": "capacitance_change",
+    "role": "custom",
+    "model": "同预载零点的电容变化",
+    "applicability": "准静态触觉指垫的限定输入与单向耦合；泡沫须拟合并验证可压缩大变形与接触本构。",
+    "exclusions": "不表示产品已接入、求解或验证；泛电容不自动等于载荷，其他材料或未知电极条件不应判为完整支持。",
+    "inputs": [
+      "tactile_capacitance",
+      "baseline_capacitance"
+    ],
+    "exchanges": [
+      {
+        "from": "当前电容与同条件零点 C0",
+        "to": "电容变化",
+        "quantity": "ΔC=C−C0 或 ΔC/C0（C0≠0）",
+        "unit": "F 或 1",
+        "method": "按同电极、预载、频率和测量配置求差；相对变化单独定义"
+      }
+    ],
+    "rationale": "按定义的场与端子量传递，材料和映射均需验证。",
+    "custom_work": "建立模型、物理组、求解器间映射、单位与读回；反演须独立标定并处理不可辨识性。",
+    "checks": [
+      "力学先与解析梁或压缩试验比对，检查反力平衡与位移网格收敛；接触、超弹材料另验。",
+      "平行板电容 C≈εA/d；电极电荷等量异号仅在孤立二端、内部无净自由电荷且外边界无通量等条件下检验。检查边缘场、外边界尺寸、网格收敛和法向符号。",
+      "位移映射和重网格前后核对电极 ID、区域体积、界面连通、单位及形变；没有验证不得作为已实现功能。",
+      "独立实测对比多个载荷及卸载路径；检查寄生电容、温漂、滞回和不可辨识性，报告误差及有效范围。",
+      "采用同一样件、相同压头与预载零点 C0，记录独立接触力传感器和位移数据；区分名义受压面积与真实接触面积。记录仪表频率并执行开路/短路校正，核查导线及夹具寄生；以独立样件与保留载荷路径评估泛化，不能用经验曲线替代物理验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://getdp.info/doc/texinfo/getdp.pdf",
+        "locator": "3.5.0 §7.8.1–7.8.2, §7.10–7.11",
+        "claim": "静电势及全局电荷设施；具体传感器和反演需自研。"
+      }
+    ],
+    "conditions": {
+      "operation": [
+        "quasistatic"
+      ],
+      "geometry": [
+        "tactile_pad"
+      ],
+      "electrical_model": [
+        "electrostatic"
+      ],
+      "coupling": [
+        "one_way"
+      ]
+    },
+    "mechanisms": [
+      "solid_elasticity",
+      "electrostatics",
+      "calibration"
+    ],
+    "related_capabilities": [
+      "getdp.tactile_capacitance_from_charge"
+    ]
+  }
+]

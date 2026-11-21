@@ -1,0 +1,166 @@
+[
+  {
+    "solver": "precice",
+    "version": "3.5.0",
+    "target": "pressure_drop",
+    "role": "supporting_role",
+    "model": "参与者数据交换、映射及耦合迭代",
+    "applicability": "已有外部参与求解器时，进行接口场交换和迭代。",
+    "exclusions": "不产生流体压力、热方程或结构应力；映射算法非物理闭合。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "参与求解器 A",
+        "to": "参与求解器 B",
+        "quantity": "界面压力",
+        "unit": "Pa",
+        "method": "Participant 数据读写及网格映射，配置显式或隐式迭代"
+      }
+    ],
+    "rationale": "preCICE 是耦合库；物理场和目标输出归参与求解器。",
+    "custom_work": "配置两端适配器、接口场、映射、单位与时间同步；指定输出归属。",
+    "checks": [
+      "核对界面方向、单位、映射守恒、耦合收敛及参与求解器验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+        "locator": "v3.5.0 Participant 数据交换 API 和耦合映射",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "coupling"
+    ],
+    "related_capabilities": [
+      "precice.interface_mapping"
+    ]
+  },
+  {
+    "solver": "precice",
+    "version": "3.5.0",
+    "target": "heat_duty",
+    "role": "supporting_role",
+    "model": "参与者数据交换、映射及耦合迭代",
+    "applicability": "已有外部参与求解器时，进行接口场交换和迭代。",
+    "exclusions": "不产生流体压力、热方程或结构应力；映射算法非物理闭合。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "参与求解器 A",
+        "to": "参与求解器 B",
+        "quantity": "界面热流密度",
+        "unit": "W/m²",
+        "method": "Participant 数据读写及网格映射，配置显式或隐式迭代"
+      }
+    ],
+    "rationale": "preCICE 是耦合库；物理场和目标输出归参与求解器。",
+    "custom_work": "配置两端适配器、接口场、映射、单位与时间同步；指定输出归属。",
+    "checks": [
+      "核对界面方向、单位、映射守恒、耦合收敛及参与求解器验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+        "locator": "v3.5.0 Participant 数据交换 API 和耦合映射",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "coupling"
+    ],
+    "related_capabilities": [
+      "precice.heated_plate_cht"
+    ]
+  },
+  {
+    "solver": "precice",
+    "version": "3.5.0",
+    "target": "wall_temperature",
+    "role": "supporting_role",
+    "model": "参与者数据交换、映射及耦合迭代",
+    "applicability": "已有外部参与求解器时，进行接口场交换和迭代。",
+    "exclusions": "不产生流体压力、热方程或结构应力；映射算法非物理闭合。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "参与求解器 A",
+        "to": "参与求解器 B",
+        "quantity": "界面温度",
+        "unit": "K",
+        "method": "Participant 数据读写及网格映射，配置显式或隐式迭代"
+      }
+    ],
+    "rationale": "preCICE 是耦合库；物理场和目标输出归参与求解器。",
+    "custom_work": "配置两端适配器、接口场、映射、单位与时间同步；指定输出归属。",
+    "checks": [
+      "核对界面方向、单位、映射守恒、耦合收敛及参与求解器验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+        "locator": "v3.5.0 Participant 数据交换 API 和耦合映射",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "coupling"
+    ],
+    "related_capabilities": [
+      "precice.heated_plate_cht"
+    ]
+  },
+  {
+    "solver": "precice",
+    "version": "3.5.0",
+    "target": "thermal_stress",
+    "role": "supporting_role",
+    "model": "参与者数据交换、映射及耦合迭代",
+    "applicability": "已有外部参与求解器时，进行接口场交换和迭代。",
+    "exclusions": "不产生流体压力、热方程或结构应力；映射算法非物理闭合。",
+    "inputs": [
+      "geometry",
+      "interface_definition"
+    ],
+    "exchanges": [
+      {
+        "from": "参与求解器 A",
+        "to": "参与求解器 B",
+        "quantity": "界面温度或位移",
+        "unit": "K 或 m",
+        "method": "Participant 数据读写及网格映射，配置显式或隐式迭代"
+      }
+    ],
+    "rationale": "preCICE 是耦合库；物理场和目标输出归参与求解器。",
+    "custom_work": "配置两端适配器、接口场、映射、单位与时间同步；指定输出归属。",
+    "checks": [
+      "核对界面方向、单位、映射守恒、耦合收敛及参与求解器验证。"
+    ],
+    "evidence": [
+      {
+        "url": "https://github.com/precice/precice/blob/v3.5.0/src/precice/Participant.hpp",
+        "locator": "v3.5.0 Participant 数据交换 API 和耦合映射",
+        "claim": "固定版手册、源码或示例支持所列求解或工具范围；不代表目标工况精度已验证。"
+      }
+    ],
+    "conditions": {},
+    "mechanisms": [
+      "coupling"
+    ],
+    "related_capabilities": [
+      "precice.interface_mapping"
+    ]
+  }
+]

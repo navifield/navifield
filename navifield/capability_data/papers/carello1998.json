@@ -1,0 +1,186 @@
+[
+  {
+    "id": "carello1998-compressed-air-pressure-drop",
+    "doi": "10.2495/AFM980041",
+    "title": "Pressure drop in pipe lines for compressed air: comparison between experimental and theoretical analysis",
+    "authors": "M. Carello, A. Ivanov, L. Mazza",
+    "year": 1998,
+    "software": "Experiment",
+    "software_version": null,
+    "industry": "流体 / 压缩空气",
+    "targets": [
+      "pressure_drop",
+      "flow_rate"
+    ],
+    "keywords": [
+      "Carello",
+      "ANR",
+      "压缩空气",
+      "直管",
+      "壁面静压差"
+    ],
+    "source_url": "https://www.witpress.com/elibrary/wit-transactions-on-engineering-sciences/18/6214",
+    "source_locator": "pp.35–44；§4, printed p.41, Fig.3",
+    "conditions": [
+      "25 mm 内径、5 m 光滑铝管；上游测压孔距入口 0.25 m，下游测压孔距出口 0.075 m，两孔间距 4.675 m。",
+      "六个图3点分别来自 4、6、8 bar 的上游表压条件。图上流量采用 dm³/min ANR，压差为壁孔 p1−p2。",
+      "ANR 标准参考大气为 293.15 K（20 °C）、100000 Pa 绝对压力和 65% 相对湿度。原论文 pp.36、38 式（4）及 p.44 参考文献 [8] 对应 ISO 8778:1990 第 4 节。"
+    ],
+    "model_chain": [
+      "不同上游表压的仪表测试得到压差对流量的关系；作者另用 Blasius 与 Prandtl 摩阻关系得到理论连续曲线。"
+    ],
+    "required_inputs": [
+      "恢复原实验仍需各次实际气体温度、现场环境绝对压力［由表压确定运行绝对压力的基准］、独立边界和仪器不确定度。",
+      "读图留出值留待独立对照，下游边界不能由待预测的 Δp 反推；平均粗糙度须明确如何换算为等效砂粒粗糙度。"
+    ],
+    "observations": [
+      {
+        "kind": "measured",
+        "quantity": "pressure_drop",
+        "detail": "双人复读图3中两钻石、两方形、两三角形的实验符号。作者理论线与实验符号分开。",
+        "locator": "§4, Fig. 3, p.41"
+      }
+    ],
+    "limitations": [
+      "六点数值约读，图形容差 ±5 mbar 和 ±60 dm³/min ANR 是读图分辨范围，仪器不确定度与实验容差未给出。",
+      "未进行本项目原生求解。无商用 CFD 结果记录。压缩空气和 ANR 条件不能直接作为一般常密度风道的验证。"
+    ],
+    "provenance": "WIT Press 原出版条目和正式 PDF；两名读图者分别核对实验符号与图轴。",
+    "reproduction": {
+      "status": "not_run",
+      "scope": "原实验图3的六个留出候选点。缺失工况，维持 HOLD。",
+      "routes": [],
+      "cases": [],
+      "brief_results": [
+        {
+          "kind": "digitized_experimental_holdout",
+          "conditions": "25 mm 光滑铝管，4/6/8 bar 上游表压",
+          "measurements": [
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 142,
+              "upstream_gauge_bar": 4,
+              "flow_dm3_min_ANR_approx": 5870,
+              "marker": "diamond",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            },
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 161,
+              "upstream_gauge_bar": 4,
+              "flow_dm3_min_ANR_approx": 6350,
+              "marker": "diamond",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            },
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 112,
+              "upstream_gauge_bar": 6,
+              "flow_dm3_min_ANR_approx": 6300,
+              "marker": "square",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            },
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 121,
+              "upstream_gauge_bar": 6,
+              "flow_dm3_min_ANR_approx": 6590,
+              "marker": "square",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            },
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 83,
+              "upstream_gauge_bar": 8,
+              "flow_dm3_min_ANR_approx": 6200,
+              "marker": "triangle",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            },
+            {
+              "quantity": "pressure_drop",
+              "unit": "mbar",
+              "value": 91,
+              "upstream_gauge_bar": 8,
+              "flow_dm3_min_ANR_approx": 6520,
+              "marker": "triangle",
+              "graphical_pressure_halfwidth_mbar": 5,
+              "graphical_flow_halfwidth_dm3_min_ANR": 60,
+              "measurement_definition": "图3压缩空气直管实验点，沿流向壁面静压 p1−p2；流量为 ANR 体积流量。"
+            }
+          ]
+        }
+      ],
+      "gaps": [
+        "各次实际气体温度、现场环境绝对压力、独立下游边界和仪器不确定度未核实。"
+      ],
+      "publisher_pdf": {
+        "url": "https://www.witpress.com/Secure/elibrary/papers/AFM98/AFM98004FU.pdf",
+        "sha256": "d1dc1684c6fd5220c9b1dc8c30ff6c36dc955a8c870cd122d523bbcfd85dbc56"
+      },
+      "digitization_receipt": {
+        "name": "carello-holdout.json",
+        "sha256": "6edfbe8b44ce539e4a40c410667c1f8e74e311d04d95400db15138da21d28c78"
+      },
+      "independent_visual_review": {
+        "name": "carello-fig3-independent.json",
+        "sha256": "1b65315de09f19d9c737b49a5f713804fc74497e39422aa913ae46d699863670"
+      },
+      "input_receipt": {
+        "name": "carello-input.json",
+        "sha256": "f44093e3103219b8d107e0c6ea4d9ec1c0cead206882049f0e1856de8abf9dac"
+      },
+      "required_operating_inputs": {
+        "status": "HOLD_missing_operating_state",
+        "case": "Carello et al smooth aluminium compressed-air pipe, 25 mm candidate",
+        "source": "https://www.witpress.com/Secure/elibrary/papers/AFM98/AFM98004FU.pdf",
+        "diameter_m": 0.025,
+        "total_length_m": 5.0,
+        "upstream_tap_from_inlet_m": 0.25,
+        "downstream_tap_from_outlet_m": 0.075,
+        "tap_spacing_m": 4.675,
+        "wall_material": "aluminium",
+        "reported_average_roughness_m": 1e-06,
+        "roughness_note": "average roughness is not automatically equivalent sand-grain roughness",
+        "fluid": "compressed air",
+        "upstream_gauge_pressure_bar_options": [
+          4,
+          6,
+          8
+        ],
+        "normal_volume_flow": "图3实验符号的 ANR 体积流量；参考状态按 ISO 8778:1990。",
+        "temperature_K": null,
+        "standard_pressure_Pa": 100000,
+        "standard_temperature_K": 293.15,
+        "absolute_pressure_reference_Pa": null,
+        "measurement": "static pressure p1 minus p2 at taps",
+        "outlet_pressure": "unknown, cannot set from held-out pressure drop",
+        "commercial_solver_in_paper": false,
+        "solution_status": "NOT_RUN",
+        "standard_relative_humidity_pct": 65,
+        "anr_reference_standard": {
+          "edition": "ISO 8778:1990",
+          "locator": "§4；原论文 pp.36、38 式（4）、p.44 引文 [8]",
+          "pressure_basis": "absolute",
+          "source_url": "https://www.iso.org/standard/16193.html",
+          "preview_url": "https://preview.sist.si/sist-preview/16193/5f7b7cebed2a45b981b6a15814f8c2f9/ISO-8778-1990.pdf"
+        }
+      },
+      "experimental_acceptance": "NOT_SET"
+    }
+  }
+]
