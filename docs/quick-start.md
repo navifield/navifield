@@ -1,14 +1,22 @@
-# 使用指南
+# 快速开始
 
 [English](quick-start.en.md) · **简体中文**
 
-## 把问题交给自己的助手
+在 Codex 中打开一个新项目目录，在 WorkBuddy 中选择本地工作区，或在项目目录启动 DeepSeek Harness。把[中文首页](../README.zh-CN.md)的提示词连同论文 DOI 或问题发给它，显式读取 [AGENT.md](../AGENT.md)。助手需要能读仓库、在工作区写文件并运行本地命令。无法执行命令时，可手动执行下文的查询，再将输出带回会话。
 
-在 Codex、WorkBuddy 或 DeepSeek Harness 中打开一个项目工作区。复制[首页提示词](../README.zh-CN.md)，将占位文字换成论文链接或你关心的物理量。三端共用仓库的 [AGENT.md](../AGENT.md)，需要选择能读取公开仓库和执行工作区命令的模式。若只有对话权限，可按下文手动查询。
-
-首答应说明目标量、命中的记录与来源、这条路线验证到哪一步，以及还缺什么会改变选型的条件。下一次在同一工作区直接提出新问题即可复用环境。决定计算后，再按案例准备相应求解器。
+助手先用 `python -m pip show navifield`、`navifield capabilities --help` 检查版本和查询子命令。环境可用就复用；需要准备环境时，按下节安装公开发行版并记录解释器路径。已有 DOI 就直接查询；普通问题由助手把原话写入 JSON。首答给出命中的论文或模型、依据、推断和影响目标量的缺项。再次提问沿用同一工作区与解释器，变更工况时分开保存输入与结果。
 
 ## 安装公开版
+
+从 [v0.2.0 发行页](https://github.com/navifield/navifield/releases/tag/v0.2.0) 下载 `navifield-0.2.0-source.zip` 并解压。在包含 `pyproject.toml` 的目录打开 Windows 命令提示符（cmd.exe）。需要 64 位 Python 3.10 或更高版本。下文命令均从该目录执行。
+
+```bat
+py -3 -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install .
+```
+
+## 只查询时也可以安装 wheel
 
 已有项目环境，可用 `python -m pip show navifield` 和 `navifield capabilities --help` 核对版本和查询命令。首次安装使用 Python 3.10 或以上版本。在工作区打开 Windows 命令提示符（cmd.exe），以下命令使用 GitHub 公开的 v0.2.0 wheel。
 
@@ -23,37 +31,38 @@ macOS 或 Linux 使用 `python3 -m venv .venv` 和 `. .venv/bin/activate`，再�
 
 ## 按目标量或论文查询
 
-有 DOI 时先查论文。例如，下面的记录涉及矩形通道压降，可以核对标识、目标量、论文出处以及已做过的复算。
+安装后即可离线查询。譬如，你要预测壁温，先查看候选模型适用的工况、需要哪些边界条件和物性、耦合时交换什么量、怎样校核结果。
 
-```text
+```bat
+navifield capabilities target-inventory --target wall_temperature
+```
+
+如果目标是压降，可以先按目标量列出库中的论文，再按返回的 DOI 打开一条记录。下面的 DOI 来自该查询。阅读时分别看论文的观测量、模型和复算范围，区分论文作者的计算、实验测量和本项目已有的验证。
+
+```bat
+navifield capabilities paper-cases --target pressure_drop
 navifield capabilities paper-cases --doi 10.3390/mi12121580
 ```
 
-对于新问题，助手可把原话存为 UTF-8 编码的 `request.json`，例如 `{"original_request":"已知进出口截面和流量，想求两截面间的压降。"}`，执行第一条命令。这句话在 v0.2.0 返回 `needs_review / no_match`。可改按已知目标查表，例如执行第二条查壁温模型，或执行第三条找压降论文。
-
-```text
-navifield route request.json --brief
-navifield capabilities target-inventory --target wall_temperature
-navifield capabilities paper-cases --target pressure_drop
-```
-
-`navifield capabilities target-schema` 列出支持的目标名称。用 `target-inventory --target pressure_drop` 可继续查压降候选模型的适用条件、必需输入、交换量和校核方法。阅读论文记录时，分别看作者模拟、实验测量和开源复算的范围。[公开证据说明](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)
-
-## 查到路线之后
-
-请助手先指出能执行的案例脚本，核对几何、物理假设、边界条件、目标量读法及参考值。举例来说，圆翅片侧壁换热系数可以改，绝热端部改为对流则要调整建模、端部散热读回和热平衡校核。冷板选型可给出流固换热候选，实际最高壁温还需要工况、网格、求解和芯片区域的温度读回。
-
-- **条件齐全。** 选择已有模板，也可以提供与本机求解器兼容的输入文件。让助手实际运行，从原生输出读回目标量和单位，再与参考值对照。
-- **缺少关键输入。** 例如，同一工况和压力基准下求两端静压差，已给上游读数，就只需补下游静压。
-- **需要开发。** 请助手指出缺少哪个模型、耦合接口或读回方法，怎样影响目标量，并列出可供验证的依据。助手可起草公开标题和正文，交你确认。你明确同意后，支持代发的客户端可提交并返回链接，你也可以自行填写[需求表单](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml)。拒绝或未答复时，草稿留在当前对话。
-
-## 运行一个公开案例
-
-在[公开案例目录](../examples/cli-v01/README.md)按目标量选例。从同一[发行页](https://github.com/navifield/navifield/releases/tag/v0.2.0)下载并解压 `navifield-0.2.0-source.zip`，取得脚本与输入。回到含 `pyproject.toml` 的源码根目录，按该例说明配置求解器、运行并读回结果。基础安装可生成文字 HTML 报告，绘图可在源码根目录选装 `python -m pip install ".[plots]"`。[求解器下载](../THIRD_PARTY_NOTICES.md) · [运行记录与监控](local-runs.md)
-
-源码包也含已填写的选型请求，可用于对照不同工况的模型或求解链。
+手头已有工况时，可以试用随包的结构化请求，查看某个模型或求解链的候选、依据和待补输入。
 
 ```bat
 navifield capabilities select-models examples\cli-v01\model-selection\heated-bracket.json --brief
 navifield capabilities select-chains examples\cli-v01\device-chains\evaporator-net.json --brief
 ```
+
+也可以把自己的需求保存为 UTF-8 编码的 `request.json`，例如 `{"original_request":"已知进出口截面和流量，想求两截面间的压降。"}`，执行 `navifield route request.json --brief`。这句简短描述在 v0.2.0 中返回 `needs_review / no_match`。此时可直接执行 `navifield capabilities target-inventory --target pressure_drop`，按已知目标查找候选模型。选定路线前，核对软件版本、物性、边界条件和结果读回位置。论文记录的来源和可核验范围见[公开证据说明](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)。
+
+## 运行一个公开案例
+
+打开[公开案例目录](../examples/cli-v01/README.md)，按想计算的量选择案例。每页都列出所需求解器、建模和运行命令、读回量与比较方法。按[第三方程序与官方下载地址](../THIRD_PARTY_NOTICES.md)安装该例使用的求解器及配套库，再回到源码根目录运行案例。基础安装可生成运行记录和文字 HTML 报告，绘图可选装 `python -m pip install ".[plots]"`。
+
+运行后可用项目路径和运行号查看日志、输入副本和终态。[运行记录与监控](local-runs.md)
+
+## 查完之后怎么继续
+
+请助手先指出能执行的案例脚本，核对几何、物理假设、边界条件、目标量读法及参考值。举例来说，圆翅片侧壁换热系数可以改，绝热端部改为对流则要调整建模、端部散热读回和热平衡校核。冷板选型可给出流固换热候选，实际最高壁温还需要工况、网格、求解和芯片区域的温度读回。
+
+- **条件齐备就算。** 确认模型适用、参数与单位齐全、本机求解器可运行，选公开模板或你已有的兼容输入实际求解。请助手从原生文件读出目标量，给出数值、单位、文件位置、运行号和参考对照，并点明尚缺哪项验证。已有可用结果时可直接读回。
+- **少一个参数就先问它。** 例如梁的长度、材料和截面均已给出，只有端面总载荷未知。助手应问载荷是多少牛顿，说明它决定挠度；补齐后继续原工况求解。如果缺的是本机可执行文件或 DLL，先按所选案例配置。首轮查无结果或部分命中时，先按 DOI、目标量或具体工况复查。
+- **需要新开发再起草需求。** 说明现有工具能完成的步骤、缺少的模型或接口，以及受影响的目标量。用可公开的信息拟好标题和正文，写明场景或论文、目标量、试过的路线、具体缺口和已有参考。展示草稿后询问：“你愿意把这份需求作为公开 GitHub Issue 提交给 NaviField 维护者吗？”明确同意公开该稿后，客户端可代发一次并返回真实链接，或由用户将草稿贴进[提交论文或仿真需求](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml)。拒绝或未答复时草稿留在本会话。已有功能可稳定复现的故障走[反馈 Bug](https://github.com/navifield/navifield/issues/new?template=bug-report.yml)。
