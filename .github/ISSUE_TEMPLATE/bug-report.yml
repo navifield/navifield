@@ -1,0 +1,42 @@
+name: 反馈 Bug
+description: 报告安装、运行或结果读取中可以观察到的问题。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: 这是公开 Issue。请仅分享你有权公开的资料。
+  - type: textarea
+    id: version-environment
+    attributes:
+      label: 版本和运行环境
+      description: NaviField 版本或下载来源、操作系统；涉及求解器时附名称和版本。查不到的项可写“不清楚”。
+    validations:
+      required: true
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: 怎样遇到这个问题？
+      description: 写最短步骤、运行命令或出错的安装步骤。
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: 预期会发生什么？
+      description: 简述你希望看到的结果。
+    validations:
+      required: true
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: 实际发生了什么？
+      description: 描述现象，可粘贴报错的关键几行。
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 日志、截图或最小示例
+      description: 分享前隐去凭据和客户数据，优先使用公开例子。
+    validations:
+      required: false

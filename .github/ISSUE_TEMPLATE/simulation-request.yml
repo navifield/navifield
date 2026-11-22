@@ -1,0 +1,35 @@
+name: 提交论文或仿真需求
+description: 给我们一篇论文或一个工况，告诉我们你最想得到哪个结果。
+title: "[需求] "
+body:
+  - type: markdown
+    attributes:
+      value: 这是公开 Issue。论文可以只贴链接，附件请使用你有权公开的内容。
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 论文链接或场景描述
+      description: 有论文可贴 DOI 或链接；没有论文，直接描述对象和工况也可以。
+    validations:
+      required: true
+  - type: textarea
+    id: desired-result
+    attributes:
+      label: 你最想得到哪个结果？
+      description: 例如“复算图 4 的流量–压降曲线”，或“求改变冷却水流量后底板的最高温度”。
+    validations:
+      required: true
+  - type: textarea
+    id: available-material
+    attributes:
+      label: 已有资料和参考结果
+      description: 可填写原软件、已知参数、公开输入或参考图号。如果你已有希望达到的误差范围，也可以写在这里。
+    validations:
+      required: false
+  - type: textarea
+    id: trial-feedback
+    attributes:
+      label: 是否愿意试跑？
+      description: 可说明是否方便用自己的电脑复算、反馈结果，以及使用的系统。
+    validations:
+      required: false
