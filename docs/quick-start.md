@@ -18,6 +18,8 @@ python -m pip install .
 
 ## 只查询时也可以安装 wheel
 
+本地构建也可能显示相同版本号。要确认结果来自正式公开版，在发行页取得 `SHA256SUMS.txt`，核对 wheel 或源码 ZIP 的 SHA-256。例如在 PowerShell 执行 `Get-FileHash -Algorithm SHA256 .\navifield-0.2.0-py3-none-any.whl`。已有安装来源无法确认时，用校验过的发行文件建新的项目环境，重查同一条记录。
+
 已有项目环境，可用 `python -m pip show navifield` 和 `navifield capabilities --help` 核对版本和查询命令。首次安装使用 Python 3.10 或以上版本。在工作区打开 Windows 命令提示符（cmd.exe），以下命令使用 GitHub 公开的 v0.2.0 wheel。
 
 ```bat
@@ -66,3 +68,13 @@ navifield capabilities select-chains examples\cli-v01\device-chains\evaporator-n
 - **条件齐备就算。** 确认模型适用、参数与单位齐全、本机求解器可运行，选公开模板或你已有的兼容输入实际求解。请助手从原生文件读出目标量，给出数值、单位、文件位置、运行号和参考对照，并点明尚缺哪项验证。已有可用结果时可直接读回。
 - **少一个参数就先问它。** 例如梁的长度、材料和截面均已给出，只有端面总载荷未知。助手应问载荷是多少牛顿，说明它决定挠度；补齐后继续原工况求解。如果缺的是本机可执行文件或 DLL，先按所选案例配置。首轮查无结果或部分命中时，先按 DOI、目标量或具体工况复查。
 - **需要新开发再起草需求。** 说明现有工具能完成的步骤、缺少的模型或接口，以及受影响的目标量。用可公开的信息拟好标题和正文，写明场景或论文、目标量、试过的路线、具体缺口和已有参考。展示草稿后询问：“你愿意把这份需求作为公开 GitHub Issue 提交给 NaviField 维护者吗？”明确同意公开该稿后，客户端可代发一次并返回真实链接，或由用户将草稿贴进[提交论文或仿真需求](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml)。拒绝或未答复时草稿留在本会话。已有功能可稳定复现的故障走[反馈 Bug](https://github.com/navifield/navifield/issues/new?template=bug-report.yml)。
+
+## 客户端实测
+
+以下为 Windows 上公开 v0.2.0 首用路径的观察。表中只列相应客户端自身执行的动作。
+
+| 客户端 | 怎样开始 | 实测结果 |
+| --- | --- | --- |
+| Codex CLI 0.171.0-alpha.13 | 打开项目工作区，粘贴首页提示词。 | 空工作区首次查 DOI 时复用了另一份 0.2.0 构建。另行提供已校验的 GitHub wheel 后，Codex 安装并查到论文。首答说明了目标量和来源，漏写完整记录 ID 和 DOI。对于翅片，助手只追问缺少的侧壁换热系数，补齐后在同一工作区启动 CalculiX，读回并核对了八站温度。 |
+| DeepSeek Harness 0.2.2-rc.1 | 配好模型服务，在项目目录中启动会话，再发送提示词。 | 原生客户端已接收提问，模型服务在首次答复和工具调用前返回 `MISSING_CREDENTIAL`。认证后的首答及环境复用未测。 |
+| WorkBuddy | 登录客户端、选择本地工作区，粘贴提示词。 | 本轮未测。 |
