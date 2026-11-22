@@ -13,7 +13,7 @@ NaviField CLI 的许可见 `LICENSE` 和 `NOTICE`。本工具箱提供案例输�
 
 Windows MinGW 发行文件标为 v2606。该发行文件中的求解器在实测时同时报告了 Build `34e226dfe3-20211220`。复现实例时请记录两个标识；与 v2606 源码逐项对应的构建配方尚无记录。
 
-串行算例可直接使用对应的安装目录。若 OpenFOAM 默认使用 dummy 通信库，按 README 的八进程配置在自己的电脑上选择同一发行包提供的 MS-MPI 变体。此 ZIP 不含求解器、MPI、MinGW 二进制文件或它们的安装程序。
+串行算例可直接使用对应的安装目录。若 OpenFOAM 默认使用 dummy 通信库，按[圆管案例的八进程配置](examples/cli-v01/pipe/README.md#配置环境)在自己的电脑上选择同一发行包提供的 MS-MPI 变体。此 ZIP 不含求解器、MPI、MinGW 二进制文件或它们的安装程序。
 
 ## Python 及其依赖
 
