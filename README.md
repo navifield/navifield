@@ -1,12 +1,28 @@
-# NaviField 命令行工具箱
+# NaviField Open
 
-NaviField 是给研究生和仿真工程师使用的命令行工具箱。用你自己安装的求解器运行公开算例，它会保存输入副本、原生日志和结果记录。第一次使用可以选下面的悬臂梁，用解析挠度检查整条流程。
+读到一篇用 COMSOL 或 Fluent 做仿真的论文，怎样用开源工具复算其中的温度、压降或应力？NaviField Open 为研究生和工程师公开建模输入、求解步骤和结果读回工具。你可以从一个案例开始，在自己的电脑上改参数、重算，再把同一个物理量与论文对照。
 
-NaviField is a local simulation toolbox for students and engineers. Run your own solvers, keep a reproducible record, and check results against public benchmarks. The examples cover a driven cavity, turbulent pipe flow and a cantilever beam.
+## 黄铜翅片：离开加热端，温度怎样下降？
+
+Çakmak 与 Taylan 研究了一根底端加热、侧壁向空气散热的黄铜圆棒。他们用 COMSOL 5.2 预测沿棒身的稳态温度，并用热电偶测温。本例按论文的名义工况，由开源求解器 **CalculiX 2.22** 求解三维稳态导热。侧壁采用已包含自然对流和辐射的综合换热系数，末端绝热。
+
+为了让这次计算可以修改和复做，NaviField 开发了三步工具。
+
+1. **参数化建模。** 修改圆棒尺寸、导热率、底端温度、环境温度或侧壁换热系数，即可重新生成三维网格、材料和边界条件，写成 CalculiX 输入文件。
+2. **调用求解器。** 在新项目目录中运行本机安装的 CalculiX，保存实际使用的输入、求解日志和原生结果文件，供随后复查。
+3. **读回温度，校核热收支。** 在与论文对应的八个轴向测站，从原生节点温度按截面外周边长加权，得到每站的表面平均温度。再计入底端与侧壁共用节点分担的散热量，核对底端供热与整个侧壁散热是否相等。
+
+**八个测站的温度平均绝对差**，相对论文作者的 **COMSOL 5.2 结果为 0.042 K**，相对**热电偶实测为 1.862 K**。前者衡量两种模型在同一名义工况下的差异，后者衡量模型预测与实物测量的差异。论文未披露热电偶埋深和整套实验的验收阈值。
+
+![八个测站的温度平均绝对差（K）。CalculiX 2.22 相对论文作者的 COMSOL 5.2 结果为 0.042 K，相对热电偶实测为 1.862 K。](docs/images/brass-fin-mae.png)
+
+**[复算黄铜翅片](examples/cli-v01/brass-fin/README.md)** · [阅读原论文](https://doi.org/10.17482/uumfd.446304)
+
+[提交论文或仿真需求](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml) · [反馈 Bug](https://github.com/navifield/navifield/issues/new?template=bug-report.yml)
+
+NaviField Open helps students and engineers reproduce published simulation results with open-source solvers. Each example shows how to build the model, run it locally, and compare a physical quantity with a published prediction or measurement.
 
 ## 安装
-
-v0.2.0 随包提供版本化求解器知识库，以及稳态直圆翅片的建模和原生温度、传热率读回。黄铜翅片示例会在新的项目目录中调用本机 CalculiX 2.22，并逐点对照八个轴向温度。[黄铜翅片示例](examples/cli-v01/brass-fin/README.md)
 
 知识库可离线查询 9 款软件的 678 条工程能力、23 种求解链和 34 条论文记录。先按具体物理量或 DOI 查询，再按需要展开模型、耦合方向、证据和待补输入。
 
