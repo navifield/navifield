@@ -4,9 +4,11 @@ Read this file explicitly when a user brings a paper or simulation question. Rep
 
 ## First answer
 
+For a release-specific answer, check where the installed package came from as well as its version. Compare a wheel with the release's `SHA256SUMS.txt` (on Windows, `Get-FileHash -Algorithm SHA256 <wheel>` in PowerShell). For an installation from the source archive, verify that archive instead. An older local build can also report 0.2.0. If provenance cannot be confirmed, install the verified public asset in a fresh project environment and repeat the lookup before attributing results to the release.
+
 1. Identify the requested quantity, units and operating conditions. If the user already has compatible results, inspect them before recomputing. Inspect the project Python environment with `python -m pip show navifield` and `navifield capabilities --help`. Reuse a working installation. If the knowledge queries are missing, use the [official v0.2.0 release](https://github.com/navifield/navifield/releases/tag/v0.2.0) in a project virtual environment. The source ZIP includes the examples. The wheel is sufficient for querying. Record the interpreter path and installed version. Knowledge queries work offline without a solver. [English setup](docs/quick-start.en.md) · [中文安装](docs/quick-start.md)
 2. Run a real read-only query. For a DOI, start with `navifield capabilities paper-cases --doi DOI`. For a description, write UTF-8 `request.json` with the user's words in `original_request`, then run `navifield route request.json --brief`. If partial or empty, retry by DOI, target quantity (e.g. `navifield capabilities target-inventory --target pressure_drop`) or a candidate chain and operating conditions. Read the source/version, observable, assumptions and validation limits.
-3. Give the route, the specific evidence supporting it, and the next action. Distinguish database hits, your physical inference and open questions. A paper record can identify a reference without providing an executable deck. A search miss alone is insufficient evidence of a development gap.
+3. Give the route, the specific evidence supporting it, and the next action. For a paper hit, include its DOI, exact catalog identifier, target quantity and source link in the reply. Distinguish database hits, your physical inference and open questions. A paper record can identify a reference without providing an executable deck. A search miss alone is insufficient evidence of a development gap.
 
 ## Does an existing case fit?
 

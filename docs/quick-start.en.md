@@ -20,6 +20,8 @@ For a question in plain language, have the agent write UTF-8 `request.json` with
 
 ## Prepare the query tools
 
+Two builds can report the same version. For a result tied to a public release, check the downloaded wheel or source ZIP against `SHA256SUMS.txt` on the release page. In PowerShell, run `Get-FileHash -Algorithm SHA256 .\navifield-0.2.0-py3-none-any.whl`. If the origin of an existing install is uncertain, use a new project environment and repeat the query with the verified asset.
+
 In an existing project environment, run `python -m pip show navifield` and `navifield capabilities --help`. Use an environment with the query commands shown below. For a fresh setup, use Python 3.10 or newer and the official GitHub wheel. These Windows Command Prompt commands install v0.2.0 into the workspace.
 
 ```bat
@@ -40,3 +42,13 @@ Ask for the executable case and compare its geometry, assumptions, boundaries, r
 - **Run the model.** Once the model fits, required inputs are known and a local solver works, run a matching [public example](../examples/cli-v01/README.en.md) or the user's compatible deck. Read the target from native output. Return its value, units, run ID, result path and comparison with a named reference. Identify outstanding validation. Save changed inputs and results separately. [Running and monitoring jobs](local-runs.md)
 - **Complete an input.** Ask only for a value that changes the model or result and explain why. A cantilever with known geometry, material and loading pattern still needs the total end load to predict deflection. Continue on the same route when the user supplies it. If the solver is missing, configure that executable and its libraries using the [solver sources](../THIRD_PARTY_NOTICES.md), then continue.
 - **Request development.** Explain the step that works, the missing model or interface and the quantity it prevents you from reporting. Show a public title and body covering the scenario or paper, desired quantity, attempted route, specific gap and available reference. Ask “Would you like to submit this draft to the NaviField maintainers as a public GitHub issue?” After explicit consent to that draft, a capable client can post it once and return the real URL, or the user can paste it into the [request form](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml). On refusal or no answer, retain the draft in the conversation. For a reproducible fault in an existing feature use the [bug form](https://github.com/navifield/navifield/issues/new?template=bug-report.yml).
+
+## Client trial results
+
+These observations cover the public v0.2.0 workflow on Windows. They distinguish an answer from the client itself from a standalone CLI check.
+
+| Client | How to start | What was observed |
+| --- | --- | --- |
+| Codex CLI 0.171.0-alpha.13 | Open a project workspace and paste the prompt. | In an empty workspace, Codex looked up the paper DOI with an existing 0.2.0 installation. Its wheel hash differed from the GitHub asset. In a separate fresh workspace it installed the verified release, checked the insulated-tip fin and asked only for the missing side-film coefficient. |
+| DeepSeek Harness 0.2.2-rc.1 | Start a workspace session with a configured model provider, then paste the prompt. | The native client accepted the question, then returned `MISSING_CREDENTIAL` before a model reply or tool call. An authenticated first answer and reuse were untested. |
+| WorkBuddy | Select a local workspace in a signed-in client and paste the prompt. | Untested in this round. |
