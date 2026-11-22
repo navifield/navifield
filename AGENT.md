@@ -1,10 +1,20 @@
-# 给 agent 的操作说明
+# Using NaviField Open from a coding agent
 
-1. 按[快速开始](docs/quick-start.md)安装本包并配置用户自己取得的原生求解器。使用同一个 Python 环境；命令行可直接本地执行。
-2. 按[公开案例说明](examples/cli-v01/README.md)创建案例。每一步都用 `navifield.cmd run --project 项目目录 --cwd 案例相对目录 -- 程序 参数...`；`--` 后保持原参数，不能把整条命令拼成一个字符串。调用外部项目输入时使用 `--input 项目相对文件`。
-3. 长任务加 `--background --cores N --wall-seconds 秒`；记录返回的 `rNNN`。用 `status` 查询，用 `stop` 请求停止，随后确认终态。`unknown` 不是成功；停止不等同于安全检查点。
-4. `show` 和 `status` 默认给短 JSON 和明细路径；需要完整 JSON 时使用 `--full`。`report` 生成 HTML。查看原生日志和运行前输入副本；程序退出 0 不代表工程结果正确。
-5. `self-check --project DIR --rid RID` 汇总已有事实、声明及缺项，并写入 HTML；它不判断工程通过。重复 `--rid` 可合看多次运行，额外输入选项见[运行记录与监控](docs/local-runs.md)。
-6. 按各案例的公开公式或参考数据读回结果，报告单位、实际资源和限度。方腔探针应与最终写场同刻；圆管还要核对网格、发展、通量和壁面 y+。不要将单网格结果称为网格无关。
+Answer in the user's language. Start with their research question or design requirement in their own workspace. The first deliverable is an evidenced route, its limits and the facts still needed to choose it. [English user guide](docs/quick-start.en.md) · [简体中文使用指南](docs/quick-start.md)
 
-后台运行后用 `wait` 获取摘要。退出码 0 表示运行成功完成，3 表示返回时仍在运行，1 表示其他终态或状态不可确认。读取 `reason`、`state` 和记录中的求解器退出码；若仍在运行，保留运行号。监测项较多时，摘要提供代表性末值、计数和完整 JSON 文件路径。`--full` 直接打印完整数据；无表时 `monitors` 为空对象。需要查看曲线时启动 `monitor`。支持的日志格式和曲线条数见 [运行监控](docs/local-runs.md#运行监控)。
+## First request
+
+1. **Read this file from the official repository.** Keep the original wording of the question and extract the desired quantity, conditions already supplied, and any DOI. If the link is a paper, identify its DOI before searching. Keep any JSON preparation on the agent side.
+2. **Verify the query environment.** Check the workspace's Python and installed distribution with `python -m pip show navifield`. In that same environment run `navifield capabilities --help`. Confirm the version and a real lookup. For a missing or incompatible installation, create a project virtual environment and install the wheel from the matching [official GitHub release](https://github.com/navifield/navifield/releases/tag/v0.2.0). The user guides include the v0.2.0 wheel URL and commands. Query mode uses the bundled knowledge base. Native solvers are needed only when running a calculation. If the client cannot open the repository, use the guide's download option. If it cannot run a command, identify the blocked step and give the exact manual lookup.
+3. **Run a read-only query.** For a DOI, run `navifield capabilities paper-cases --doi DOI`. Inspect the matching identifier, target, original software, observations, source and reproduction scope. For a new problem, save a UTF-8 JSON object with the original text in `original_request` and run `navifield route request.json --brief`. Keep the command, installed version and actual result available for the answer.
+4. **Follow partial or empty results.** Narrow the lookup using the known physical quantity, a model assumption or the DOI. For example, `navifield capabilities target-inventory --target wall_temperature` gives candidate models, their conditions and required inputs. `navifield capabilities paper-cases --target pressure_drop` finds relevant papers. Use `navifield capabilities target-schema` for supported target names and `navifield capabilities chain-inventory --help` for chain selectors. Check solver version and source before recommending a route. If the library still cannot support it, name the evidence gap and give a concrete next step.
+5. **Return a first answer the user can act on.** State the target quantity and a feasible route, citing the record or source and its applicable conditions. Distinguish a library match, your inference and an unresolved question. Report what was actually calculated or measured and by whom. Ask only for missing information that changes the choice. If the supplied readings already determine the quantity, explain the readback and units. Reuse the verified environment for the next question.
+
+## After the user selects a calculation
+
+Choose a [published example](examples/cli-v01/README.en.md) or identify what would have to be developed. Agree on the quantity, units, operating conditions and verification method, then check the relevant native solver and inputs. Prepare a separate run directory when the conditions change so inputs and results remain attributable.
+
+- For a source-package example, follow its instructions and use `navifield.cmd run --project DIR --cwd CASE -- PROGRAM ARG...` on Windows. Pass each argument separately. Use `--input PROJECT_RELATIVE_FILE` for additional inputs. Keep the run ID.
+- For a long job, use `--background`, `--cores N` and `--wall-seconds SEC`. Use `status` and `wait` to check the actual outcome. A stop request can leave the latest field unwritten. The `wait` exit codes are 0 for successful completion, 3 for a run still in progress and 1 for other or unconfirmed terminal states.
+- `show` and `status` return a summary with paths. Add `--full` for the complete record. `report` produces an HTML report. `self-check --project DIR --rid RID` collects facts and gaps. Repeat `--rid` for multiple runs. Monitoring command syntax and supported log formats are in the [run reference](docs/local-runs.md).
+- Read the requested quantity from the actual output. Return its units, result path, run ID, reference and check. For cavity probes, use the time of the written field. For a pipe, also check mesh, development length, mass flux and wall y+. State the limits of any single-grid comparison.
