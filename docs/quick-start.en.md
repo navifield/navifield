@@ -41,6 +41,8 @@ Use `navifield capabilities target-schema` to find target names. `target-invento
 
 ## After the lookup
 
+Ask for the executable case and compare its geometry, assumptions, boundaries, readback and reference with your problem. For instance, you can change the side-film coefficient of the cylindrical fin. A convective tip also needs a new boundary and an updated heat-balance calculation. A cold-plate model match still needs case-specific conditions, a mesh, a solution and a temperature readback on the chip region.
+
 - **Ready to calculate.** Choose a supported template or supply compatible input files. Ask the agent to run the installed solver, read the native result with units and compare it with a reference.
 - **One deciding input is missing.** For a pressure difference with the upstream static pressure known, the agent can ask for the downstream reading on the same datum and at the same operating point.
 - **A workflow capability is missing.** Ask which model, coupling or result reader needs development. The agent can prepare a public issue draft with the quantity, route tried, gap and validation evidence. You decide whether to post the exact draft. A client that can submit it should return the issue link. You can also use the [request form](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml) yourself. An unapproved draft stays in your conversation.

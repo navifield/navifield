@@ -11,14 +11,14 @@ Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt an
 ```text
 Follow AGENT.md in NaviField Open
 (https://github.com/navifield/navifield).
-Tell me what I can simulate and why.
-When the inputs and tools are ready,
-help me run the model and check
-the results. If new development is
-needed, explain the gap and ask
-whether I want to open a GitHub
-issue. My question or paper:
-[paste here]
+Find an open-source approach and check
+whether an existing case covers my
+conditions and the result I need.
+If it does, help me run and check it.
+Ask for missing parameters. If new
+development is needed, explain the gap
+and ask whether I want to open a GitHub
+issue. My question or paper: [paste here]
 ```
 
 [User guide](docs/quick-start.en.md) · [Browse examples](examples/cli-v01/README.en.md)
