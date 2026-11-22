@@ -9,14 +9,16 @@ Turn your coding agent into your simulation expert. Bring it a research question
 Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt and replace the placeholder with your question or a paper link.
 
 ```text
-Use NaviField Open
-(https://github.com/navifield/navifield)
-and follow its AGENT.md.
-Which open-source tools could help
-answer my question?
-What evidence supports that choice,
-and what inputs are still missing?
-My question or paper: [paste here]
+Follow AGENT.md in NaviField Open
+(https://github.com/navifield/navifield).
+Tell me what I can simulate and why.
+When the inputs and tools are ready,
+help me run the model and check
+the results. If new development is
+needed, explain the gap and ask
+whether I want to open a GitHub
+issue. My question or paper:
+[paste here]
 ```
 
 [User guide](docs/quick-start.en.md) · [Browse examples](examples/cli-v01/README.en.md)

@@ -39,6 +39,12 @@ navifield capabilities paper-cases --target pressure_drop
 
 `navifield capabilities target-schema` 列出支持的目标名称。用 `target-inventory --target pressure_drop` 可继续查压降候选模型的适用条件、必需输入、交换量和校核方法。阅读论文记录时，分别看作者模拟、实验测量和开源复算的范围。[公开证据说明](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)
 
+## 查到路线之后
+
+- **条件齐全。** 选择已有模板，也可以提供与本机求解器兼容的输入文件。让助手实际运行，从原生输出读回目标量和单位，再与参考值对照。
+- **缺少关键输入。** 例如，同一工况和压力基准下求两端静压差，已给上游读数，就只需补下游静压。
+- **需要开发。** 请助手指出缺少哪个模型、耦合接口或读回方法，怎样影响目标量，并列出可供验证的依据。助手可起草公开标题和正文，交你确认。你明确同意后，支持代发的客户端可提交并返回链接，你也可以自行填写[需求表单](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml)。拒绝或未答复时，草稿留在当前对话。
+
 ## 运行一个公开案例
 
 在[公开案例目录](../examples/cli-v01/README.md)按目标量选例。从同一[发行页](https://github.com/navifield/navifield/releases/tag/v0.2.0)下载并解压 `navifield-0.2.0-source.zip`，取得脚本与输入。回到含 `pyproject.toml` 的源码根目录，按该例说明配置求解器、运行并读回结果。基础安装可生成文字 HTML 报告，绘图可在源码根目录选装 `python -m pip install ".[plots]"`。[求解器下载](../THIRD_PARTY_NOTICES.md) · [运行记录与监控](local-runs.md)

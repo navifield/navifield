@@ -39,6 +39,12 @@ navifield capabilities paper-cases --target pressure_drop
 
 Use `navifield capabilities target-schema` to find target names. `target-inventory` describes model applicability, inputs, quantities exchanged and checks. Keep the paper authors' numerical results, experimental measurements and the open-source reproduction distinct. [Public evidence notes](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)
 
+## After the lookup
+
+- **Ready to calculate.** Choose a supported template or supply compatible input files. Ask the agent to run the installed solver, read the native result with units and compare it with a reference.
+- **One deciding input is missing.** For a pressure difference with the upstream static pressure known, the agent can ask for the downstream reading on the same datum and at the same operating point.
+- **A workflow capability is missing.** Ask which model, coupling or result reader needs development. The agent can prepare a public issue draft with the quantity, route tried, gap and validation evidence. You decide whether to post the exact draft. A client that can submit it should return the issue link. You can also use the [request form](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml) yourself. An unapproved draft stays in your conversation.
+
 ## Run a model locally
 
 Choose a [worked example](../examples/cli-v01/README.en.md). Download and extract `navifield-0.2.0-source.zip` from the same [release](https://github.com/navifield/navifield/releases/tag/v0.2.0) for the scripts and inputs. Run the example from the directory containing `pyproject.toml`, install the required local solver and follow the case-specific instructions. Those pages explain how to change inputs, read the output quantity and compare it with a reference. [Solver downloads](../THIRD_PARTY_NOTICES.md) · [Run records and monitoring](local-runs.md)

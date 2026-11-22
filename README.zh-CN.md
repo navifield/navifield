@@ -9,13 +9,14 @@
 在自己的工作区打开 Codex、WorkBuddy 或 DeepSeek Harness，复制下面的提示词，把最后的占位文字换成你的问题或论文链接。
 
 ```text
-请使用 NaviField Open
-（https://github.com/navifield/navifield），
-按仓库的 AGENT.md 查询我的问题。
-先告诉我有哪些可参考的开源求解路线、
-依据是什么、还缺哪些条件。
-我的问题是：
-【在这里写仿真需求或粘贴论文链接】
+请按 NaviField Open
+（https://github.com/navifield/navifield）
+的 AGENT.md 评估我的问题。
+告诉我能算什么、依据是什么。
+条件齐备时帮我求解并核对结果；
+需要新开发时，说明缺口，问我
+是否愿意把需求发到 GitHub。
+我的问题或论文链接是：【填在这里】
 ```
 
 [使用指南](docs/quick-start.md) · [公开案例](examples/cli-v01/README.md)
