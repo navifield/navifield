@@ -16,6 +16,19 @@ call .venv\Scripts\activate.bat
 python -m pip install .
 ```
 
+## 只查询时也可以安装 wheel
+
+已有项目环境，可用 `python -m pip show navifield` 和 `navifield capabilities --help` 核对版本和查询命令。首次安装使用 Python 3.10 或以上版本。在工作区打开 Windows 命令提示符（cmd.exe），以下命令使用 GitHub 公开的 v0.2.0 wheel。
+
+```bat
+py -3 -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install "https://github.com/navifield/navifield/releases/download/v0.2.0/navifield-0.2.0-py3-none-any.whl"
+python -m pip show navifield
+```
+
+macOS 或 Linux 使用 `python3 -m venv .venv` 和 `. .venv/bin/activate`，再执行相同的 pip 命令。如果直链下载失败，可在 [GitHub 发行页](https://github.com/navifield/navifield/releases/tag/v0.2.0) 下载 wheel，再用 pip 安装本地文件。同页的 `SHA256SUMS.txt` 可供核对。若从其他渠道安装，也请核实版本和命令是否齐全。
+
 ## 按目标量或论文查询
 
 安装后即可离线查询。譬如，你要预测壁温，先查看候选模型适用的工况、需要哪些边界条件和物性、耦合时交换什么量、怎样校核结果。
@@ -47,6 +60,8 @@ navifield capabilities select-chains examples\cli-v01\device-chains\evaporator-n
 运行后可用项目路径和运行号查看日志、输入副本和终态。[运行记录与监控](local-runs.md)
 
 ## 查完之后怎么继续
+
+请助手先指出能执行的案例脚本，核对几何、物理假设、边界条件、目标量读法及参考值。举例来说，圆翅片侧壁换热系数可以改，绝热端部改为对流则要调整建模、端部散热读回和热平衡校核。冷板选型可给出流固换热候选，实际最高壁温还需要工况、网格、求解和芯片区域的温度读回。
 
 - **条件齐备就算。** 确认模型适用、参数与单位齐全、本机求解器可运行，选公开模板或你已有的兼容输入实际求解。请助手从原生文件读出目标量，给出数值、单位、文件位置、运行号和参考对照，并点明尚缺哪项验证。已有可用结果时可直接读回。
 - **少一个参数就先问它。** 例如梁的长度、材料和截面均已给出，只有端面总载荷未知。助手应问载荷是多少牛顿，说明它决定挠度；补齐后继续原工况求解。如果缺的是本机可执行文件或 DLL，先按所选案例配置。首轮查无结果或部分命中时，先按 DOI、目标量或具体工况复查。

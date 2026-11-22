@@ -4,20 +4,23 @@
 
 **Find an open-source simulation workflow that fits your problem.**
 
-Turn your coding agent into your simulation expert. Bring a research or product question. With a suitable model, the necessary inputs and a local solver, your agent can run the calculation and check the result against a reference.
+Turn your coding agent into your simulation expert. Bring it a research question or a product design problem, and work out which tools to use, what inputs you need, and how to validate the results.
 
-Copy this prompt into Codex, WorkBuddy or DeepSeek Harness and add your question.
+Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt and replace the placeholder with your question or a paper link.
 
 ```text
-Read AGENT.md in NaviField Open:
-https://github.com/navifield/navifield
-Find a route and cite its evidence.
-If a search misses, try the quantity or flow conditions.
-Ask for missing inputs. When ready, run the solver locally,
-read the requested quantity and check it against a reference.
-If development is needed, show me a public issue draft
-and ask before posting it.
-My question or paper: [paste here]
+Follow AGENT.md in NaviField Open
+(https://github.com/navifield/navifield).
+Find an open-source approach and check
+whether an existing case covers my
+conditions and the result I need.
+If it does, help me run and check it.
+Ask for missing parameters. If new
+development is needed, explain the gap
+and ask whether I want to open a GitHub
+issue. My question or paper: [paste here]
 ```
 
-[User guide](docs/quick-start.en.md) · [Browse examples](examples/cli-v01/README.md) · [Submit a paper or simulation request](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml) · [Report a bug](https://github.com/navifield/navifield/issues/new?template=bug-report.yml)
+[User guide](docs/quick-start.en.md) · [Browse examples](examples/cli-v01/README.en.md)
+
+[Submit a paper or simulation request](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml) · [Report a bug](https://github.com/navifield/navifield/issues/new?template=bug-report.yml)

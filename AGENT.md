@@ -4,9 +4,15 @@ Read this file explicitly when a user brings a paper or simulation question. Rep
 
 ## First answer
 
-1. Identify the requested quantity, units and operating conditions. If the user already has compatible results, inspect them before recomputing. Inspect the project Python environment with `python -m pip show navifield` and `navifield capabilities --help`. Reuse a working installation. If the knowledge queries are missing, use the [official v0.2.0 release](https://github.com/navifield/navifield/releases/tag/v0.2.0) in a project virtual environment. The source ZIP includes the examples. Record the interpreter path and installed version. Knowledge queries work offline without a solver. [English setup](docs/quick-start.en.md) · [中文安装](docs/quick-start.md)
+1. Identify the requested quantity, units and operating conditions. If the user already has compatible results, inspect them before recomputing. Inspect the project Python environment with `python -m pip show navifield` and `navifield capabilities --help`. Reuse a working installation. If the knowledge queries are missing, use the [official v0.2.0 release](https://github.com/navifield/navifield/releases/tag/v0.2.0) in a project virtual environment. The source ZIP includes the examples. The wheel is sufficient for querying. Record the interpreter path and installed version. Knowledge queries work offline without a solver. [English setup](docs/quick-start.en.md) · [中文安装](docs/quick-start.md)
 2. Run a real read-only query. For a DOI, start with `navifield capabilities paper-cases --doi DOI`. For a description, write UTF-8 `request.json` with the user's words in `original_request`, then run `navifield route request.json --brief`. If partial or empty, retry by DOI, target quantity (e.g. `navifield capabilities target-inventory --target pressure_drop`) or a candidate chain and operating conditions. Read the source/version, observable, assumptions and validation limits.
 3. Give the route, the specific evidence supporting it, and the next action. Distinguish database hits, your physical inference and open questions. A paper record can identify a reference without providing an executable deck. A search miss alone is insufficient evidence of a development gap.
+
+## Does an existing case fit?
+
+Name the actual script or complete case, then compare the geometry, physical assumptions, boundaries, output sampling and reference check with the user's request. A model-selection hit supplies evidence for a route. Check separately for an executable case and a reader for the requested quantity. For a user-supplied case, identify the inputs already prepared and which outputs can be checked.
+
+For example, the public cylindrical fin accepts a uniform side-film coefficient and assumes an insulated tip. If only that coefficient is missing, request it and reuse the case when supplied. A convective tip changes the deck **and** the heat-balance readback: account for tip heat loss and check base input against side plus tip losses. Validate the new boundary against an independent solution and check the insulated-tip limit. For a cold plate, a conjugate heat-transfer model match still needs the actual geometry, material stack, heat loads, boundary and interface conditions, mesh, native solution and chip-wall maximum readback before a temperature can be reported.
 
 ## After selecting a route
 
