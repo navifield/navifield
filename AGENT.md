@@ -1,10 +1,27 @@
-# 给 agent 的操作说明
+# Using NaviField Open with a coding agent
 
-1. 按[快速开始](docs/quick-start.md)安装本包并配置用户自己取得的原生求解器。使用同一个 Python 环境；命令行可直接本地执行。
-2. 按[公开案例说明](examples/cli-v01/README.md)创建案例。每一步都用 `navifield.cmd run --project 项目目录 --cwd 案例相对目录 -- 程序 参数...`；`--` 后保持原参数，不能把整条命令拼成一个字符串。调用外部项目输入时使用 `--input 项目相对文件`。
-3. 长任务加 `--background --cores N --wall-seconds 秒`；记录返回的 `rNNN`。用 `status` 查询，用 `stop` 请求停止，随后确认终态。`unknown` 不是成功；停止不等同于安全检查点。
-4. `show` 和 `status` 默认给短 JSON 和明细路径；需要完整 JSON 时使用 `--full`。`report` 生成 HTML。查看原生日志和运行前输入副本；程序退出 0 不代表工程结果正确。
-5. `self-check --project DIR --rid RID` 汇总已有事实、声明及缺项，并写入 HTML；它不判断工程通过。重复 `--rid` 可合看多次运行，额外输入选项见[运行记录与监控](docs/local-runs.md)。
-6. 按各案例的公开公式或参考数据读回结果，报告单位、实际资源和限度。方腔探针应与最终写场同刻；圆管还要核对网格、发展、通量和壁面 y+。不要将单网格结果称为网格无关。
+Read this file explicitly when a user brings a paper or simulation question. Reply in their language. Keep the question, environment, inputs and results together in their workspace so a follow-up can reuse them.
 
-后台运行后用 `wait` 获取摘要。退出码 0 表示运行成功完成，3 表示返回时仍在运行，1 表示其他终态或状态不可确认。读取 `reason`、`state` 和记录中的求解器退出码；若仍在运行，保留运行号。监测项较多时，摘要提供代表性末值、计数和完整 JSON 文件路径。`--full` 直接打印完整数据；无表时 `monitors` 为空对象。需要查看曲线时启动 `monitor`。支持的日志格式和曲线条数见 [运行监控](docs/local-runs.md#运行监控)。
+## First answer
+
+1. Identify the requested quantity, units and operating conditions. If the user already has compatible results, inspect them before recomputing. Inspect the project Python environment with `python -m pip show navifield` and `navifield capabilities --help`. Reuse a working installation. If the knowledge queries are missing, use the [official v0.2.0 release](https://github.com/navifield/navifield/releases/tag/v0.2.0) in a project virtual environment. The source ZIP includes the examples. Record the interpreter path and installed version. Knowledge queries work offline without a solver. [English setup](docs/quick-start.en.md) · [中文安装](docs/quick-start.md)
+2. Run a real read-only query. For a DOI, start with `navifield capabilities paper-cases --doi DOI`. For a description, write UTF-8 `request.json` with the user's words in `original_request`, then run `navifield route request.json --brief`. If partial or empty, retry by DOI, target quantity (e.g. `navifield capabilities target-inventory --target pressure_drop`) or a candidate chain and operating conditions. Read the source/version, observable, assumptions and validation limits.
+3. Give the route, the specific evidence supporting it, and the next action. Distinguish database hits, your physical inference and open questions. A paper record can identify a reference without providing an executable deck. A search miss alone is insufficient evidence of a development gap.
+
+## After selecting a route
+
+- **Run when ready.** Confirm model applicability, required physical inputs and a working local solver. Use the matching [public example](examples/cli-v01/README.md) or the user's compatible model input. State the agreed conditions, then launch the solver in a new run directory. Preserve units, conditions and run IDs. Check solver completion, read the requested quantity from native output and report its value, units, file location and comparison to a named reference. Identify any missing validation separately (for example, an experimental measurement at the same load). When conditions change, keep the previous input and results.
+- **Ask for a missing input.** Name the parameter and the result or model choice it controls. Ask only what changes the answer. Wait for that value, keep the selected route, then continue the calculation. If the local executable or supporting libraries are missing, help configure the chosen solver and resume. [Solver sources](THIRD_PARTY_NOTICES.md)
+- **Propose new development.** Check the release's templates, compatible user inputs, native solver capabilities and result readers. Explain what already works, which model, coupling interface or reader is missing, and which observable consequently remains unavailable. Draft a public title and body with the scenario or public paper link, requested quantity, attempted route, precise gap and any available validation reference. Omit private paths, attachments, unpublished paper text and unapproved product parameters. Show the exact draft to the requester and ask: **你愿意把这份需求作为公开 GitHub Issue 提交给 NaviField 维护者吗？** In English: “Would you like to submit this draft to the NaviField maintainers as a public GitHub issue?”
+- With explicit consent to **this draft**, a posting-capable client may submit it once and return the actual issue URL; alternatively provide the draft and the [request form](https://github.com/navifield/navifield/issues/new?template=simulation-request.yml). After refusal or silence, keep it in the conversation. A material change to the draft needs fresh consent. For a reproducible failure of an existing feature use the [bug form](https://github.com/navifield/navifield/issues/new?template=bug-report.yml), sharing only public material.
+
+## Local run records
+
+Pass the executable and each argument separately after `--`. The working directory is relative to the project. For example:
+
+```text
+navifield run --project work/beam --cwd case --cores 1 --wall-seconds 120 -- ccx -i beam
+navifield show --project work/beam --rid r001
+```
+
+Use the returned run ID. For additional project inputs use `--input` with a project-relative path. For a long job, add `--background` and use `wait`, `status` or `stop`; confirm the terminal state after a stop request. A wait exit code of 3 means the job was still running, 0 means it finished successfully, and 1 covers other or unknown terminal outcomes. Inspect the solver exit code, native log and inputs. `--full` expands the summary; `report` and `self-check` collect recorded facts and declared checks. Validate the physical observable against the example's formula or data. [Run records and monitoring](docs/local-runs.md)
