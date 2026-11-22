@@ -75,6 +75,6 @@ navifield capabilities select-chains examples\cli-v01\device-chains\evaporator-n
 
 | 客户端 | 怎样开始 | 实测结果 |
 | --- | --- | --- |
-| Codex CLI 0.171.0-alpha.13 | 打开项目工作区，粘贴首页提示词。 | 在空工作区中，Codex 调用已有的 0.2.0 环境按 DOI 查到论文。那次安装的 wheel 哈希与正式发布文件不同。在另一新工作区，它安装了哈希匹配的正式 wheel，核对绝热端翅片，并只追问缺少的侧壁换热系数。 |
+| Codex CLI 0.171.0-alpha.13 | 打开项目工作区，粘贴首页提示词。 | 空工作区首次查 DOI 时复用了另一份 0.2.0 构建。另行提供已校验的 GitHub wheel 后，Codex 安装并查到论文。首答说明了目标量和来源，漏写完整记录 ID 和 DOI。对于翅片，助手只追问缺少的侧壁换热系数，补齐后在同一工作区启动 CalculiX，读回并核对了八站温度。 |
 | DeepSeek Harness 0.2.2-rc.1 | 配好模型服务，在项目目录中启动会话，再发送提示词。 | 原生客户端已接收提问，模型服务在首次答复和工具调用前返回 `MISSING_CREDENTIAL`。认证后的首答及环境复用未测。 |
 | WorkBuddy | 登录客户端、选择本地工作区，粘贴提示词。 | 本轮未测。 |

@@ -49,6 +49,6 @@ These observations cover the public v0.2.0 workflow on Windows. They distinguish
 
 | Client | How to start | What was observed |
 | --- | --- | --- |
-| Codex CLI 0.171.0-alpha.13 | Open a project workspace and paste the prompt. | In an empty workspace, Codex looked up the paper DOI with an existing 0.2.0 installation. Its wheel hash differed from the GitHub asset. In a separate fresh workspace it installed the verified release, checked the insulated-tip fin and asked only for the missing side-film coefficient. |
+| Codex CLI 0.171.0-alpha.13 | Open a project workspace and paste the prompt. | An empty-workspace DOI query first reused a different 0.2.0 wheel. A separate trial supplied the verified GitHub wheel, and Codex installed it and found the paper. The first reply explained the quantities and gave a source but omitted the full catalog ID and DOI. For the fin it asked only for the missing film coefficient, then ran CalculiX and checked eight temperatures in the same workspace. |
 | DeepSeek Harness 0.2.2-rc.1 | Start a workspace session with a configured model provider, then paste the prompt. | The native client accepted the question, then returned `MISSING_CREDENTIAL` before a model reply or tool call. An authenticated first answer and reuse were untested. |
 | WorkBuddy | Select a local workspace in a signed-in client and paste the prompt. | Untested in this round. |
