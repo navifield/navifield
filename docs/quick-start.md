@@ -34,7 +34,7 @@ navifield capabilities select-models examples\cli-v01\model-selection\heated-bra
 navifield capabilities select-chains examples\cli-v01\device-chains\evaporator-net.json --brief
 ```
 
-也可以把自己的需求保存为 UTF-8 编码的 `request.json`，例如 `{"original_request":"已知进出口截面和流量，想求两截面间的压降。"}`，执行 `navifield route request.json --brief`。首次查询可能只有部分候选或没有匹配。选定路线前，核对软件版本、物性、边界条件和结果读回位置。论文记录的来源和可核验范围见[公开证据说明](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)。
+也可以把自己的需求保存为 UTF-8 编码的 `request.json`，例如 `{"original_request":"已知进出口截面和流量，想求两截面间的压降。"}`，执行 `navifield route request.json --brief`。这句简短描述在 v0.2.0 中返回 `needs_review / no_match`。此时可直接执行 `navifield capabilities target-inventory --target pressure_drop`，按已知目标查找候选模型。选定路线前，核对软件版本、物性、边界条件和结果读回位置。论文记录的来源和可核验范围见[公开证据说明](../navifield/capability_data/PUBLIC_EVIDENCE_BOUNDARY.txt)。
 
 ## 运行一个公开案例
 
