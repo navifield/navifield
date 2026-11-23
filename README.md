@@ -4,7 +4,7 @@
 
 **Find an open-source simulation workflow that fits your problem.**
 
-Turn your coding agent into your simulation expert. Bring it a research question or a product design problem, and work out which tools to use, what inputs you need, and how to validate the results.
+Turn your coding agent into your simulation expert. Bring a research or product question. With a suitable model, the required inputs and a working local solver, your agent can run the model on your computer and check the result against a reference.
 
 Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt and replace the placeholder with your question or a paper link.
 
