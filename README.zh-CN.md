@@ -4,25 +4,17 @@
 
 <img src="docs/images/research-pixel-cover.webp" width="600" alt="像素画中的研究生在工作站观察仿真网格与流线，桌上放着晶格模型和研究笔记。">
 
-**为你的仿真问题找到可用的开源求解路线。**
+**论文里的这张仿真图，我也能用开源软件算出来吗？**
 
-让你的 coding agent 成为你的仿真专家。带上你的研究课题或产品问题，先找适用的模型。你确认试算方案后，助手可以在本机运行适用的模型，并用参考值核对结果。
+把论文和图号发给你的 coding agent，或者告诉它你想预测产品的哪个量。NaviField 帮它查找合适的开源求解器和可复用的算例，告诉你还缺哪些条件。有适用算例时，你确认后就能在本机复算。
 
-在自己的工作区打开 Codex、WorkBuddy 或 DeepSeek Harness，**复制下面的提示词**，把最后的占位文字换成你的问题或论文链接。
+**复制提示词开始试用**
 
 ```text
-请按 NaviField Open 的 AGENT.md 操作
-（https://github.com/navifield/navifield）。
-工作区已有这份指南时，先读本地副本。
-只问选型时，请查资料并给出有出处的候选。
-用途或目标不清时，先问我想选型还是试算，
-以及想得到什么量。已给的信息直接用。
-试算前（包括脚本和演示），请概述模型、
-输入来源、假设和预期输出，等我明确
-确认这份方案后再运行。
-需要开发时，请说明缺口，并在公开
-提交 Issue 前另行征得我的同意。
-我的课题或论文是【粘贴在这里】。
+请按 NaviField Open 的助手指南
+帮我查找开源求解路线。
+https://github.com/navifield/navifield/blob/main/AGENT.md
+我的课题：[填写论文和图号，或想预测的工程量]
 ```
 
 无需 GitHub 账号即可试用。想在自己的 GitHub 账号下保留或修改项目？[Fork 一份](https://github.com/navifield/navifield/fork)。
