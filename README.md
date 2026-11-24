@@ -4,21 +4,25 @@
 
 **Find an open-source simulation workflow that fits your problem.**
 
-Turn your coding agent into your simulation expert. Bring a research or product question. With a suitable model, the required inputs and a working local solver, your agent can run the model on your computer and check the result against a reference.
+Turn your coding agent into your simulation expert. Bring a research or product question. Once you confirm a trial plan, your agent can run a suitable model on your computer and check the result against a reference.
 
 Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt and replace the placeholder with your question or a paper link.
 
 ```text
-Follow AGENT.md in NaviField Open
+Follow NaviField Open’s AGENT.md
 (https://github.com/navifield/navifield).
-Find an open-source approach and check
-whether an existing case covers my
-conditions and the result I need.
-If it does, help me run and check it.
-Ask for missing parameters. If new
-development is needed, explain the gap
-and ask whether I want to open a GitHub
-issue. My question or paper: [paste here]
+For software selection, look up options
+and cite the evidence. If my goal is
+unclear, ask me what matters.
+Before any trial, including a script
+or a demo, summarize the model, input
+sources, assumptions and expected
+outputs. Run only after I explicitly
+confirm that plan.
+If development is needed, explain the
+gap and get my separate approval
+before posting a public issue.
+My question or paper is [paste here].
 ```
 
 [User guide](docs/quick-start.en.md) · [Browse examples](examples/cli-v01/README.en.md)
