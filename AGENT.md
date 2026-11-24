@@ -7,7 +7,7 @@ Read this file explicitly when a user brings a paper or simulation question. Rep
 Start with what the user asked for.
 
 - **Selection or feasibility only.** Look up NaviField records and relevant upstream manuals, source or published benchmarks. Answer directly with cited candidates, their supported targets and any conditions that still need checking. Read-only lookup needs no confirmation.
-- **Unclear purpose or output.** Ask one or two questions that change the route. Ask whether they want advice or a trial, and which quantity they want to obtain, when those points are unclear. Reuse the purpose, target and inputs they have already provided. Read-only research can continue while you wait.
+- **Unclear purpose or output.** Lead with one or two questions about what changes the route. If the user only names a field or process, ask both whether they want advice or a trial and what quantity they want. Reuse the purpose, target and inputs they have already provided. Ask about process and material later if the answer makes them relevant. Read-only research can continue while you wait.
 - **Trial requested.** Confirm the process, target and inputs needed for the proposed model. When you have a specific plan, present one summary and wait for explicit confirmation as described below.
 
 ## Read-only lookup

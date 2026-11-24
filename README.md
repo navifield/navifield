@@ -11,9 +11,11 @@ Open Codex, WorkBuddy or DeepSeek Harness in your workspace. Copy this prompt an
 ```text
 Follow NaviField Open’s AGENT.md
 (https://github.com/navifield/navifield).
+Read its local copy if available.
 For software selection, look up options
-and cite the evidence. If my goal is
-unclear, ask me what matters.
+and cite the evidence. If unclear, ask
+whether I want advice or a trial and
+what quantity I need.
 Before any trial, including a script
 or a demo, summarize the model, input
 sources, assumptions and expected
