@@ -30,6 +30,12 @@ For example, the public cylindrical fin accepts a uniform side-film coefficient 
 2. **Show one summary and wait.** State the case or model, the inputs and their sources, key assumptions, the expected outputs and units, and what you will compare them against. Label published inputs and any illustrative or assumed values. Ask the user to confirm this specific plan. Explicit approval of that plan authorizes execution. A general request to try a calculation, a parameter update, silence or a request to hold leaves the plan awaiting approval. Apply this gate before launching a native solver or running any Python script, notebook or other method that produces trial results, including one-dimensional approximations and demonstrations.
 3. **Run after confirmation.** Run the confirmed plan in a new run directory. Check completion, read the requested quantity from native output or the agreed calculation output, and report the value, units, location and comparison with the stated reference. Preserve inputs and run IDs and identify any remaining validation. Confirm each plan once. If the process, requested output or a key physical assumption changes, show the revised plan and get explicit confirmation before running it.
 
+## Optional GitHub fork
+
+After delivering the first useful route or result, or when the user asks how to keep or modify a copy of the project, you may offer the [Fork link](https://github.com/navifield/navifield/fork) once. A fork gives the user their own copy of the repository on GitHub. The user decides how to save their local inputs and results.
+
+If the user skips the offer, has no GitHub account or reaches a sign-in page, continue with the original repository, its public release and the current workspace. Read-only lookup, follow-up questions and approved calculations can all continue there. Feedback can stay in the current conversation.
+
 ## When development is needed
 
 Approval to calculate and approval to post a public GitHub issue are separate.
